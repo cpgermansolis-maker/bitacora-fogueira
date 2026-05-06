@@ -1,0 +1,1783 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bitácora de Supervisión · Fogueira</title>
+<meta name="description" content="Tablero de supervisión de los tres pilares operativos de Fogueira — Grupo Toda · Plaza Oaxaca">
+
+<!-- Tipografía: Fraunces (display) + DM Sans (body). Combinación poco usada y con personalidad editorial. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+/* =========================================================
+   PALETA & TIPOGRAFÍA — variables CSS para fácil mantenimiento
+   ========================================================= */
+:root {
+  /* Fondos */
+  --bg-primary: #F5EFE3;       /* crema cálida */
+  --bg-paper:   #FBF7EE;       /* papel oficio */
+  --bg-elevated:#FFFFFF;
+  --bg-deep:    #14100C;       /* negro café */
+
+  /* Tinta */
+  --ink:        #1A1410;
+  --ink-soft:   #5C4F42;
+  --ink-muted:  #948576;
+  --ink-light:  #C9BCA9;
+
+  /* Bordes */
+  --border:     #E5D9C2;
+  --border-strong: #C9BCA9;
+
+  /* Acentos Fogueira */
+  --gold:       #B8893A;       /* dorado parrilla */
+  --gold-deep:  #8B6427;
+  --gold-soft:  #EFE0BC;
+  --gold-line:  #D9B570;
+
+  /* Acentos auditor */
+  --navy:       #1F3D5C;
+  --navy-deep:  #122A42;
+
+  /* Semáforo cálido */
+  --green:      #4A7C59;
+  --green-bg:   #DDE9DC;
+  --amber:      #C8932E;
+  --amber-bg:   #F5E5C0;
+  --orange:     #D17A36;
+  --orange-bg:  #F5DCC4;
+  --red:        #A8412A;
+  --red-bg:     #F0D5CC;
+
+  /* Tipografía */
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body:    'DM Sans', system-ui, sans-serif;
+
+  /* Sombras */
+  --shadow-sm: 0 1px 2px rgba(20,16,12,0.04), 0 1px 3px rgba(20,16,12,0.06);
+  --shadow-md: 0 4px 8px rgba(20,16,12,0.06), 0 2px 4px rgba(20,16,12,0.04);
+  --shadow-lg: 0 12px 24px rgba(20,16,12,0.08), 0 4px 8px rgba(20,16,12,0.05);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 16px; }
+body {
+  font-family: var(--font-body);
+  background: var(--bg-primary);
+  color: var(--ink);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  background-image:
+    radial-gradient(circle at 15% 10%, rgba(184,137,58,0.04), transparent 40%),
+    radial-gradient(circle at 85% 90%, rgba(31,61,92,0.03), transparent 50%);
+}
+
+h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 600; line-height: 1.15; letter-spacing: -0.01em; color: var(--ink); }
+h1 { font-size: clamp(1.75rem, 4vw, 2.5rem); }
+h2 { font-size: clamp(1.4rem, 3vw, 1.85rem); }
+h3 { font-size: 1.2rem; font-weight: 500; }
+h4 { font-size: 1rem; font-weight: 600; }
+
+a { color: var(--gold-deep); text-decoration: none; border-bottom: 1px solid transparent; transition: border 0.15s; }
+a:hover { border-bottom-color: var(--gold-deep); }
+
+button { font-family: inherit; cursor: pointer; border: none; background: none; }
+input, select, textarea {
+  font-family: inherit; font-size: 0.95rem; color: var(--ink);
+  background: var(--bg-elevated); border: 1px solid var(--border-strong);
+  padding: 0.6rem 0.85rem; border-radius: 6px; width: 100%;
+  transition: border 0.15s, box-shadow 0.15s;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none; border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(184,137,58,0.15);
+}
+label { display: block; font-size: 0.82rem; font-weight: 500; color: var(--ink-soft); margin-bottom: 0.3rem; text-transform: uppercase; letter-spacing: 0.06em; }
+
+/* =========================================================
+   APP SHELL
+   ========================================================= */
+.app {
+  display: flex; flex-direction: column; min-height: 100vh;
+}
+
+/* HEADER */
+.header {
+  background: var(--bg-deep); color: #F5EFE3;
+  border-bottom: 3px solid var(--gold);
+  position: sticky; top: 0; z-index: 50;
+  box-shadow: var(--shadow-md);
+}
+.header-inner {
+  max-width: 1280px; margin: 0 auto; padding: 0.85rem 1.25rem;
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  flex-wrap: wrap;
+}
+.brand {
+  display: flex; align-items: center; gap: 0.85rem;
+}
+.brand-mark {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-deep) 100%);
+  display: grid; place-items: center;
+  font-family: var(--font-display); font-weight: 700; font-size: 1.1rem; color: #14100C;
+  box-shadow: 0 0 0 1px var(--gold-line), inset 0 -2px 4px rgba(0,0,0,0.15);
+}
+.brand-text { display: flex; flex-direction: column; gap: 0.1rem; }
+.brand-name {
+  font-family: var(--font-display); font-weight: 600; font-size: 1.1rem;
+  letter-spacing: 0.02em; line-height: 1;
+}
+.brand-sub {
+  font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--gold-line); font-weight: 500;
+}
+.user-pill {
+  display: flex; align-items: center; gap: 0.6rem;
+  background: rgba(255,255,255,0.06); padding: 0.4rem 0.85rem;
+  border-radius: 999px; font-size: 0.82rem;
+  border: 1px solid rgba(217,181,112,0.25);
+}
+.user-pill .role { font-size: 0.7rem; color: var(--gold-line); text-transform: uppercase; letter-spacing: 0.1em; }
+.btn-logout {
+  background: transparent; color: var(--gold-line); border: 1px solid rgba(217,181,112,0.3);
+  padding: 0.4rem 0.85rem; border-radius: 999px; font-size: 0.78rem;
+  text-transform: uppercase; letter-spacing: 0.08em; transition: all 0.15s;
+}
+.btn-logout:hover { background: rgba(217,181,112,0.1); color: #F5EFE3; }
+
+/* NAV */
+.nav {
+  background: var(--bg-paper); border-bottom: 1px solid var(--border);
+  position: sticky; top: 70px; z-index: 40;
+}
+.nav-inner {
+  max-width: 1280px; margin: 0 auto; padding: 0 0.5rem;
+  display: flex; gap: 0.25rem; overflow-x: auto; scrollbar-width: thin;
+}
+.nav-tab {
+  padding: 0.95rem 1.1rem; font-size: 0.9rem; font-weight: 500; color: var(--ink-soft);
+  white-space: nowrap; border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+  background: transparent;
+}
+.nav-tab:hover { color: var(--ink); }
+.nav-tab.active {
+  color: var(--gold-deep); border-bottom-color: var(--gold);
+  font-weight: 600;
+}
+
+/* MAIN */
+.main {
+  max-width: 1280px; margin: 0 auto; padding: 1.5rem 1.25rem 4rem;
+  width: 100%; flex: 1;
+}
+
+/* FOOTER */
+.footer {
+  background: var(--bg-deep); color: var(--ink-light);
+  padding: 1.5rem 1.25rem; text-align: center;
+  font-size: 0.78rem; letter-spacing: 0.04em;
+  border-top: 3px solid var(--gold);
+}
+.footer em { color: var(--gold-line); font-style: normal; }
+
+/* =========================================================
+   VISTAS — cada sección es un .view
+   ========================================================= */
+.view { display: none; animation: fadeIn 0.3s ease-out; }
+.view.active { display: block; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================================================
+   LOGIN VIEW
+   ========================================================= */
+.login-shell {
+  min-height: 70vh; display: grid; place-items: center;
+  padding: 2rem 1rem;
+}
+.login-card {
+  background: var(--bg-elevated); padding: 2.5rem 2rem;
+  border-radius: 4px; box-shadow: var(--shadow-lg);
+  max-width: 440px; width: 100%;
+  border-top: 4px solid var(--gold);
+  position: relative;
+}
+.login-card::before {
+  content: ''; position: absolute; inset: -1px;
+  border: 1px solid var(--gold-line); border-radius: 4px;
+  pointer-events: none; opacity: 0.5;
+}
+.login-title { font-size: 1.6rem; margin-bottom: 0.3rem; }
+.login-sub { color: var(--ink-soft); font-size: 0.92rem; margin-bottom: 1.75rem; }
+.login-error {
+  background: var(--red-bg); color: var(--red); padding: 0.7rem 1rem;
+  border-radius: 4px; font-size: 0.88rem; margin-top: 1rem; display: none;
+  border-left: 3px solid var(--red);
+}
+.login-error.show { display: block; }
+
+.btn-primary {
+  background: var(--bg-deep); color: var(--gold-line);
+  padding: 0.85rem 1.5rem; border-radius: 4px;
+  font-weight: 500; font-size: 0.95rem; letter-spacing: 0.04em;
+  width: 100%; margin-top: 1rem; transition: all 0.15s;
+  border: 1px solid var(--bg-deep);
+}
+.btn-primary:hover { background: var(--gold-deep); color: #FBF7EE; border-color: var(--gold-deep); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-secondary {
+  background: transparent; color: var(--gold-deep);
+  padding: 0.6rem 1rem; border-radius: 4px;
+  font-weight: 500; font-size: 0.88rem;
+  border: 1px solid var(--gold-line); transition: all 0.15s;
+}
+.btn-secondary:hover { background: var(--gold-soft); }
+
+.btn-ghost {
+  background: transparent; color: var(--ink-soft);
+  padding: 0.45rem 0.8rem; font-size: 0.85rem;
+  border-radius: 4px; transition: all 0.15s;
+}
+.btn-ghost:hover { background: var(--bg-paper); color: var(--ink); }
+
+/* =========================================================
+   DASHBOARD
+   ========================================================= */
+.dash-hero {
+  background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-paper) 100%);
+  border: 1px solid var(--border); border-left: 4px solid var(--gold);
+  padding: 1.75rem 1.85rem; border-radius: 4px;
+  margin-bottom: 1.5rem; box-shadow: var(--shadow-sm);
+  display: flex; flex-wrap: wrap; gap: 1.5rem; justify-content: space-between; align-items: center;
+}
+.dash-hero-text h1 { margin-bottom: 0.4rem; }
+.dash-hero-text .meta {
+  display: flex; gap: 1rem; flex-wrap: wrap;
+  font-size: 0.85rem; color: var(--ink-soft);
+}
+.dash-hero-text .meta span::before { content: '·'; margin-right: 1rem; color: var(--gold); }
+.dash-hero-text .meta span:first-child::before { content: ''; margin: 0; }
+.dash-date {
+  font-family: var(--font-display); font-weight: 500;
+  font-size: 1.5rem; color: var(--ink); text-align: right;
+}
+.dash-date small { display: block; font-size: 0.72rem; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.12em; font-family: var(--font-body); }
+
+.pillar-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.25rem; margin-bottom: 2rem;
+}
+.pillar-card {
+  background: var(--bg-elevated); border-radius: 4px;
+  padding: 1.5rem 1.5rem 1.25rem;
+  box-shadow: var(--shadow-sm); border: 1px solid var(--border);
+  cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+  position: relative; overflow: hidden;
+}
+.pillar-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+.pillar-card::after {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+  background: var(--ink-light);
+}
+.pillar-card.s-verde::after    { background: var(--green); }
+.pillar-card.s-amarillo::after { background: var(--amber); }
+.pillar-card.s-naranja::after  { background: var(--orange); }
+.pillar-card.s-rojo::after     { background: var(--red); }
+
+.pillar-card .label {
+  font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.18em;
+  color: var(--ink-muted); margin-bottom: 0.4rem; font-weight: 600;
+}
+.pillar-card h2 { font-size: 1.3rem; margin-bottom: 1rem; line-height: 1.2; }
+.pillar-card .big-number {
+  font-family: var(--font-display); font-weight: 600;
+  font-size: 3rem; line-height: 1; color: var(--ink); margin-bottom: 0.5rem;
+}
+.pillar-card .big-number .pct-sign { font-size: 1.5rem; color: var(--ink-soft); margin-left: 0.15rem; }
+.pillar-card .stat {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0.5rem 0; font-size: 0.85rem;
+  border-top: 1px dashed var(--border); margin-top: 0.4rem;
+}
+.pillar-card .stat:first-of-type { border-top: 1px solid var(--border); margin-top: 1rem; padding-top: 0.7rem; }
+.pillar-card .stat-label { color: var(--ink-soft); }
+.pillar-card .stat-value { font-weight: 600; }
+.pillar-card .stat-value.warn { color: var(--red); }
+
+.semaforo {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
+  padding: 0.3rem 0.7rem; border-radius: 999px;
+}
+.semaforo .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.semaforo.s-verde    { background: var(--green-bg);  color: var(--green); }
+.semaforo.s-verde .dot    { background: var(--green); }
+.semaforo.s-amarillo { background: var(--amber-bg);  color: var(--amber); }
+.semaforo.s-amarillo .dot { background: var(--amber); }
+.semaforo.s-naranja  { background: var(--orange-bg); color: var(--orange); }
+.semaforo.s-naranja .dot  { background: var(--orange); }
+.semaforo.s-rojo     { background: var(--red-bg);    color: var(--red); }
+.semaforo.s-rojo .dot     { background: var(--red); }
+
+/* =========================================================
+   COMENTARIOS / BITÁCORA
+   ========================================================= */
+.comments-section {
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: 4px; padding: 1.5rem; box-shadow: var(--shadow-sm);
+}
+.comments-section h2 {
+  display: flex; align-items: center; gap: 0.7rem;
+  margin-bottom: 1.25rem; padding-bottom: 0.85rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 1.3rem;
+}
+.comments-section h2 .accent {
+  width: 4px; height: 1.4rem; background: var(--gold); border-radius: 2px;
+}
+.comment-list { display: flex; flex-direction: column; gap: 0.85rem; max-height: 400px; overflow-y: auto; }
+.comment {
+  display: flex; gap: 0.85rem; padding: 0.85rem;
+  border-radius: 4px; background: var(--bg-paper);
+  border-left: 3px solid var(--gold-line);
+}
+.comment.tipo-alerta     { border-left-color: var(--red); }
+.comment.tipo-validacion { border-left-color: var(--green); }
+.comment.tipo-pregunta   { border-left-color: var(--orange); }
+.comment-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--gold-soft); color: var(--gold-deep);
+  display: grid; place-items: center; font-weight: 600;
+  flex-shrink: 0; font-size: 0.85rem;
+}
+.comment-body { flex: 1; min-width: 0; }
+.comment-head { display: flex; gap: 0.6rem; align-items: baseline; flex-wrap: wrap; margin-bottom: 0.2rem; }
+.comment-author { font-weight: 600; font-size: 0.88rem; }
+.comment-time { color: var(--ink-muted); font-size: 0.75rem; }
+.comment-tag {
+  font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em;
+  padding: 0.1rem 0.45rem; border-radius: 3px; font-weight: 600;
+  background: var(--gold-soft); color: var(--gold-deep);
+}
+.comment-text { font-size: 0.92rem; color: var(--ink); white-space: pre-wrap; word-wrap: break-word; }
+
+.comment-form {
+  margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid var(--border);
+  display: flex; flex-direction: column; gap: 0.6rem;
+}
+.comment-form-row { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+.comment-form select { max-width: 180px; }
+.comment-form textarea { resize: vertical; min-height: 70px; }
+.comment-form-buttons { display: flex; justify-content: flex-end; gap: 0.5rem; }
+
+/* =========================================================
+   PILAR A — Soft Restaurant
+   ========================================================= */
+.section-head {
+  margin-bottom: 1.5rem; display: flex; justify-content: space-between;
+  align-items: flex-end; flex-wrap: wrap; gap: 1rem;
+  padding-bottom: 1rem; border-bottom: 2px solid var(--gold);
+}
+.section-head h1 { display: flex; align-items: center; gap: 0.85rem; }
+.section-head .badge {
+  font-family: var(--font-display); font-size: 0.85rem;
+  background: var(--bg-deep); color: var(--gold-line);
+  padding: 0.3rem 0.8rem; border-radius: 3px;
+  letter-spacing: 0.08em; font-weight: 500;
+}
+.section-head .meta { color: var(--ink-soft); font-size: 0.88rem; }
+
+.summary-row {
+  display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;
+  margin-bottom: 2rem; align-items: stretch;
+}
+@media (max-width: 768px) { .summary-row { grid-template-columns: 1fr; } }
+
+.summary-big {
+  background: linear-gradient(135deg, var(--bg-elevated), var(--bg-paper));
+  padding: 2rem; border-radius: 4px;
+  border: 1px solid var(--border);
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  text-align: center;
+}
+.summary-big .number-huge {
+  font-family: var(--font-display); font-weight: 600;
+  font-size: clamp(4rem, 10vw, 6rem); line-height: 1;
+  background: linear-gradient(135deg, var(--navy), var(--navy-deep));
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.summary-big .label-huge {
+  font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.2em;
+  color: var(--ink-muted); margin-top: 0.6rem; font-weight: 600;
+}
+.summary-big .gap-text { color: var(--ink-soft); font-size: 0.92rem; margin-top: 0.4rem; }
+
+.summary-side {
+  display: grid; grid-template-rows: repeat(4, 1fr); gap: 0.6rem;
+}
+.summary-stat {
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: 4px; padding: 0.85rem 1rem;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.summary-stat .label-stat { font-size: 0.78rem; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.06em; }
+.summary-stat .value-stat { font-family: var(--font-display); font-size: 1.4rem; font-weight: 600; }
+.summary-stat.s-rojo .value-stat { color: var(--red); }
+.summary-stat.s-naranja .value-stat { color: var(--orange); }
+.summary-stat.s-amarillo .value-stat { color: var(--amber); }
+.summary-stat.s-verde .value-stat { color: var(--green); }
+
+.modulos-table {
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: 4px; overflow: hidden; margin-bottom: 2rem;
+}
+.modulo-row {
+  display: grid; grid-template-columns: 32px 1fr auto auto; gap: 1rem;
+  padding: 1rem 1.25rem; border-bottom: 1px solid var(--border);
+  align-items: center; transition: background 0.15s;
+}
+.modulo-row:last-child { border-bottom: none; }
+.modulo-row:hover { background: var(--bg-paper); }
+.modulo-numero {
+  font-family: var(--font-display); font-weight: 600; font-size: 1.2rem;
+  color: var(--gold-deep); text-align: center;
+}
+.modulo-info .name { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.3rem; }
+.modulo-bar-wrap {
+  background: var(--border); height: 8px; border-radius: 4px; overflow: hidden;
+  position: relative; max-width: 380px;
+}
+.modulo-bar { height: 100%; transition: width 0.5s ease; border-radius: 4px; }
+.modulo-bar.s-verde    { background: var(--green); }
+.modulo-bar.s-amarillo { background: var(--amber); }
+.modulo-bar.s-naranja  { background: var(--orange); }
+.modulo-bar.s-rojo     { background: var(--red); }
+.modulo-pct {
+  font-family: var(--font-display); font-weight: 600; font-size: 1.3rem;
+  min-width: 60px; text-align: right;
+}
+.modulo-pct.s-verde    { color: var(--green); }
+.modulo-pct.s-amarillo { color: var(--amber); }
+.modulo-pct.s-naranja  { color: var(--orange); }
+.modulo-pct.s-rojo     { color: var(--red); }
+.modulo-action {
+  background: var(--bg-deep); color: var(--gold-line);
+  padding: 0.4rem 0.85rem; border-radius: 3px;
+  font-size: 0.78rem; font-weight: 500; transition: all 0.15s;
+  border: 1px solid var(--bg-deep);
+}
+.modulo-action:hover { background: var(--gold-deep); }
+
+@media (max-width: 768px) {
+  .modulo-row {
+    grid-template-columns: 32px 1fr;
+    grid-template-rows: auto auto;
+    gap: 0.5rem;
+  }
+  .modulo-pct, .modulo-action {
+    grid-column: 2; justify-self: end;
+  }
+  .modulo-info { grid-column: 2; }
+}
+
+/* =========================================================
+   MODAL
+   ========================================================= */
+.modal-backdrop {
+  position: fixed; inset: 0; background: rgba(20,16,12,0.55);
+  display: none; place-items: center; z-index: 100;
+  padding: 1rem; backdrop-filter: blur(2px);
+}
+.modal-backdrop.show { display: grid; }
+.modal {
+  background: var(--bg-elevated); border-radius: 4px;
+  max-width: 580px; width: 100%; max-height: 90vh; overflow-y: auto;
+  box-shadow: var(--shadow-lg); border-top: 4px solid var(--gold);
+  animation: slideUp 0.2s ease-out;
+}
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.modal-head {
+  padding: 1.5rem 1.75rem 1rem; border-bottom: 1px solid var(--border);
+}
+.modal-head h2 { font-size: 1.3rem; margin-bottom: 0.2rem; }
+.modal-head .sub { font-size: 0.85rem; color: var(--ink-soft); }
+.modal-body { padding: 1.5rem 1.75rem; }
+.modal-body .form-group { margin-bottom: 1.1rem; }
+.modal-foot {
+  padding: 1rem 1.75rem 1.5rem;
+  display: flex; justify-content: flex-end; gap: 0.6rem;
+  border-top: 1px solid var(--border);
+}
+
+/* =========================================================
+   PILAR B — Conciliación
+   ========================================================= */
+.etapas-flow {
+  display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 2rem;
+}
+.etapa-card {
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-left: 4px solid var(--ink-light);
+  border-radius: 4px; padding: 1.1rem 1.25rem;
+  display: grid; grid-template-columns: 48px 1fr auto; gap: 1.1rem;
+  align-items: start; transition: all 0.15s;
+}
+.etapa-card.completada { border-left-color: var(--green); background: var(--bg-elevated); }
+.etapa-card.bandera-roja { border-left-color: var(--red); background: linear-gradient(90deg, var(--red-bg) 0%, var(--bg-elevated) 30%); }
+.etapa-numero {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--bg-deep); color: var(--gold-line);
+  font-family: var(--font-display); font-weight: 600; font-size: 1.2rem;
+  display: grid; place-items: center;
+}
+.etapa-card.completada .etapa-numero { background: var(--green); color: white; }
+.etapa-card.bandera-roja .etapa-numero { background: var(--red); color: white; }
+.etapa-info h4 { font-size: 1rem; margin-bottom: 0.25rem; }
+.etapa-info .desc { font-size: 0.85rem; color: var(--ink-soft); margin-bottom: 0.5rem; }
+.etapa-info .meta-line {
+  display: flex; gap: 1rem; flex-wrap: wrap; font-size: 0.78rem; color: var(--ink-muted);
+}
+.etapa-info .meta-line strong { color: var(--ink); font-weight: 600; }
+.etapa-rol-tag {
+  display: inline-block; font-size: 0.68rem; text-transform: uppercase;
+  letter-spacing: 0.1em; padding: 0.18rem 0.55rem;
+  background: var(--gold-soft); color: var(--gold-deep);
+  border-radius: 3px; font-weight: 600;
+}
+.etapa-actions {
+  display: flex; flex-direction: column; gap: 0.4rem; align-items: flex-end;
+}
+.check-btn {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--bg-paper); border: 2px solid var(--border-strong);
+  display: grid; place-items: center;
+  cursor: pointer; transition: all 0.15s;
+  color: var(--ink-light); font-size: 1.2rem;
+}
+.check-btn.checked {
+  background: var(--green); border-color: var(--green); color: white;
+}
+.check-btn:hover { border-color: var(--green); color: var(--green); }
+.check-btn.checked:hover { background: var(--green-bg); color: var(--green); }
+
+@media (max-width: 640px) {
+  .etapa-card { grid-template-columns: 40px 1fr; }
+  .etapa-actions { grid-column: 1 / -1; flex-direction: row; justify-content: flex-end; padding-top: 0.5rem; border-top: 1px dashed var(--border); }
+  .etapa-numero { width: 36px; height: 36px; font-size: 1rem; }
+}
+
+/* =========================================================
+   PILAR C — Inventarios
+   ========================================================= */
+.req-toolbar {
+  display: flex; gap: 0.6rem; flex-wrap: wrap;
+  margin-bottom: 1.5rem; align-items: center;
+}
+.req-toolbar input { max-width: 280px; }
+.kanban-row {
+  display: grid; grid-template-columns: repeat(11, minmax(140px, 1fr));
+  gap: 0.5rem; overflow-x: auto; padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
+}
+.kanban-col {
+  background: var(--bg-paper); border: 1px solid var(--border);
+  border-radius: 4px; padding: 0.6rem; min-height: 140px;
+}
+.kanban-col-head {
+  font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--ink-soft);
+  padding-bottom: 0.5rem; border-bottom: 1px solid var(--border);
+  margin-bottom: 0.5rem; display: flex; justify-content: space-between;
+}
+.kanban-col-head .num { color: var(--gold-deep); font-family: var(--font-display); }
+.req-card {
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: 3px; padding: 0.6rem; margin-bottom: 0.5rem;
+  font-size: 0.8rem; cursor: pointer; transition: all 0.15s;
+  border-left: 3px solid var(--gold);
+}
+.req-card.bloqueado { border-left-color: var(--red); }
+.req-card:hover { box-shadow: var(--shadow-md); transform: translateX(2px); }
+.req-card .folio { font-weight: 700; font-size: 0.78rem; color: var(--gold-deep); }
+.req-card .area { color: var(--ink-soft); font-size: 0.75rem; margin-top: 0.2rem; }
+.req-card .desc { margin-top: 0.3rem; line-height: 1.3; }
+
+.reqs-list {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1rem; margin-bottom: 2rem;
+}
+.req-item {
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-left: 4px solid var(--gold);
+  padding: 1rem 1.25rem; border-radius: 4px;
+}
+.req-item.bloqueado { border-left-color: var(--red); }
+.req-item.completado { border-left-color: var(--green); opacity: 0.85; }
+.req-item-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.4rem; }
+.req-item-folio { font-family: var(--font-display); font-weight: 600; font-size: 1.05rem; color: var(--gold-deep); }
+.req-item-fecha { font-size: 0.75rem; color: var(--ink-muted); }
+.req-item-desc { font-size: 0.92rem; margin-bottom: 0.7rem; }
+.req-item-area { font-size: 0.78rem; color: var(--ink-soft); margin-bottom: 0.7rem; }
+.req-item-progress {
+  display: flex; gap: 2px; margin-bottom: 0.6rem;
+}
+.req-step {
+  flex: 1; height: 6px; background: var(--border); border-radius: 1px;
+}
+.req-step.done { background: var(--green); }
+.req-step.current { background: var(--gold); }
+.req-step.blocked { background: var(--red); }
+
+/* =========================================================
+   REPORTE
+   ========================================================= */
+.report-shell {
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  padding: 2rem; border-radius: 4px; box-shadow: var(--shadow-sm);
+}
+.report-controls {
+  display: flex; gap: 1rem; flex-wrap: wrap;
+  padding-bottom: 1.5rem; border-bottom: 1px solid var(--border);
+  margin-bottom: 1.5rem; align-items: end;
+}
+.report-controls .form-group { flex: 1; min-width: 180px; }
+.report-output {
+  background: var(--bg-paper); padding: 1.5rem; border-radius: 4px;
+  font-size: 0.92rem; line-height: 1.6; min-height: 200px;
+  border: 1px dashed var(--border-strong);
+}
+.report-output h3 {
+  font-family: var(--font-display); font-size: 1.2rem;
+  margin-top: 1rem; margin-bottom: 0.5rem;
+  color: var(--gold-deep); border-bottom: 1px solid var(--border); padding-bottom: 0.4rem;
+}
+.report-output h3:first-child { margin-top: 0; }
+.report-output ul { margin-left: 1.5rem; }
+
+/* =========================================================
+   UTILIDADES Y RESPONSIVE
+   ========================================================= */
+.spinner {
+  display: inline-block; width: 18px; height: 18px;
+  border: 2px solid var(--gold-line); border-top-color: transparent;
+  border-radius: 50%; animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.empty-state {
+  text-align: center; padding: 3rem 1rem; color: var(--ink-muted);
+}
+.empty-state .big-icon {
+  font-family: var(--font-display); font-size: 3rem;
+  color: var(--ink-light); margin-bottom: 0.5rem;
+}
+
+.toast {
+  position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%);
+  background: var(--bg-deep); color: var(--gold-line);
+  padding: 0.8rem 1.4rem; border-radius: 4px;
+  box-shadow: var(--shadow-lg); z-index: 200;
+  font-size: 0.9rem; font-weight: 500;
+  border-left: 3px solid var(--gold);
+  animation: slideUp 0.2s ease-out;
+}
+.toast.error { border-left-color: var(--red); }
+
+.config-warning {
+  background: var(--amber-bg); border-left: 4px solid var(--amber);
+  padding: 1rem 1.25rem; border-radius: 4px;
+  margin-bottom: 1.5rem; font-size: 0.9rem;
+}
+.config-warning strong { color: var(--gold-deep); }
+.config-warning code {
+  background: var(--bg-elevated); padding: 0.15rem 0.4rem;
+  border-radius: 3px; font-size: 0.85em; border: 1px solid var(--border);
+}
+
+@media (max-width: 640px) {
+  .header-inner { padding: 0.7rem 1rem; }
+  .brand-name { font-size: 0.95rem; }
+  .brand-sub { font-size: 0.65rem; }
+  .nav { top: 60px; }
+  .main { padding: 1rem 0.85rem 3rem; }
+  .dash-hero { padding: 1.25rem 1.25rem; }
+  .dash-date { text-align: left; font-size: 1.2rem; }
+  .pillar-card { padding: 1.25rem 1.25rem 1rem; }
+  .summary-big { padding: 1.5rem 1rem; }
+  .login-card { padding: 1.75rem 1.5rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+<!-- ============================================================
+     HEADER
+     ============================================================ -->
+<header class="header">
+  <div class="header-inner">
+    <div class="brand">
+      <div class="brand-mark">F</div>
+      <div class="brand-text">
+        <span class="brand-name">Bitácora de Supervisión</span>
+        <span class="brand-sub">Fogueira · Grupo Toda</span>
+      </div>
+    </div>
+    <div id="user-area" style="display:none;">
+      <div style="display:flex; gap:0.6rem; align-items:center; flex-wrap:wrap;">
+        <div class="user-pill">
+          <span class="role" id="user-role">—</span>
+          <span id="user-name">—</span>
+        </div>
+        <button class="btn-logout" onclick="App.logout()">Salir</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ============================================================
+     NAVEGACIÓN (oculta hasta login)
+     ============================================================ -->
+<nav class="nav" id="nav-bar" style="display:none;">
+  <div class="nav-inner">
+    <button class="nav-tab active" data-view="dashboard">Tablero</button>
+    <button class="nav-tab" data-view="pilar-a">Pilar A · Soft Restaurant</button>
+    <button class="nav-tab" data-view="pilar-b">Pilar B · Conciliación</button>
+    <button class="nav-tab" data-view="pilar-c">Pilar C · Inventarios</button>
+    <button class="nav-tab" data-view="reporte">Reporte</button>
+  </div>
+</nav>
+
+<!-- ============================================================
+     MAIN
+     ============================================================ -->
+<main class="main">
+
+  <!-- Aviso si no se ha configurado el backend -->
+  <div id="config-warning" class="config-warning" style="display:none;">
+    <strong>Configuración pendiente.</strong> El backend aún no está conectado.
+    Edita la constante <code>BACKEND_URL</code> al inicio del bloque
+    <code>&lt;script&gt;</code> de este archivo, o sigue la guía
+    <code>03_INSTALACION.md</code> paso 5.
+  </div>
+
+  <!-- LOGIN -->
+  <section class="view active" id="view-login">
+    <div class="login-shell">
+      <div class="login-card">
+        <h1 class="login-title">Acceso al tablero</h1>
+        <p class="login-sub">Ingresa con el correo Google que esté registrado en la pestaña <em>Usuarios</em> del Sheet.</p>
+        <form onsubmit="event.preventDefault(); App.login();">
+          <div style="margin-bottom:1rem;">
+            <label for="login-email">Correo electrónico</label>
+            <input type="email" id="login-email" placeholder="tu@correo.com" autocomplete="email" required>
+          </div>
+          <button type="submit" class="btn-primary" id="btn-login">Entrar</button>
+        </form>
+        <div class="login-error" id="login-error"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DASHBOARD -->
+  <section class="view" id="view-dashboard">
+    <div id="dashboard-content"><div class="empty-state"><div class="spinner"></div><p style="margin-top:1rem;">Cargando tablero...</p></div></div>
+  </section>
+
+  <!-- PILAR A -->
+  <section class="view" id="view-pilar-a">
+    <div id="pilar-a-content"><div class="empty-state"><div class="spinner"></div></div></div>
+  </section>
+
+  <!-- PILAR B -->
+  <section class="view" id="view-pilar-b">
+    <div id="pilar-b-content"><div class="empty-state"><div class="spinner"></div></div></div>
+  </section>
+
+  <!-- PILAR C -->
+  <section class="view" id="view-pilar-c">
+    <div id="pilar-c-content"><div class="empty-state"><div class="spinner"></div></div></div>
+  </section>
+
+  <!-- REPORTE -->
+  <section class="view" id="view-reporte">
+    <div id="reporte-content"><div class="empty-state"><div class="spinner"></div></div></div>
+  </section>
+
+</main>
+
+<!-- ============================================================
+     FOOTER
+     ============================================================ -->
+<footer class="footer">
+  <div>Bitácora de Supervisión · <em>Fogueira</em> · Plaza Oaxaca · Grupo Toda</div>
+  <div style="margin-top:0.4rem; font-size:0.72rem; opacity:0.7;">Auditor: C.P. Germán Solís Zamora</div>
+</footer>
+
+</div><!-- /.app -->
+
+<!-- MODAL GENÉRICO -->
+<div class="modal-backdrop" id="modal-backdrop" onclick="if(event.target===this) App.closeModal()">
+  <div class="modal" id="modal"></div>
+</div>
+
+<script>
+/* =========================================================
+   CONFIGURACIÓN
+   *** EDITA ESTA CONSTANTE DESPUÉS DE PUBLICAR EL APPS SCRIPT ***
+   ========================================================= */
+const BACKEND_URL = 'PEGA_AQUI_LA_URL_DEL_WEB_APP_DE_APPS_SCRIPT';
+
+/* =========================================================
+   ESTADO GLOBAL
+   ========================================================= */
+const State = {
+  user: null,
+  config: {},
+  dashboard: null,
+  pilarA: null,
+  pilarB: null,
+  pilarC: null
+};
+
+/* =========================================================
+   API CLIENT — patrón anti-CORS (text/plain + body JSON)
+   ========================================================= */
+async function apiCall(action, payload) {
+  if (!BACKEND_URL || BACKEND_URL.indexOf('PEGA_AQUI') === 0) {
+    throw new Error('Falta configurar BACKEND_URL en el HTML');
+  }
+  const body = {
+    action: action,
+    payload: payload || {},
+    userEmail: State.user ? State.user.email : (payload && payload.email) || ''
+  };
+  try {
+    const res = await fetch(BACKEND_URL, {
+      method: 'POST',
+      mode: 'cors',
+      redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(body)
+    });
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.error || 'Error desconocido');
+    return json.data;
+  } catch (err) {
+    console.error('API error:', action, err);
+    throw err;
+  }
+}
+
+/* =========================================================
+   UTILIDADES
+   ========================================================= */
+function el(id) { return document.getElementById(id); }
+function escapeHtml(s) {
+  if (s === null || s === undefined) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function semaforoClass(pct) {
+  if (pct >= 80) return 's-verde';
+  if (pct >= 50) return 's-amarillo';
+  if (pct >= 30) return 's-naranja';
+  return 's-rojo';
+}
+function semaforoLabel(s) {
+  return { verde: 'En meta', amarillo: 'Atención', naranja: 'Brecha', rojo: 'Crítico' }[s] || s;
+}
+function formatDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+function formatDateTime(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+}
+function todayInputValue() {
+  const d = new Date();
+  return d.toISOString().split('T')[0];
+}
+function toast(msg, isError) {
+  const t = document.createElement('div');
+  t.className = 'toast' + (isError ? ' error' : '');
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+function initial(name) {
+  return (name || '?').trim().charAt(0).toUpperCase();
+}
+
+/* =========================================================
+   APP — controlador principal
+   ========================================================= */
+const App = {
+
+  init() {
+    // Verificar configuración
+    if (!BACKEND_URL || BACKEND_URL.indexOf('PEGA_AQUI') === 0) {
+      el('config-warning').style.display = 'block';
+    }
+    // Recuperar sesión
+    const saved = localStorage.getItem('fogueira_user');
+    if (saved) {
+      try {
+        State.user = JSON.parse(saved);
+        this.afterLogin();
+      } catch (e) { localStorage.removeItem('fogueira_user'); }
+    }
+    // Tabs
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+      tab.addEventListener('click', () => this.go(tab.dataset.view));
+    });
+  },
+
+  async login() {
+    const email = el('login-email').value.trim().toLowerCase();
+    const errBox = el('login-error');
+    const btn = el('btn-login');
+    errBox.classList.remove('show');
+    if (!email) return;
+    btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+    try {
+      const data = await apiCall('login', { email });
+      State.user = { email: data.email, nombre: data.nombre, rol: data.rol };
+      State.config = data.config || {};
+      localStorage.setItem('fogueira_user', JSON.stringify(State.user));
+      localStorage.setItem('fogueira_config', JSON.stringify(State.config));
+      this.afterLogin();
+    } catch (err) {
+      errBox.textContent = err.message;
+      errBox.classList.add('show');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Entrar';
+    }
+  },
+
+  afterLogin() {
+    el('user-area').style.display = '';
+    el('user-name').textContent = State.user.nombre;
+    el('user-role').textContent = State.user.rol;
+    el('nav-bar').style.display = '';
+    try { State.config = JSON.parse(localStorage.getItem('fogueira_config') || '{}'); } catch(e){}
+    this.go('dashboard');
+  },
+
+  logout() {
+    localStorage.removeItem('fogueira_user');
+    localStorage.removeItem('fogueira_config');
+    State.user = null;
+    el('user-area').style.display = 'none';
+    el('nav-bar').style.display = 'none';
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    el('view-login').classList.add('active');
+  },
+
+  go(view) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    el('view-' + view).classList.add('active');
+    const tab = document.querySelector('.nav-tab[data-view="' + view + '"]');
+    if (tab) tab.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this['render_' + view.replace('-', '_')]();
+  },
+
+  /* =========== DASHBOARD =========== */
+  async render_dashboard() {
+    const c = el('dashboard-content');
+    try {
+      const data = await apiCall('getDashboard', {});
+      State.dashboard = data;
+      const { pilarA, pilarB, pilarC, comentarios, fecha } = data;
+      const today = new Date(fecha + 'T00:00:00').toLocaleDateString('es-MX',
+        { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
+      c.innerHTML = `
+        <div class="dash-hero">
+          <div class="dash-hero-text">
+            <h1>Buen día, ${escapeHtml(State.user.nombre.split(' ')[0])}.</h1>
+            <div class="meta">
+              <span>${escapeHtml(State.config.nombre_restaurante || 'Fogueira')}</span>
+              <span>Plaza ${escapeHtml(State.config.plaza || 'Oaxaca')}</span>
+              <span>${escapeHtml(State.user.rol)}</span>
+            </div>
+          </div>
+          <div class="dash-date">
+            ${today.split(',')[1] || today}
+            <small>${today.split(',')[0]}</small>
+          </div>
+        </div>
+
+        <div class="pillar-grid">
+          ${pillarCardHTML('A', 'Soft Restaurant 12', pilarA, 'pilar-a',
+            `${pilarA.focosRojos} módulos en zona roja`,
+            `Brecha al óptimo: ${pilarA.brecha} pts`)}
+          ${pillarCardHTML('B', 'Conciliación del día', pilarB, 'pilar-b',
+            `${pilarB.completadasHoy} de ${pilarB.totalEtapas} etapas cerradas`,
+            pilarB.banderasRojas > 0 ? `${pilarB.banderasRojas} banderas rojas` : 'Sin banderas rojas')}
+          ${pillarCardHTML('C', 'Flujo de Inventarios', pilarC, 'pilar-c',
+            `${pilarC.enCurso} requisiciones en curso`,
+            pilarC.bloqueadas > 0 ? `${pilarC.bloqueadas} bloqueadas` : 'Sin bloqueos')}
+        </div>
+
+        <div class="comments-section">
+          <h2><span class="accent"></span>Bitácora de comunicación</h2>
+          <div class="comment-list" id="comment-list">
+            ${comentariosListHTML(comentarios)}
+          </div>
+          <div class="comment-form">
+            <div class="comment-form-row">
+              <select id="cmt-tipo">
+                <option value="reporte">Reporte</option>
+                <option value="pregunta">Pregunta</option>
+                <option value="alerta">Alerta</option>
+                <option value="validacion">Validación</option>
+              </select>
+              <select id="cmt-pilar">
+                <option value="general">General</option>
+                <option value="A">Pilar A</option>
+                <option value="B">Pilar B</option>
+                <option value="C">Pilar C</option>
+              </select>
+            </div>
+            <textarea id="cmt-msg" placeholder="Escribe un comentario, reporte o pregunta..."></textarea>
+            <div class="comment-form-buttons">
+              <button class="btn-primary" style="width:auto; margin:0;" onclick="App.addComment()">Publicar</button>
+            </div>
+          </div>
+        </div>
+      `;
+      // Click en tarjetas
+      c.querySelectorAll('.pillar-card').forEach(card => {
+        card.addEventListener('click', () => this.go(card.dataset.target));
+      });
+    } catch (err) {
+      c.innerHTML = `<div class="empty-state"><div class="big-icon">!</div><p>${escapeHtml(err.message)}</p></div>`;
+    }
+  },
+
+  async addComment() {
+    const tipo = el('cmt-tipo').value;
+    const pilar = el('cmt-pilar').value;
+    const mensaje = el('cmt-msg').value.trim();
+    if (!mensaje) return;
+    try {
+      await apiCall('addComentario', { tipo, pilar, mensaje });
+      el('cmt-msg').value = '';
+      toast('Comentario publicado');
+      this.render_dashboard();
+    } catch (err) { toast(err.message, true); }
+  },
+
+  /* =========== PILAR A =========== */
+  async render_pilar_a() {
+    const c = el('pilar-a-content');
+    try {
+      const data = await apiCall('getPilarA', {});
+      State.pilarA = data;
+      const modulos = data.modulos;
+      const total = modulos.length;
+      const sumPct = modulos.reduce((s,m) => s + Number(m.porcentaje_actual||0), 0);
+      const promedio = total ? Math.round(sumPct/total) : 0;
+      const meta = Number(State.config.meta_softrestaurant || 100);
+      const enRojo = modulos.filter(m => Number(m.porcentaje_actual) < 30).length;
+      const enNaranja = modulos.filter(m => Number(m.porcentaje_actual) >= 30 && Number(m.porcentaje_actual) < 50).length;
+      const enAmarillo = modulos.filter(m => Number(m.porcentaje_actual) >= 50 && Number(m.porcentaje_actual) < 80).length;
+      const enVerde = modulos.filter(m => Number(m.porcentaje_actual) >= 80).length;
+
+      c.innerHTML = `
+        <div class="section-head">
+          <h1><span class="badge">Pilar A</span> Madurez de Soft Restaurant 12</h1>
+          <div class="meta">${total} módulos · Corte ${escapeHtml(State.config.fecha_corte_softrestaurant || '—')}</div>
+        </div>
+
+        <div class="summary-row">
+          <div class="summary-big">
+            <div class="number-huge">${promedio}<span style="font-size:0.5em; color:var(--ink-soft);">%</span></div>
+            <div class="label-huge">Capacidad de uso actual</div>
+            <div class="gap-text">Brecha de oportunidad: <strong>${meta - promedio} pts</strong> para alcanzar el uso óptimo</div>
+          </div>
+          <div class="summary-side">
+            <div class="summary-stat s-verde">
+              <span class="label-stat">Maduros (≥80%)</span><span class="value-stat">${enVerde}</span>
+            </div>
+            <div class="summary-stat s-amarillo">
+              <span class="label-stat">En desarrollo (50–79%)</span><span class="value-stat">${enAmarillo}</span>
+            </div>
+            <div class="summary-stat s-naranja">
+              <span class="label-stat">Iniciales (30–49%)</span><span class="value-stat">${enNaranja}</span>
+            </div>
+            <div class="summary-stat s-rojo">
+              <span class="label-stat">Sin uso (&lt;30%)</span><span class="value-stat">${enRojo}</span>
+            </div>
+          </div>
+        </div>
+
+        <h2 style="margin-bottom:1rem;">Capacidad utilizada por módulo</h2>
+        <div class="modulos-table">
+          ${modulos.map(m => modulRowHTML(m)).join('')}
+        </div>
+
+        <h2 style="margin-bottom:1rem;">Plan de acción</h2>
+        <div class="modulos-table">
+          ${data.plan.length === 0
+            ? '<div class="empty-state"><p>Aún no hay tareas en el plan de acción.</p></div>'
+            : data.plan.map(p => planRowHTML(p, modulos)).join('')}
+        </div>
+      `;
+    } catch (err) {
+      c.innerHTML = `<div class="empty-state"><div class="big-icon">!</div><p>${escapeHtml(err.message)}</p></div>`;
+    }
+  },
+
+  openModuloModal(id) {
+    const m = State.pilarA.modulos.find(x => x.id === id);
+    if (!m) return;
+    this.openModal(`
+      <div class="modal-head">
+        <h2>Actualizar módulo</h2>
+        <div class="sub">${escapeHtml(m.modulo)}</div>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="mod-pct">Porcentaje actual (0–100)</label>
+          <input type="number" id="mod-pct" min="0" max="100" value="${m.porcentaje_actual}">
+        </div>
+        <div class="form-group">
+          <label for="mod-obs">Observaciones</label>
+          <textarea id="mod-obs" rows="3" placeholder="¿Qué cambió? ¿Qué evidencia respalda este cambio?">${escapeHtml(m.observaciones || '')}</textarea>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn-ghost" onclick="App.closeModal()">Cancelar</button>
+        <button class="btn-primary" style="width:auto; margin:0;" onclick="App.saveModulo('${m.id}')">Guardar</button>
+      </div>
+    `);
+  },
+
+  async saveModulo(id) {
+    const pct = Number(el('mod-pct').value);
+    const obs = el('mod-obs').value;
+    try {
+      await apiCall('updateModulo', { id, porcentaje: pct, observaciones: obs });
+      toast('Módulo actualizado');
+      this.closeModal();
+      this.render_pilar_a();
+    } catch (err) { toast(err.message, true); }
+  },
+
+  openPlanModal(modulo_id) {
+    this.openModal(`
+      <div class="modal-head">
+        <h2>Nueva tarea del plan</h2>
+        <div class="sub">Acción concreta para cerrar la brecha del módulo</div>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Acción</label>
+          <textarea id="plan-accion" rows="3" placeholder="Ejemplo: Capturar las 120 recetas faltantes en Soft Restaurant"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Responsable (correo)</label>
+          <input type="email" id="plan-resp" placeholder="responsable@correo.com">
+        </div>
+        <div class="form-group">
+          <label>Fecha objetivo</label>
+          <input type="date" id="plan-fecha" value="${todayInputValue()}">
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn-ghost" onclick="App.closeModal()">Cancelar</button>
+        <button class="btn-primary" style="width:auto; margin:0;" onclick="App.savePlan('${modulo_id}')">Guardar</button>
+      </div>
+    `);
+  },
+
+  async savePlan(modulo_id) {
+    try {
+      await apiCall('addPlanAccion', {
+        modulo_id,
+        accion: el('plan-accion').value,
+        responsable_email: el('plan-resp').value,
+        fecha_objetivo: el('plan-fecha').value
+      });
+      toast('Tarea agregada al plan');
+      this.closeModal();
+      this.render_pilar_a();
+    } catch (err) { toast(err.message, true); }
+  },
+
+  async toggleTask(id, estatus) {
+    try {
+      await apiCall('updatePlanAccion', { id, estatus });
+      toast('Estatus actualizado');
+      this.render_pilar_a();
+    } catch (err) { toast(err.message, true); }
+  },
+
+  /* =========== PILAR B =========== */
+  async render_pilar_b(fecha) {
+    const c = el('pilar-b-content');
+    fecha = fecha || todayInputValue();
+    try {
+      const data = await apiCall('getPilarB', { fecha });
+      State.pilarB = data;
+      const completadas = data.estado.filter(e => e.registro && String(e.registro.completado).toUpperCase() === 'TRUE').length;
+      const banderas = data.estado.filter(e => e.registro && String(e.registro.bandera_roja).toUpperCase() === 'TRUE').length;
+      c.innerHTML = `
+        <div class="section-head">
+          <h1><span class="badge">Pilar B</span> Conciliación Fogueira — Triangulación HOST · POS · Arqueo</h1>
+          <div class="meta">
+            <input type="date" value="${fecha}" onchange="App.render_pilar_b(this.value)" style="max-width:180px;">
+          </div>
+        </div>
+
+        <div class="summary-row">
+          <div class="summary-big">
+            <div class="number-huge">${completadas}<span style="font-size:0.5em; color:var(--ink-soft);">/${data.estado.length}</span></div>
+            <div class="label-huge">Etapas cerradas en el día</div>
+            <div class="gap-text">${banderas > 0 ? '⚑ ' + banderas + ' banderas rojas' : 'Sin banderas rojas'}</div>
+          </div>
+          <div class="summary-side">
+            <div class="summary-stat s-verde">
+              <span class="label-stat">Cumplimiento</span>
+              <span class="value-stat">${Math.round((completadas/data.estado.length)*100)}%</span>
+            </div>
+            <div class="summary-stat ${banderas > 0 ? 's-rojo' : 's-verde'}">
+              <span class="label-stat">Banderas rojas</span>
+              <span class="value-stat">${banderas}</span>
+            </div>
+            <div class="summary-stat">
+              <span class="label-stat">Fecha</span>
+              <span class="value-stat" style="font-size:1rem;">${formatDate(fecha)}</span>
+            </div>
+            <div class="summary-stat">
+              <span class="label-stat">Aprobado por</span>
+              <span class="value-stat" style="font-size:0.85rem; font-family:var(--font-body);">Lic. Mónica Solís Z.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="etapas-flow">
+          ${data.estado.map(e => etapaCardHTML(e)).join('')}
+        </div>
+      `;
+    } catch (err) {
+      c.innerHTML = `<div class="empty-state"><div class="big-icon">!</div><p>${escapeHtml(err.message)}</p></div>`;
+    }
+  },
+
+  async toggleEtapaB(etapaId, completado) {
+    const fecha = todayInputValue();
+    try {
+      await apiCall('marcarEtapaB', { etapa_id: etapaId, completado, fecha });
+      toast(completado ? 'Etapa marcada como completada' : 'Etapa reabierta');
+      this.render_pilar_b(fecha);
+    } catch (err) { toast(err.message, true); }
+  },
+
+  openEtapaBModal(etapaId) {
+    const e = State.pilarB.estado.find(x => x.id === etapaId);
+    if (!e) return;
+    const reg = e.registro || {};
+    const isAuditor = State.user.rol === 'auditor';
+    const isAuxiliar = State.user.rol === 'auxiliar';
+    this.openModal(`
+      <div class="modal-head">
+        <h2>Etapa ${e.numero}: ${escapeHtml(e.nombre)}</h2>
+        <div class="sub">${escapeHtml(e.descripcion)}</div>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Observaciones del día</label>
+          <textarea id="etb-obs" rows="3">${escapeHtml(reg.observaciones || '')}</textarea>
+        </div>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="etb-bandera" ${String(reg.bandera_roja).toUpperCase()==='TRUE' ? 'checked':''} style="width:auto; margin-right:0.5rem;">
+            Marcar como bandera roja
+          </label>
+        </div>
+        ${(isAuxiliar || isAuditor) ? `
+        <hr style="border:none; border-top:1px dashed var(--border); margin:1rem 0;">
+        <h4 style="margin-bottom:0.6rem;">Validación de calidad — ${isAuditor ? 'Auditor' : 'Auxiliar'}</h4>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="etb-validar" ${String(isAuditor ? reg.calidad_validada_por_auditor : reg.calidad_validada_por_auxiliar).toUpperCase()==='TRUE' ? 'checked':''} style="width:auto; margin-right:0.5rem;">
+            La captura cumple con calidad esperada
+          </label>
+        </div>
+        <div class="form-group">
+          <label>Comentario de validación</label>
+          <textarea id="etb-coment" rows="2">${escapeHtml(isAuditor ? reg.comentario_auditor || '' : reg.comentario_auxiliar || '')}</textarea>
+        </div>
+        ` : ''}
+      </div>
+      <div class="modal-foot">
+        <button class="btn-ghost" onclick="App.closeModal()">Cerrar</button>
+        <button class="btn-primary" style="width:auto; margin:0;" onclick="App.saveEtapaB('${etapaId}', ${isAuditor}, ${isAuxiliar})">Guardar</button>
+      </div>
+    `);
+  },
+
+  async saveEtapaB(etapaId, isAuditor, isAuxiliar) {
+    const fecha = todayInputValue();
+    const e = State.pilarB.estado.find(x => x.id === etapaId);
+    const reg = e.registro || {};
+    try {
+      await apiCall('marcarEtapaB', {
+        etapa_id: etapaId, fecha,
+        completado: String(reg.completado).toUpperCase() === 'TRUE',
+        observaciones: el('etb-obs').value,
+        bandera_roja: el('etb-bandera').checked,
+        evidencia_url: reg.evidencia_url || ''
+      });
+      if (isAuditor || isAuxiliar) {
+        await apiCall('validarEtapaB', {
+          etapa_id: etapaId, fecha,
+          validada: el('etb-validar').checked,
+          comentario: el('etb-coment').value
+        });
+      }
+      toast('Etapa actualizada');
+      this.closeModal();
+      this.render_pilar_b(fecha);
+    } catch (err) { toast(err.message, true); }
+  },
+
+  /* =========== PILAR C =========== */
+  async render_pilar_c() {
+    const c = el('pilar-c-content');
+    try {
+      const data = await apiCall('getPilarC', {});
+      State.pilarC = data;
+      const enCurso = data.reqs.filter(r => r.estatus_general === 'en_curso');
+      const completadas = data.reqs.filter(r => r.estatus_general === 'completado');
+      const bloqueadas = data.reqs.filter(r => r.estatus_general === 'bloqueado' || String(r.bloqueado).toUpperCase()==='TRUE');
+
+      c.innerHTML = `
+        <div class="section-head">
+          <h1><span class="badge">Pilar C</span> Flujo de Inventarios</h1>
+          <div class="meta">${data.reqs.length} requisiciones · ${data.etapas.length} etapas con segregación de funciones</div>
+        </div>
+
+        <div class="summary-row">
+          <div class="summary-big">
+            <div class="number-huge">${enCurso.length}</div>
+            <div class="label-huge">Requisiciones activas</div>
+            <div class="gap-text">${completadas.length} completadas · ${bloqueadas.length} bloqueadas</div>
+          </div>
+          <div class="summary-side">
+            <div class="summary-stat ${bloqueadas.length > 0 ? 's-rojo' : 's-verde'}">
+              <span class="label-stat">Bloqueadas</span><span class="value-stat">${bloqueadas.length}</span>
+            </div>
+            <div class="summary-stat s-amarillo">
+              <span class="label-stat">En curso</span><span class="value-stat">${enCurso.length}</span>
+            </div>
+            <div class="summary-stat s-verde">
+              <span class="label-stat">Completadas</span><span class="value-stat">${completadas.length}</span>
+            </div>
+            <div class="summary-stat">
+              <span class="label-stat">Total histórico</span><span class="value-stat">${data.reqs.length}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="req-toolbar">
+          <button class="btn-primary" style="width:auto; margin:0;" onclick="App.openReqModal()">+ Nueva requisición</button>
+        </div>
+
+        <h2 style="margin-bottom:1rem;">Tablero por etapa</h2>
+        <div class="kanban-row">
+          ${data.etapas.map(et => `
+            <div class="kanban-col">
+              <div class="kanban-col-head"><span class="num">${et.numero}.</span> <span style="text-align:right; flex:1; line-height:1.2;">${escapeHtml(et.nombre)}</span></div>
+              ${enCurso.filter(r => r.etapa_actual === et.id).map(r => reqCardHTML(r)).join('')}
+            </div>
+          `).join('')}
+        </div>
+
+        <h2 style="margin-bottom:1rem;">Requisiciones detalladas</h2>
+        <div class="reqs-list">
+          ${data.reqs.length === 0
+            ? '<div class="empty-state"><p>No hay requisiciones registradas todavía.</p></div>'
+            : data.reqs.slice(0, 20).map(r => reqItemHTML(r, data.etapas)).join('')}
+        </div>
+      `;
+    } catch (err) {
+      c.innerHTML = `<div class="empty-state"><div class="big-icon">!</div><p>${escapeHtml(err.message)}</p></div>`;
+    }
+  },
+
+  openReqModal() {
+    const areas = (State.pilarC && State.pilarC.areas) || [];
+    this.openModal(`
+      <div class="modal-head">
+        <h2>Nueva requisición</h2>
+        <div class="sub">Inicia el flujo desde la etapa 1 (Solicitud)</div>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Área solicitante</label>
+          <select id="req-area">
+            ${areas.map(a => `<option value="${escapeHtml(a.id)}">${escapeHtml(a.nombre)}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Descripción de los insumos solicitados</label>
+          <textarea id="req-desc" rows="4" placeholder="Lista de insumos, cantidades y referencia..."></textarea>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn-ghost" onclick="App.closeModal()">Cancelar</button>
+        <button class="btn-primary" style="width:auto; margin:0;" onclick="App.saveReq()">Crear</button>
+      </div>
+    `);
+  },
+
+  async saveReq() {
+    try {
+      const r = await apiCall('crearRequisicion', {
+        area: el('req-area').value,
+        descripcion: el('req-desc').value
+      });
+      toast('Requisición ' + r.folio + ' creada');
+      this.closeModal();
+      this.render_pilar_c();
+    } catch (err) { toast(err.message, true); }
+  },
+
+  openReqDetail(id) {
+    const r = State.pilarC.reqs.find(x => x.id === id);
+    if (!r) return;
+    const etapas = State.pilarC.etapas;
+    const etapaActual = etapas.find(e => e.id === r.etapa_actual);
+    const idx = etapas.findIndex(e => e.id === r.etapa_actual);
+    const siguiente = idx >= 0 && idx + 1 < etapas.length ? etapas[idx + 1] : null;
+    const movs = (State.pilarC.movs || []).filter(m => m.requisicion_id === id);
+    this.openModal(`
+      <div class="modal-head">
+        <h2>${escapeHtml(r.folio)}</h2>
+        <div class="sub">${escapeHtml(r.descripcion)} · Área: ${escapeHtml(r.area_solicitante)}</div>
+      </div>
+      <div class="modal-body">
+        <div style="margin-bottom:1rem;">
+          <div style="font-size:0.78rem; color:var(--ink-muted); text-transform:uppercase; letter-spacing:0.1em;">Etapa actual</div>
+          <div style="font-family:var(--font-display); font-size:1.2rem; font-weight:600;">
+            ${etapaActual ? etapaActual.numero + '. ' + escapeHtml(etapaActual.nombre) : '—'}
+          </div>
+          <div style="font-size:0.85rem; color:var(--ink-soft);">Responsable: ${etapaActual ? escapeHtml(etapaActual.responsable_rol) : '—'}</div>
+        </div>
+
+        <h4 style="margin:1rem 0 0.5rem;">Histórico de movimientos</h4>
+        <div style="font-size:0.85rem; max-height:200px; overflow-y:auto; border:1px dashed var(--border); padding:0.5rem; border-radius:4px;">
+          ${movs.length === 0 ? '<em>Sin movimientos</em>' : movs.map(m => `
+            <div style="padding:0.4rem 0; border-bottom:1px solid var(--border);">
+              <strong>${formatDateTime(m.timestamp)}</strong> · ${escapeHtml(m.etapa_id)} · ${escapeHtml(m.usuario_email)}<br>
+              ${escapeHtml(m.observaciones || '')}
+            </div>
+          `).join('')}
+        </div>
+
+        ${r.estatus_general === 'completado' ? '' : `
+        <hr style="border:none; border-top:1px dashed var(--border); margin:1rem 0;">
+        <h4 style="margin-bottom:0.6rem;">Avanzar al siguiente paso</h4>
+        ${siguiente ? `<p style="font-size:0.9rem; color:var(--ink-soft); margin-bottom:0.7rem;">Siguiente: <strong>${siguiente.numero}. ${escapeHtml(siguiente.nombre)}</strong> (responsable: ${escapeHtml(siguiente.responsable_rol)})</p>` : '<p>Es la última etapa.</p>'}
+        <div class="form-group">
+          <label>Observaciones del movimiento</label>
+          <textarea id="req-mov-obs" rows="2" placeholder="¿Qué pasó en esta etapa?"></textarea>
+        </div>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="req-bloquear" style="width:auto; margin-right:0.5rem;">
+            Bloquear la requisición
+          </label>
+          <input type="text" id="req-motivo" placeholder="Motivo del bloqueo (si aplica)" style="margin-top:0.4rem;">
+        </div>
+        `}
+      </div>
+      <div class="modal-foot">
+        <button class="btn-ghost" onclick="App.closeModal()">Cerrar</button>
+        ${r.estatus_general === 'completado' ? '' : `<button class="btn-primary" style="width:auto; margin:0;" onclick="App.avanzarReq('${id}')">${siguiente ? 'Avanzar etapa' : 'Marcar completado'}</button>`}
+      </div>
+    `);
+  },
+
+  async avanzarReq(id) {
+    try {
+      await apiCall('avanzarRequisicion', {
+        id,
+        observaciones: el('req-mov-obs').value,
+        bloquear: el('req-bloquear').checked,
+        motivo_bloqueo: el('req-motivo').value
+      });
+      toast('Requisición avanzada');
+      this.closeModal();
+      this.render_pilar_c();
+    } catch (err) { toast(err.message, true); }
+  },
+
+  /* =========== REPORTE =========== */
+  async render_reporte() {
+    const c = el('reporte-content');
+    const today = todayInputValue();
+    const monthAgo = new Date(); monthAgo.setMonth(monthAgo.getMonth() - 1);
+    const desdeDefault = monthAgo.toISOString().split('T')[0];
+    c.innerHTML = `
+      <div class="section-head">
+        <h1><span class="badge">Reporte</span> Papel de trabajo de supervisión</h1>
+        <div class="meta">Genera el resumen del periodo para tu archivo de auditoría</div>
+      </div>
+      <div class="report-shell">
+        <div class="report-controls">
+          <div class="form-group">
+            <label>Desde</label>
+            <input type="date" id="rep-desde" value="${desdeDefault}">
+          </div>
+          <div class="form-group">
+            <label>Hasta</label>
+            <input type="date" id="rep-hasta" value="${today}">
+          </div>
+          <button class="btn-primary" style="width:auto; margin:0;" onclick="App.genReporte()">Generar</button>
+          <button class="btn-secondary" onclick="App.imprimir()">Imprimir / PDF</button>
+        </div>
+        <div class="report-output" id="report-output">
+          <div class="empty-state"><p>Selecciona un periodo y haz click en <strong>Generar</strong>.</p></div>
+        </div>
+      </div>
+    `;
+  },
+
+  async genReporte() {
+    const desde = el('rep-desde').value;
+    const hasta = el('rep-hasta').value;
+    const out = el('report-output');
+    out.innerHTML = '<div class="empty-state"><div class="spinner"></div></div>';
+    try {
+      const data = await apiCall('getReporte', { desde, hasta });
+      const promedio = data.modulos.length ? Math.round(data.modulos.reduce((s,m)=>s+Number(m.porcentaje_actual),0) / data.modulos.length) : 0;
+      const cambios = data.histA.length;
+      const diasB = new Set(data.diarioB.map(d => d.fecha)).size;
+      const completB = data.diarioB.filter(d => String(d.completado).toUpperCase()==='TRUE').length;
+      const totalEsperadas = diasB * 8;
+      const banderasB = data.diarioB.filter(d => String(d.bandera_roja).toUpperCase()==='TRUE').length;
+      const reqsCreadas = data.reqs.length;
+      const reqsCompl = data.reqs.filter(r => r.estatus_general === 'completado').length;
+      const reqsBloq = data.reqs.filter(r => String(r.bloqueado).toUpperCase()==='TRUE').length;
+
+      out.innerHTML = `
+        <h3>Resumen ejecutivo</h3>
+        <p>Periodo: <strong>${formatDate(desde)} al ${formatDate(hasta)}</strong></p>
+        <p>Auditor: <strong>${escapeHtml(State.config.auditor_nombre || 'C.P. Germán Solís Zamora')}</strong></p>
+        <p>Plaza: <strong>${escapeHtml(State.config.nombre_restaurante || 'Fogueira')} · ${escapeHtml(State.config.plaza || 'Oaxaca')}</strong></p>
+
+        <h3>Pilar A — Soft Restaurant 12</h3>
+        <ul>
+          <li>Capacidad de uso al cierre del periodo: <strong>${promedio}%</strong></li>
+          <li>Brecha al óptimo: <strong>${100 - promedio} puntos</strong></li>
+          <li>Actualizaciones de módulos en el periodo: <strong>${cambios}</strong></li>
+          <li>Módulos en zona crítica (&lt;50%): <strong>${data.modulos.filter(m=>Number(m.porcentaje_actual)<50).length}</strong></li>
+        </ul>
+
+        <h3>Pilar B — Conciliación Fogueira</h3>
+        <ul>
+          <li>Días con captura en el periodo: <strong>${diasB}</strong></li>
+          <li>Etapas completadas / esperadas: <strong>${completB} / ${totalEsperadas || '—'}</strong>${totalEsperadas ? ' (' + Math.round((completB/totalEsperadas)*100) + '%)' : ''}</li>
+          <li>Banderas rojas detectadas: <strong>${banderasB}</strong></li>
+        </ul>
+
+        <h3>Pilar C — Inventarios</h3>
+        <ul>
+          <li>Requisiciones generadas: <strong>${reqsCreadas}</strong></li>
+          <li>Completadas: <strong>${reqsCompl}</strong></li>
+          <li>Bloqueadas: <strong>${reqsBloq}</strong></li>
+        </ul>
+
+        <h3>Conclusión del auditor</h3>
+        <p style="color:var(--ink-soft); font-style:italic;">Espacio reservado para tu opinión profesional. Edita esta sección directamente en pantalla antes de imprimir o exportar a PDF.</p>
+        <div contenteditable="true" style="min-height:80px; background:var(--bg-elevated); padding:0.85rem; border:1px dashed var(--border-strong); border-radius:4px;"></div>
+      `;
+    } catch (err) {
+      out.innerHTML = `<div class="empty-state"><p>${escapeHtml(err.message)}</p></div>`;
+    }
+  },
+
+  imprimir() { window.print(); },
+
+  /* =========== MODAL =========== */
+  openModal(html) {
+    el('modal').innerHTML = html;
+    el('modal-backdrop').classList.add('show');
+  },
+  closeModal() {
+    el('modal-backdrop').classList.remove('show');
+  }
+};
+
+/* =========================================================
+   COMPONENTES — funciones que generan HTML
+   ========================================================= */
+function pillarCardHTML(letra, titulo, p, target, line1, line2) {
+  return `
+    <div class="pillar-card ${p.semaforo ? 's-' + p.semaforo : ''}" data-target="${target}">
+      <div class="label">Pilar ${letra}</div>
+      <h2>${escapeHtml(titulo)}</h2>
+      <div class="big-number">${p.porcentaje !== undefined ? p.porcentaje : (p.enCurso || 0)}<span class="pct-sign">${p.porcentaje !== undefined ? '%' : ''}</span></div>
+      <div class="semaforo s-${p.semaforo || 'verde'}"><span class="dot"></span>${semaforoLabel(p.semaforo || 'verde')}</div>
+      <div class="stat"><span class="stat-label">${escapeHtml(line1)}</span></div>
+      <div class="stat"><span class="stat-label">${escapeHtml(line2)}</span></div>
+    </div>
+  `;
+}
+
+function comentariosListHTML(coms) {
+  if (!coms || coms.length === 0) {
+    return '<div class="empty-state" style="padding:1.5rem 1rem;"><p>Aún no hay comentarios. Sé el primero en reportar algo.</p></div>';
+  }
+  return coms.map(c => `
+    <div class="comment tipo-${escapeHtml(c.tipo || 'reporte')}">
+      <div class="comment-avatar">${escapeHtml(initial(c.usuario_email))}</div>
+      <div class="comment-body">
+        <div class="comment-head">
+          <span class="comment-author">${escapeHtml(c.usuario_email || '')}</span>
+          <span class="comment-tag">${escapeHtml(c.tipo || '')}</span>
+          <span class="comment-tag" style="background:var(--bg-paper); color:var(--ink-soft);">Pilar ${escapeHtml(c.pilar || 'gen')}</span>
+          <span class="comment-time">${formatDateTime(c.timestamp)}</span>
+        </div>
+        <div class="comment-text">${escapeHtml(c.mensaje || '')}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function modulRowHTML(m) {
+  const pct = Number(m.porcentaje_actual);
+  const sclass = semaforoClass(pct);
+  return `
+    <div class="modulo-row">
+      <div class="modulo-numero">${escapeHtml(String(m.numero))}</div>
+      <div class="modulo-info">
+        <div class="name">${escapeHtml(m.modulo)}</div>
+        <div class="modulo-bar-wrap"><div class="modulo-bar ${sclass}" style="width:${pct}%"></div></div>
+      </div>
+      <div class="modulo-pct ${sclass}">${pct}%</div>
+      <div style="display:flex; gap:0.4rem;">
+        <button class="modulo-action" onclick="App.openModuloModal('${escapeHtml(m.id)}')">Actualizar</button>
+        <button class="btn-ghost" onclick="App.openPlanModal('${escapeHtml(m.id)}')">+ Tarea</button>
+      </div>
+    </div>
+  `;
+}
+
+function planRowHTML(p, modulos) {
+  const m = modulos.find(x => x.id === p.modulo_id);
+  const cls = p.estatus === 'completado' ? 's-verde' : p.estatus === 'bloqueado' ? 's-rojo' : '';
+  return `
+    <div class="modulo-row">
+      <div class="modulo-numero" style="font-size:0.8rem;">${escapeHtml(m ? String(m.numero) : '?')}</div>
+      <div class="modulo-info">
+        <div class="name">${escapeHtml(p.accion)}</div>
+        <div style="font-size:0.78rem; color:var(--ink-soft);">
+          ${escapeHtml(p.responsable_email || '')} · objetivo: ${formatDate(p.fecha_objetivo)}
+        </div>
+      </div>
+      <div class="modulo-pct ${cls}" style="font-size:0.85rem; font-family:var(--font-body); text-transform:uppercase; letter-spacing:0.06em;">${escapeHtml(p.estatus)}</div>
+      <select class="modulo-action" style="background:var(--bg-elevated); color:var(--ink); border:1px solid var(--border-strong);" onchange="App.toggleTask('${escapeHtml(p.id)}', this.value)">
+        <option ${p.estatus==='pendiente'?'selected':''} value="pendiente">Pendiente</option>
+        <option ${p.estatus==='en_proceso'?'selected':''} value="en_proceso">En proceso</option>
+        <option ${p.estatus==='completado'?'selected':''} value="completado">Completado</option>
+        <option ${p.estatus==='bloqueado'?'selected':''} value="bloqueado">Bloqueado</option>
+      </select>
+    </div>
+  `;
+}
+
+function etapaCardHTML(e) {
+  const reg = e.registro || {};
+  const completada = String(reg.completado).toUpperCase() === 'TRUE';
+  const bandera = String(reg.bandera_roja).toUpperCase() === 'TRUE';
+  const cls = (completada ? 'completada ' : '') + (bandera ? 'bandera-roja' : '');
+  return `
+    <div class="etapa-card ${cls}">
+      <div class="etapa-numero">${escapeHtml(String(e.numero))}</div>
+      <div class="etapa-info">
+        <h4>${escapeHtml(e.nombre)} <span class="etapa-rol-tag">${escapeHtml(e.responsable_rol)}</span></h4>
+        <div class="desc">${escapeHtml(e.descripcion)}</div>
+        <div class="meta-line">
+          ${reg.hora_completado ? '<span>Cerrada a las <strong>' + escapeHtml(reg.hora_completado) + '</strong></span>' : ''}
+          ${reg.usuario_completo_email ? '<span>Por <strong>' + escapeHtml(reg.usuario_completo_email) + '</strong></span>' : ''}
+          ${reg.observaciones ? '<span>“' + escapeHtml(reg.observaciones).substring(0,80) + '”</span>' : ''}
+        </div>
+      </div>
+      <div class="etapa-actions">
+        <div class="check-btn ${completada ? 'checked' : ''}" onclick="App.toggleEtapaB('${escapeHtml(e.id)}', ${!completada})" title="${completada ? 'Reabrir' : 'Marcar completada'}">${completada ? '✓' : ''}</div>
+        <button class="btn-ghost" style="font-size:0.78rem;" onclick="App.openEtapaBModal('${escapeHtml(e.id)}')">Detalles</button>
+      </div>
+    </div>
+  `;
+}
+
+function reqCardHTML(r) {
+  const cls = String(r.bloqueado).toUpperCase()==='TRUE' ? 'bloqueado' : '';
+  return `
+    <div class="req-card ${cls}" onclick="App.openReqDetail('${escapeHtml(r.id)}')">
+      <div class="folio">${escapeHtml(r.folio)}</div>
+      <div class="area">${escapeHtml(r.area_solicitante)}</div>
+      <div class="desc">${escapeHtml((r.descripcion || '').substring(0, 80))}${(r.descripcion||'').length>80?'…':''}</div>
+    </div>
+  `;
+}
+
+function reqItemHTML(r, etapas) {
+  const idx = etapas.findIndex(e => e.id === r.etapa_actual);
+  const cls = String(r.bloqueado).toUpperCase()==='TRUE' ? 'bloqueado' : (r.estatus_general === 'completado' ? 'completado' : '');
+  const steps = etapas.map((e,i) => {
+    let stepCls = '';
+    if (r.estatus_general === 'completado') stepCls = 'done';
+    else if (i < idx) stepCls = 'done';
+    else if (i === idx) stepCls = String(r.bloqueado).toUpperCase()==='TRUE' ? 'blocked' : 'current';
+    return `<div class="req-step ${stepCls}" title="${escapeHtml(e.nombre)}"></div>`;
+  }).join('');
+  const etActual = etapas[idx];
+  return `
+    <div class="req-item ${cls}" onclick="App.openReqDetail('${escapeHtml(r.id)}')" style="cursor:pointer;">
+      <div class="req-item-head">
+        <span class="req-item-folio">${escapeHtml(r.folio)}</span>
+        <span class="req-item-fecha">${formatDate(r.fecha_solicitud)}</span>
+      </div>
+      <div class="req-item-area">${escapeHtml(r.area_solicitante)}</div>
+      <div class="req-item-desc">${escapeHtml((r.descripcion || '').substring(0, 100))}${(r.descripcion||'').length>100?'…':''}</div>
+      <div class="req-item-progress">${steps}</div>
+      <div style="font-size:0.75rem; color:var(--ink-soft); display:flex; justify-content:space-between;">
+        <span>Etapa ${etActual ? etActual.numero + ': ' + escapeHtml(etActual.nombre) : '—'}</span>
+        <span style="text-transform:uppercase; letter-spacing:0.06em; font-weight:600;">${escapeHtml(r.estatus_general)}</span>
+      </div>
+    </div>
+  `;
+}
+
+/* =========================================================
+   ARRANQUE
+   ========================================================= */
+document.addEventListener('DOMContentLoaded', () => App.init());
+</script>
+</body>
+</html>

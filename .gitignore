@@ -1,0 +1,31 @@
+# clasp — contiene scriptId del Apps Script (no se sube a git)
+.clasp.json
+apps_script/.clasp.json
+
+# clasp logs
+.clasprc.json
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+
+# Backups
+*.bak
+*~
+
+# Archivos temporales y agentes
+.claude/
+
+# Node (por si acaso)
+node_modules/
