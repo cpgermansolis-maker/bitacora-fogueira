@@ -42,8 +42,8 @@ Cualquiera con esta URL puede abrir el sitio, pero solo los emails listados en l
 
 ## ✅ Checklist de lo que quedó instalado
 
-- [x] Sheet "Bitácora Fogueira" con 13 pestañas (17 desde los upgrades de Check List SR12 y Check List Conciliación · ver más abajo)
-- [x] Catálogos cargados (12 módulos Pilar A · 8 etapas Pilar B · 11 etapas Pilar C · 5 áreas · 8 valores Config · 36 ítems Check List SR12 · 48 ítems Check List Conciliación)
+- [x] Sheet "Bitácora Fogueira" con 13 pestañas (19 desde los upgrades de Check List SR12, Check List Conciliación y Check List Inventarios · ver más abajo)
+- [x] Catálogos cargados (12 módulos Pilar A · 8 etapas Pilar B · 11 etapas Pilar C · 5 áreas · 8 valores Config · 36 ítems Check List SR12 · 48 ítems Check List Conciliación · 35 ítems Check List Inventarios)
 - [x] Auditor `cpgermansolis@gmail.com` registrado en `Usuarios` con `activo = TRUE`
 - [x] Carpeta Drive de evidencias creada con permiso público de lectura
 - [x] Backend con `Code.gs`, `Monitoring.gs`, `Setup.gs` desplegado como Web App
@@ -177,6 +177,36 @@ Si tu instancia se publicó **antes del 7 de mayo 2026**, agregamos el check lis
 El manual operativo completo está archivado en [`docs/checklist_conciliacion_origen/`](docs/checklist_conciliacion_origen/) (markdown + html imprimible). Sirve como referencia para nuevos supervisores y como base para futuras ampliaciones del catálogo.
 
 **Quién marca:** `administracion` siempre (Estefanía supervisa); además `auditor`, `auxiliar` y `gerente` pueden marcar cualquier ítem.
+
+---
+
+## ⬆️ Upgrade · Check List Inventarios (mayo 2026)
+
+Si tu instancia se publicó **antes del 7 de mayo 2026**, agregamos el check list operativo del flujo de inventarios dentro del Pilar C. Mismos pasos que los upgrades anteriores:
+
+1. **Backend** — Abre el editor Apps Script y vuelve a correr `setupSheet()`. Crea las 2 pestañas nuevas (`PilarC_ChecklistItems` con 35 ítems precargados y `PilarC_ChecklistMarcas` vacía) sin tocar el resto del Sheet.
+2. **Re-deploy del Web App** (mantiene la URL — versión actual: **v8**):
+   ```bash
+   cd apps_script
+   clasp push
+   clasp version "Pilar C check list operativo"
+   clasp redeploy -V <numero> AKfycbzD4CrG1aidpykl1VRmMN63v7rad3Rj8Dwr-auiJwB4OSzDsfnKH2gSqdCW92Nh39Zn
+   ```
+3. **Frontend** — `git pull` y `git push` se publican solos en GitHub Pages.
+4. **Verificación rápida:**
+   - Como `auditor` → Pilar C muestra píldora "X% disciplina" en cada columna del kanban (clic abre el modal con los ítems de esa etapa).
+   - Como `administracion` (Estefanía) o `auxiliar` → Pilar C abre directo en la **vista guiada** con los bloques cronológicos del flujo.
+
+**Cobertura del check list (35 ítems):**
+- **Diario (20):** Solicitud (5) · Compra (5) · Recepción (5) · Surtimiento (3) · Bloqueos del flujo (2)
+- **Semanal (6):** revisión de viernes — tiempo del flujo, concentración de proveedor, discrepancias, mermas en tránsito, reclamaciones, reporte a Mónica
+- **Mensual (9):** último viernes — KPIs del mes, top áreas/insumos, concentración de compra, muestreo x3 cotizaciones, **auditoría de segregación** del mes completo, conciliación 3-way, catálogo proveedores, reporte a dirección
+
+**Controles críticos** (los dos ítems con 🔒 que sostienen Pilar C):
+- `CKCD11` (diario, etapa C07): quien recibe físicamente NO es quien compró.
+- `CKCM06` (mensual, etapa C07): auditoría retrospectiva de segregación del mes — ninguna recepción la firmó el comprador.
+
+**Quién marca:** `administracion` siempre (Estefanía supervisa el flujo igual que conciliación); además `auditor`, `auxiliar` y `gerente` pueden marcar cualquier ítem.
 
 ---
 
