@@ -151,6 +151,18 @@ label { display: block; font-size: 0.82rem; font-weight: 500; color: var(--ink-s
 }
 .btn-logout:hover { background: rgba(217,181,112,0.1); color: #F5EFE3; }
 
+/* Botón circular "?" — Ayuda / Manual del sistema */
+.btn-help {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: rgba(217,181,112,0.12); color: var(--gold-line);
+  border: 1px solid rgba(217,181,112,0.35);
+  display: inline-grid; place-items: center;
+  font-family: var(--font-display); font-weight: 600; font-size: 0.95rem;
+  transition: all 0.15s;
+}
+.btn-help:hover { background: rgba(217,181,112,0.25); color: #FFF; transform: scale(1.05); }
+.btn-help:focus { outline: none; box-shadow: 0 0 0 3px rgba(217,181,112,0.25); }
+
 /* NAV */
 .nav {
   background: var(--bg-paper); border-bottom: 1px solid var(--border);
@@ -521,6 +533,65 @@ label { display: block; font-size: 0.82rem; font-weight: 500; color: var(--ink-s
   border-top: 1px solid var(--border);
 }
 
+/* Variante ancha para el manual */
+.modal.modal-wide { max-width: 760px; }
+
+/* Contenido del manual de operación */
+.manual { font-size: 0.95rem; color: var(--ink); line-height: 1.65; }
+.manual .role-tag {
+  display: inline-block; font-size: 0.7rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.12em;
+  padding: 0.25rem 0.7rem; border-radius: 3px;
+  background: var(--gold-soft); color: var(--gold-deep);
+  margin-bottom: 0.85rem;
+}
+.manual .lead {
+  font-size: 1.02rem; color: var(--ink-soft);
+  border-left: 3px solid var(--gold);
+  padding: 0.2rem 0 0.2rem 0.9rem; margin-bottom: 1.5rem;
+}
+.manual section { margin-bottom: 1.7rem; }
+.manual section:last-child { margin-bottom: 0.4rem; }
+.manual h3 {
+  font-family: var(--font-display); font-size: 1.08rem; font-weight: 600;
+  color: var(--ink); margin-bottom: 0.5rem;
+  display: flex; align-items: center; gap: 0.5rem;
+}
+.manual h3 .num {
+  display: inline-grid; place-items: center;
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--bg-deep); color: var(--gold-line);
+  font-family: var(--font-display); font-size: 0.82rem; font-weight: 600;
+  flex-shrink: 0;
+}
+.manual ul, .manual ol { padding-left: 1.4rem; margin: 0.4rem 0 0.6rem; }
+.manual li { margin-bottom: 0.35rem; }
+.manual li::marker { color: var(--gold-deep); }
+.manual code {
+  background: var(--bg-paper); padding: 0.08rem 0.35rem;
+  border-radius: 3px; font-size: 0.88em;
+  border: 1px solid var(--border);
+}
+.manual .nota {
+  background: var(--gold-soft); border-left: 3px solid var(--gold);
+  padding: 0.7rem 0.95rem; border-radius: 3px;
+  font-size: 0.9rem; color: var(--ink); margin-top: 0.7rem;
+}
+.manual .nota strong { color: var(--gold-deep); }
+.manual .alerta {
+  background: var(--red-bg); border-left: 3px solid var(--red);
+  padding: 0.7rem 0.95rem; border-radius: 3px;
+  font-size: 0.9rem; color: var(--ink); margin-top: 0.7rem;
+}
+.manual .alerta strong { color: var(--red); }
+.manual table {
+  width: 100%; border-collapse: collapse; margin: 0.5rem 0; font-size: 0.88rem;
+}
+.manual th, .manual td {
+  border: 1px solid var(--border); padding: 0.5rem 0.65rem; text-align: left;
+}
+.manual th { background: var(--bg-paper); font-weight: 600; color: var(--ink-soft); }
+
 /* =========================================================
    PILAR B — Conciliación
    ========================================================= */
@@ -839,6 +910,7 @@ label { display: block; font-size: 0.82rem; font-weight: 500; color: var(--ink-s
           <span class="role" id="user-role">—</span>
           <span id="user-name">—</span>
         </div>
+        <button class="btn-help" onclick="App.openManual()" title="Ayuda · Manual de operación" aria-label="Abrir manual de operación">?</button>
         <button class="btn-logout" onclick="App.logout()">Salir</button>
       </div>
     </div>
@@ -1944,13 +2016,45 @@ const App = {
     }
   },
 
+  /* =========== MANUAL DE OPERACIÓN =========== */
+  openManual() {
+    if (!State.user) return;
+    const rol = (State.user.rol || '').toLowerCase();
+    const m = MANUAL[rol] || MANUAL._fallback;
+    const nombre = (State.user.nombre || '').split(' ')[0];
+    const secciones = m.secciones.map((s, i) => `
+      <section>
+        <h3><span class="num">${i + 1}</span>${escapeHtml(s.titulo)}</h3>
+        ${s.cuerpo}
+      </section>
+    `).join('');
+    this.openModal(`
+      <div class="modal-head">
+        <h2>Manual de operación</h2>
+        <div class="sub">Bitácora Fogueira · Plaza Oaxaca</div>
+      </div>
+      <div class="modal-body manual">
+        <span class="role-tag">${escapeHtml(rol)}</span>
+        <h2 style="font-family:var(--font-display); font-size:1.35rem; margin-bottom:0.3rem;">${escapeHtml(m.titulo)}</h2>
+        <p class="lead">Hola ${escapeHtml(nombre)} — ${m.intro}</p>
+        ${secciones}
+        ${MANUAL._comun}
+      </div>
+      <div class="modal-foot">
+        <button class="btn-ghost" onclick="App.closeModal()">Cerrar</button>
+      </div>
+    `, true);
+  },
+
   /* =========== MODAL =========== */
-  openModal(html) {
+  openModal(html, wide) {
     el('modal').innerHTML = html;
+    el('modal').classList.toggle('modal-wide', !!wide);
     el('modal-backdrop').classList.add('show');
   },
   closeModal() {
     el('modal-backdrop').classList.remove('show');
+    el('modal').classList.remove('modal-wide');
   }
 };
 
@@ -1962,6 +2066,484 @@ const ROLES_VALIDOS = [
   'almacen', 'compras', 'administracion',
   'host', 'cocina', 'cajera', 'area'
 ];
+
+/* =========================================================
+   MANUAL DE OPERACIÓN — contenido por rol
+   Cada rol tiene { titulo, intro, secciones: [{titulo, cuerpo}] }
+   "cuerpo" es HTML simple (<p>, <ul>, <ol>, <table>, .nota, .alerta).
+   Si el rol no está, se usa _fallback. Al final se anexa _comun.
+   ========================================================= */
+const MANUAL = {
+
+  auxiliar: {
+    titulo: 'Tu día en la Bitácora — rol Auxiliar',
+    intro: 'eres el corazón operativo de la conciliación. Revisas que las capturas estén bien hechas y armas el cierre del día para la dirección.',
+    secciones: [
+      {
+        titulo: 'Qué vas a ver al entrar',
+        cuerpo: `
+          <p>El menú superior tiene 5 pestañas. Estas son las que vas a usar:</p>
+          <ul>
+            <li><strong>Tablero</strong> — el resumen del día. Verde, amarillo, naranja o rojo en cada pilar.</li>
+            <li><strong>Pilar A · Soft Restaurant</strong> — los 12 módulos del sistema y su % de avance.</li>
+            <li><strong>Pilar B · Conciliación</strong> — las 8 etapas del cierre del día (lo que más usarás).</li>
+            <li><strong>Pilar C · Inventarios</strong> — flujo de requisiciones de insumos.</li>
+            <li><strong>Reporte</strong> — para revisar cualquier rango de fechas.</li>
+          </ul>
+        `
+      },
+      {
+        titulo: 'Tu chamba diaria — Pilar B (Conciliación)',
+        cuerpo: `
+          <p>Las 8 etapas del Pilar B se van marcando durante el día por quien las ejecuta (host, cocina, cajera, gerente). <strong>Tú no marcas todas</strong>, pero sí revisas que lo capturado esté bien y cierras las dos últimas:</p>
+          <ol>
+            <li><strong>Validar calidad</strong> de cada etapa: entras a Pilar B, abres la etapa y marcas si la captura está completa o si hay observación.</li>
+            <li><strong>Etapa 7 — Conciliación final:</strong> cruza HOST + POS + Arqueo. Si hay diferencia, levanta bandera roja con observación.</li>
+            <li><strong>Etapa 8 — Reporte a Dirección:</strong> sube el tablero del día y registra los 2 depósitos (venta + comisiones).</li>
+          </ol>
+          <div class="nota"><strong>Calidad ≠ que se haya hecho.</strong> Una etapa puede estar marcada como "completada" pero mal capturada. Ese es justo el control que tú aplicas.</div>
+        `
+      },
+      {
+        titulo: 'Pilar A — Avance de Soft Restaurant',
+        cuerpo: `
+          <p>Cada vez que cierras una mejora en alguno de los 12 módulos del sistema (recetario, catálogo, reportes, etc.), entras a <strong>Pilar A</strong>, abres el módulo correspondiente y subes el porcentaje.</p>
+          <ul>
+            <li>En el campo de <strong>observaciones</strong> describe qué se hizo (ej. "se capturaron las 120 recetas faltantes").</li>
+            <li>Si tienes evidencia (foto, PDF), súbela desde el mismo módulo.</li>
+          </ul>
+          <div class="nota"><strong>Tip:</strong> el sistema guarda el histórico de cada cambio (quién, cuándo, de qué % a qué %). No tengas miedo de subirle aunque sea 5%; lo importante es la trazabilidad.</div>
+        `
+      },
+      {
+        titulo: 'Banderas rojas y comentarios',
+        cuerpo: `
+          <p>Cuando algo no cuadra o tienes una duda urgente:</p>
+          <ul>
+            <li>En la etapa específica del Pilar B → marca <strong>"bandera roja"</strong> y escribe la observación. El auditor lo ve en su dashboard.</li>
+            <li>En el dashboard hay un panel de <strong>comentarios</strong>. Úsalo como bitácora de tu día — todo queda registrado con tu nombre y la hora.</li>
+          </ul>
+        `
+      }
+    ]
+  },
+
+  gerente: {
+    titulo: 'Tu rol como Gerente en la Bitácora',
+    intro: 'tienes una vista panorámica del restaurante y firmas digitalmente el cierre del día. Es tu evidencia de supervisión.',
+    secciones: [
+      {
+        titulo: 'Qué vas a ver al entrar',
+        cuerpo: `
+          <p>El menú superior tiene estas pestañas:</p>
+          <ul>
+            <li><strong>Tablero</strong> — el resumen del día. Verde = bien, amarillo = atención, naranja/rojo = revisar.</li>
+            <li><strong>Pilar A · Soft Restaurant</strong> — % de implementación del sistema.</li>
+            <li><strong>Pilar B · Conciliación</strong> — las 8 etapas del cierre diario. <em>Aquí es donde tú firmas.</em></li>
+            <li><strong>Pilar C · Inventarios</strong> — requisiciones de insumos en curso.</li>
+            <li><strong>Reporte</strong> — análisis por rango de fechas.</li>
+          </ul>
+        `
+      },
+      {
+        titulo: 'Tu acción clave — Etapa 6 del Pilar B',
+        cuerpo: `
+          <p>Eres el responsable de la <strong>Etapa 6 — Autorización del Gerente</strong> antes del cierre del día:</p>
+          <ol>
+            <li>Entra a <strong>Pilar B · Conciliación</strong>.</li>
+            <li>Cuando las etapas 1 a 5 estén completadas (host, cocina, cajera), abre la <strong>Etapa 6</strong>.</li>
+            <li>Revisa cortesías, descuentos solicitados y firma digitalmente.</li>
+            <li>Marca la etapa como completada con tu observación.</li>
+          </ol>
+          <div class="alerta"><strong>Importante:</strong> sin tu autorización en Etapa 6, la auxiliar no puede cerrar Etapas 7 y 8. Tú habilitas el cierre del día.</div>
+        `
+      },
+      {
+        titulo: 'Cómo dar seguimiento al equipo',
+        cuerpo: `
+          <p>Desde el <strong>Tablero</strong> ves en un vistazo:</p>
+          <ul>
+            <li>Cuántas etapas del Pilar B se han completado hoy y cuántas faltan.</li>
+            <li>Cuántas <strong>banderas rojas</strong> levantó la auxiliar.</li>
+            <li>Cuántas requisiciones del Pilar C están en curso o bloqueadas.</li>
+            <li>Avance global de Soft Restaurant (Pilar A).</li>
+          </ul>
+          <div class="nota"><strong>Tip:</strong> el tablero se actualiza solo cada 30 segundos. No necesitas refrescar.</div>
+        `
+      },
+      {
+        titulo: 'Comentarios y comunicación',
+        cuerpo: `
+          <p>En el dashboard hay un panel de comentarios. Úsalo para:</p>
+          <ul>
+            <li>Pedir aclaraciones a la auxiliar sobre una etapa específica.</li>
+            <li>Dejar instrucciones al equipo del siguiente turno.</li>
+            <li>Dar visto bueno público a un cierre del día.</li>
+          </ul>
+          <p>Todo queda registrado con tu nombre, fecha y hora — es parte del audit trail.</p>
+        `
+      }
+    ]
+  },
+
+  controlador: {
+    titulo: 'Tu rol como Controlador',
+    intro: 'haces la revisión de cumplimiento sin meter mano en la operación. Vas a leer mucho, opinar a través de comentarios y dar seguimiento al historial.',
+    secciones: [
+      {
+        titulo: 'Qué vas a ver al entrar',
+        cuerpo: `
+          <p>Tienes acceso de <strong>solo lectura inteligente</strong> a todo el sistema:</p>
+          <ul>
+            <li><strong>Tablero</strong> — semáforos del día.</li>
+            <li><strong>Pilar A / B / C</strong> — el detalle de cada flujo.</li>
+            <li><strong>Reporte</strong> — análisis histórico por rango de fechas. <em>Aquí pasarás más tiempo.</em></li>
+          </ul>
+        `
+      },
+      {
+        titulo: 'Tu chamba diaria',
+        cuerpo: `
+          <ol>
+            <li>Cada mañana abre el <strong>Tablero</strong> y revisa los semáforos del día anterior.</li>
+            <li>Entra al <strong>Pilar B</strong> y verifica que las 8 etapas hayan cerrado, y que las que cerraron tengan calidad validada por la auxiliar y por el auditor.</li>
+            <li>En <strong>Pilar C</strong> ve si hay requisiciones bloqueadas o detenidas (>48 hrs en una etapa).</li>
+            <li>Si detectas algo, deja un <strong>comentario</strong> en el dashboard tipo "validación" o "alerta".</li>
+          </ol>
+        `
+      },
+      {
+        titulo: 'Reporte semanal / mensual',
+        cuerpo: `
+          <p>Entra a <strong>Reporte</strong>, define el rango de fechas (lunes-domingo, o el mes completo) y revisa:</p>
+          <ul>
+            <li>Promedio de Pilar A y módulos que <strong>no han subido</strong> su %.</li>
+            <li>Banderas rojas del Pilar B en el período.</li>
+            <li>Tiempo promedio de las requisiciones del Pilar C (cuellos de botella).</li>
+          </ul>
+          <div class="nota"><strong>Sugerencia:</strong> mantén un patrón fijo (mismo día, misma hora) para revisar — disciplina vence motivación.</div>
+        `
+      }
+    ]
+  },
+
+  auditor: {
+    titulo: 'Tu panel — Auditor (administrador del sistema)',
+    intro: 'tienes el control total. Validas calidad, das de alta usuarios, defines metas y tienes el audit trail completo.',
+    secciones: [
+      {
+        titulo: 'Lo que solo tú puedes hacer',
+        cuerpo: `
+          <ul>
+            <li><strong>Pestaña Usuarios</strong> — alta, baja, edición y desactivación de cualquier usuario del sistema.</li>
+            <li><strong>Validar calidad por auditor</strong> en cualquier etapa del Pilar B.</li>
+            <li><strong>Comentar como auditor</strong> en cualquier tarea del Plan de Acción del Pilar A.</li>
+            <li>Ver el <strong>histórico completo</strong> de modificaciones de los 12 módulos.</li>
+          </ul>
+        `
+      },
+      {
+        titulo: 'Rutina recomendada',
+        cuerpo: `
+          <ol>
+            <li><strong>Diaria (5 min):</strong> revisa Tablero → confirma que el Pilar B cerró sin banderas rojas pendientes → si algo está rojo, deja comentario.</li>
+            <li><strong>Semanal (20 min):</strong> entra a Pilar A, revisa cada módulo con avance &lt; 50% y agrega/actualiza tareas en el Plan de Acción con responsable y fecha objetivo.</li>
+            <li><strong>Mensual (1 hr):</strong> Reporte → genera el rango del mes → exporta los datos para tu reporte ejecutivo a Grupo Toda.</li>
+          </ol>
+        `
+      },
+      {
+        titulo: 'Administración técnica',
+        cuerpo: `
+          <p>Recursos directos (no expuestos en el dashboard):</p>
+          <ul>
+            <li><strong>Sheet</strong> — todos los datos vivos.</li>
+            <li><strong>Drive</strong> — evidencias subidas (fotos, PDFs).</li>
+            <li><strong>Apps Script</strong> — código del backend.</li>
+            <li><strong>GitHub</strong> — código del frontend.</li>
+          </ul>
+          <div class="nota"><strong>Recordatorio:</strong> Si cambias el código del Apps Script, usa <code>clasp redeploy</code> (no <code>deploy</code>) para conservar la URL del Web App.</div>
+        `
+      }
+    ]
+  },
+
+  almacen: {
+    titulo: 'Tu rol — Almacén (Pilar C · Inventarios)',
+    intro: 'eres el corazón del flujo de inventarios. Tienes el control físico y el sistema; nunca recibes lo que tú compraste — eso es control crítico.',
+    secciones: [
+      {
+        titulo: 'Qué vas a ver al entrar',
+        cuerpo: `
+          <p>Te vas directo a <strong>Pilar C · Inventarios</strong>. Verás el listado de requisiciones activas y en qué etapa va cada una.</p>
+        `
+      },
+      {
+        titulo: 'Las 4 etapas que tú ejecutas',
+        cuerpo: `
+          <table>
+            <thead><tr><th>Etapa</th><th>Qué haces</th></tr></thead>
+            <tbody>
+              <tr><td><strong>C02 · Revisión existencias</strong></td><td>Cuando llega una solicitud del área, revisas si hay stock y avanzas o escalas a Compras.</td></tr>
+              <tr><td><strong>C07 · Recepción física</strong></td><td>Recibes el insumo del proveedor. <em>Nunca recibe Compras</em> — ese es el control de segregación.</td></tr>
+              <tr><td><strong>C09 · Verificación e ingreso al sistema</strong></td><td>Validas cantidades vs. orden y capturas en Soft Restaurant.</td></tr>
+              <tr><td><strong>C10 · Surtimiento</strong></td><td>Surtes vía sistema al área que lo solicitó.</td></tr>
+            </tbody>
+          </table>
+        `
+      },
+      {
+        titulo: 'Cómo avanzar una requisición',
+        cuerpo: `
+          <ol>
+            <li>Abre <strong>Pilar C</strong>.</li>
+            <li>Localiza la requisición en la etapa que te toca.</li>
+            <li>Da click en <strong>"Avanzar"</strong>.</li>
+            <li>Captura observaciones y, si aplica, sube evidencia (foto del insumo recibido, factura, etc.).</li>
+          </ol>
+          <div class="alerta"><strong>Si algo no cuadra</strong> (cantidad menor, calidad mala, factura distinta), <strong>no avances</strong>. Marca como "bloqueado" con el motivo. El sistema avisa al área y al auditor.</div>
+        `
+      }
+    ]
+  },
+
+  compras: {
+    titulo: 'Tu rol — Compras (Pilar C · Inventarios)',
+    intro: 'cotizas y ejecutas la compra al proveedor, pero nunca recibes el insumo. Esa segregación es deliberada y protege el control interno.',
+    secciones: [
+      {
+        titulo: 'Qué vas a ver al entrar',
+        cuerpo: `<p>Vete directo a <strong>Pilar C · Inventarios</strong>.</p>`
+      },
+      {
+        titulo: 'Las 2 etapas que tú ejecutas',
+        cuerpo: `
+          <table>
+            <thead><tr><th>Etapa</th><th>Qué haces</th></tr></thead>
+            <tbody>
+              <tr><td><strong>C04 · Cotizaciones x3</strong></td><td>Consigues 3 cotizaciones del insumo, marcas tu sugerencia y subes los archivos.</td></tr>
+              <tr><td><strong>C06 · Compra al proveedor</strong></td><td>Una vez que Administración da VoBo, emites la orden de compra al proveedor seleccionado.</td></tr>
+            </tbody>
+          </table>
+        `
+      },
+      {
+        titulo: 'Cómo trabajar cada etapa',
+        cuerpo: `
+          <p><strong>Para C04:</strong></p>
+          <ol>
+            <li>Abre la requisición en Pilar C.</li>
+            <li>Sube los 3 PDFs/fotos de cotizaciones.</li>
+            <li>Marca tu sugerencia y justifícala (no siempre la más barata es la mejor).</li>
+            <li>Avanza a C05.</li>
+          </ol>
+          <p><strong>Para C06:</strong></p>
+          <ol>
+            <li>Confirma que ya hay VoBo de Administración (la requisición ya está en C06).</li>
+            <li>Genera la orden, súbela y registra fecha probable de entrega.</li>
+            <li>Avanza a C07 (recepción por Almacén — no por ti).</li>
+          </ol>
+          <div class="alerta"><strong>Control crítico:</strong> en NINGÚN caso tú recibes el insumo. Eso siempre lo hace Almacén. Es la base de la segregación de funciones.</div>
+        `
+      }
+    ]
+  },
+
+  administracion: {
+    titulo: 'Tu rol — Administración',
+    intro: 'eres el filtro de autorización antes de que se gaste un peso. Tu visto bueno es lo que destraba la compra.',
+    secciones: [
+      {
+        titulo: 'Qué vas a ver al entrar',
+        cuerpo: `<p>Vete a <strong>Pilar C · Inventarios</strong>. Filtra las requisiciones que están en etapa <strong>C05 — VoBo / Autorización</strong>.</p>`
+      },
+      {
+        titulo: 'Cómo autorizar una compra',
+        cuerpo: `
+          <ol>
+            <li>Abre la requisición en C05.</li>
+            <li>Revisa las 3 cotizaciones que subió Compras y la sugerencia que marcaron.</li>
+            <li>Si todo está correcto → avanza a C06 con tu observación de autorización.</li>
+            <li>Si falta información o el monto es excesivo → no avances; deja comentario y la requisición queda detenida.</li>
+          </ol>
+          <div class="nota"><strong>Tu firma queda registrada</strong> con email, fecha y hora. Es tu evidencia COSO de la autorización.</div>
+        `
+      }
+    ]
+  },
+
+  host: {
+    titulo: 'Tu rol — Host',
+    intro: 'eres el primer eslabón del día y de la conciliación. La venta teórica del día empieza con tu captura.',
+    secciones: [
+      {
+        titulo: 'Qué vas a ver al entrar',
+        cuerpo: `<p>Vete a <strong>Pilar B · Conciliación</strong>. Verás las etapas del día. Las que te tocan son la <strong>1</strong> y la <strong>2</strong>.</p>`
+      },
+      {
+        titulo: 'Etapas que tú ejecutas',
+        cuerpo: `
+          <table>
+            <thead><tr><th>Etapa</th><th>Qué haces</th></tr></thead>
+            <tbody>
+              <tr><td><strong>B1 · Apertura</strong></td><td>Activas servicio · Validas cupo (50) · Confirmas tarifa vigente del día.</td></tr>
+              <tr><td><strong>B2 · Bitácora del HOST</strong></td><td>Capturas reservas WhatsApp + walk-ins · Asignas mesa y cupo · El sistema calcula la venta teórica.</td></tr>
+            </tbody>
+          </table>
+        `
+      },
+      {
+        titulo: 'Cómo cerrar tu etapa',
+        cuerpo: `
+          <ol>
+            <li>Termina toda la captura del día.</li>
+            <li>Abre la etapa en Pilar B.</li>
+            <li>Marca como <strong>completada</strong>.</li>
+            <li>Si hubo algo raro (overbooking, walk-in que se fue sin consumir, etc.), márcalo como <strong>bandera roja</strong> con descripción.</li>
+          </ol>
+        `
+      }
+    ]
+  },
+
+  cocina: {
+    titulo: 'Tu rol — Cocina',
+    intro: 'capturas en tiempo real lo que sale de Cocina y Churrasca. Esa captura es la base para detectar mermas y diferencias al final del día.',
+    secciones: [
+      {
+        titulo: 'Qué vas a ver al entrar',
+        cuerpo: `<p>Te vas a <strong>Pilar B · Conciliación</strong>. Te toca la <strong>Etapa 3 · Cocina y Churrasca</strong>.</p>`
+      },
+      {
+        titulo: 'Tu chamba diaria',
+        cuerpo: `
+          <ol>
+            <li>Durante el servicio captura las charolas en vivo desde tablet/celular (es importante <strong>no</strong> dejarlo todo para el final del día).</li>
+            <li>Registra mermas si las hay.</li>
+            <li>Al final del servicio abre la Etapa 3 en Pilar B y márcala como completada con tu observación.</li>
+          </ol>
+          <div class="nota"><strong>Tip:</strong> capturar en tiempo real toma 30 segundos por charola; reconstruir al final del día toma 1 hora y queda mal.</div>
+        `
+      }
+    ]
+  },
+
+  cajera: {
+    titulo: 'Tu rol — Cajera',
+    intro: 'manejas el dinero del día y haces el arqueo ciego. Tu cierre limpio es lo que permite a la auxiliar conciliar sin diferencias.',
+    secciones: [
+      {
+        titulo: 'Qué vas a ver al entrar',
+        cuerpo: `<p>Te vas a <strong>Pilar B · Conciliación</strong>. Te tocan las etapas <strong>4</strong> y <strong>5</strong>.</p>`
+      },
+      {
+        titulo: 'Etapas que tú ejecutas',
+        cuerpo: `
+          <table>
+            <thead><tr><th>Etapa</th><th>Qué haces</th></tr></thead>
+            <tbody>
+              <tr><td><strong>B4 · Cortes</strong></td><td>Tickets POS por mesa · cobro denominado · descuentos solicitados.</td></tr>
+              <tr><td><strong>B5 · Cierre de Cajera</strong></td><td>Arqueo <em>ciego</em> · desglose por denominación · terminales y propinas.</td></tr>
+            </tbody>
+          </table>
+        `
+      },
+      {
+        titulo: 'Reglas críticas',
+        cuerpo: `
+          <div class="alerta"><strong>Arqueo ciego:</strong> haces el conteo de efectivo SIN ver primero el reporte del POS. Esa es la regla. La diferencia (positiva o negativa) es la que se registra y se concilia. No "ajustes" para que cuadre.</div>
+          <p>Para cerrar:</p>
+          <ol>
+            <li>Termina el último ticket del día.</li>
+            <li>Cuenta el efectivo por denominación.</li>
+            <li>Captura en el sistema y compara contra POS.</li>
+            <li>Marca B5 como completada con la diferencia (aunque sea $0).</li>
+          </ol>
+        `
+      }
+    ]
+  },
+
+  area: {
+    titulo: 'Tu rol — Área usuaria (Pilar C · Inventarios)',
+    intro: 'eres quien solicita los insumos y quien valida cuando llegan. Tu participación abre y cierra el ciclo.',
+    secciones: [
+      {
+        titulo: 'Qué vas a ver al entrar',
+        cuerpo: `<p>Vete a <strong>Pilar C · Inventarios</strong>. Ahí podrás crear nuevas requisiciones y ver el estatus de las tuyas.</p>`
+      },
+      {
+        titulo: 'Las 3 etapas que tú ejecutas',
+        cuerpo: `
+          <table>
+            <thead><tr><th>Etapa</th><th>Qué haces</th></tr></thead>
+            <tbody>
+              <tr><td><strong>C01 · Solicitud de insumos</strong></td><td>Capturas qué necesitas, cuánto y cuándo.</td></tr>
+              <tr><td><strong>C08 · Inspección de calidad</strong></td><td>Cuando llega un insumo especial (carnes, mariscos), tú validas calidad.</td></tr>
+              <tr><td><strong>C11 · Recepción física por área</strong></td><td>Recibes el insumo de Almacén cuando te lo surte.</td></tr>
+            </tbody>
+          </table>
+        `
+      },
+      {
+        titulo: 'Cómo crear una requisición',
+        cuerpo: `
+          <ol>
+            <li>Abre Pilar C → botón <strong>"Nueva requisición"</strong>.</li>
+            <li>Escribe descripción clara: producto, cantidad, fecha en que lo necesitas.</li>
+            <li>Confirma.</li>
+            <li>El sistema avisa a Almacén automáticamente.</li>
+          </ol>
+          <div class="nota"><strong>Tip:</strong> entre más específica sea la descripción ("rib eye 250g, 5 piezas, prime"), menos vueltas dará la requisición.</div>
+        `
+      }
+    ]
+  },
+
+  // Para roles registrados pero sin manual específico
+  _fallback: {
+    titulo: 'Bienvenida a la Bitácora',
+    intro: 'aquí tienes acceso al dashboard de supervisión.',
+    secciones: [
+      {
+        titulo: 'Qué puedes hacer',
+        cuerpo: `
+          <p>Navega entre las pestañas del menú superior:</p>
+          <ul>
+            <li><strong>Tablero</strong> — resumen del día.</li>
+            <li><strong>Pilar A / B / C</strong> — detalle por área.</li>
+            <li><strong>Reporte</strong> — análisis histórico.</li>
+          </ul>
+          <p>Si tu rol requiere acciones específicas en el sistema, contacta al auditor para que se las habilitemos en este manual.</p>
+        `
+      }
+    ]
+  }
+};
+
+// Bloque común que se anexa al final del manual de TODOS los roles
+MANUAL._comun = `
+  <section style="border-top:1px dashed var(--border); padding-top:1.4rem;">
+    <h3><span class="num">★</span>Cosas que aplican para todos</h3>
+    <ul>
+      <li>El tablero se refresca automáticamente cada 30 segundos. No tienes que recargar.</li>
+      <li>Si quieres ver datos de otra fecha, usa el selector en cada Pilar o en Reporte.</li>
+      <li>Tu sesión queda guardada en este navegador. Si entras desde otro equipo, vuelve a iniciar sesión.</li>
+      <li>Cualquier cambio que hagas queda registrado con tu nombre, fecha y hora — esa es tu evidencia y también tu trazabilidad.</li>
+    </ul>
+    <h3 style="margin-top:1.2rem;"><span class="num">?</span>Si algo falla</h3>
+    <table>
+      <thead><tr><th>Síntoma</th><th>Qué hacer</th></tr></thead>
+      <tbody>
+        <tr><td>"Email no autorizado"</td><td>Verifica que entraste con el mismo correo Google que está registrado. En el navegador, abre incógnito si tienes varias cuentas.</td></tr>
+        <tr><td>El tablero no carga</td><td>Recarga la página con <code>Ctrl+F5</code>. Si persiste, avisa al auditor.</td></tr>
+        <tr><td>No puedo subir evidencia</td><td>Confirma que el archivo es menor a 25 MB y formato común (JPG, PNG, PDF).</td></tr>
+        <tr><td>Capturé algo mal</td><td>Las capturas se pueden corregir; vuelve a abrir la etapa o el módulo y guarda con el dato corregido. El histórico conserva ambos valores.</td></tr>
+      </tbody>
+    </table>
+    <div class="nota" style="margin-top:1.2rem;"><strong>Contacto:</strong> auditor del sistema · C.P. Germán Solís Zamora · <code>cpgermansolis@gmail.com</code></div>
+  </section>
+`;
 
 function rolesSelectOptionsHTML(seleccionado) {
   return ROLES_VALIDOS.map(r =>
