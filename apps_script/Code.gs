@@ -36,6 +36,8 @@ const SHEETS = {
   PILAR_C_ETAPAS: 'PilarC_Etapas',
   PILAR_C_REQS: 'PilarC_Requisiciones',
   PILAR_C_MOV: 'PilarC_Movimientos',
+  PILAR_C_CK_ITEMS: 'PilarC_ChecklistItems',
+  PILAR_C_CK_MARCAS: 'PilarC_ChecklistMarcas',
   COMENTARIOS: 'Bitacora_Comentarios',
   BITACORA: 'Bitacora_Sistema'
 };
@@ -87,6 +89,9 @@ function doPost(e) {
         case 'getPilarC':          response = getPilarC(user); break;
         case 'crearRequisicion':   response = crearRequisicion(user, payload); break;
         case 'avanzarRequisicion': response = avanzarRequisicion(user, payload); break;
+        case 'getChecklistC':      response = getChecklistC(user, payload); break;
+        case 'marcarChecklistC':   response = marcarChecklistC(user, payload); break;
+        case 'getChecklistResumenC': response = getChecklistResumenC(user); break;
         case 'getComentarios':     response = getComentarios(user, payload); break;
         case 'addComentario':      response = addComentario(user, payload); break;
         case 'getReporte':         response = getReporte(user, payload); break;
@@ -805,6 +810,152 @@ function getChecklistResumenB(user) {
   const items = sheetData(SHEETS.PILAR_B_CK_ITEMS)
     .filter(it => String(it.activo).toUpperCase() === 'TRUE');
   const marcas = sheetData(SHEETS.PILAR_B_CK_MARCAS);
+  const periodos = {
+    D: periodoActual('D'),
+    S: periodoActual('S'),
+    M: periodoActual('M')
+  };
+
+  const marcasPorItem = {};
+  marcas.forEach(m => {
+    const id = String(m.item_id);
+    if (!marcasPorItem[id]) marcasPorItem[id] = [];
+    marcasPorItem[id].push(m);
+  });
+
+  const porEtapa = {};
+  items.forEach(it => {
+    const k = it.etapa_id;
+    if (!porEtapa[k]) {
+      porEtapa[k] = { total: 0, marcados: 0, cumplidos: 0, pendientes: 0 };
+    }
+    porEtapa[k].total++;
+    const periodo = periodos[it.frecuencia];
+    const candidatas = (marcasPorItem[it.id] || [])
+      .filter(mm => periodoCanonico(mm.periodo, it.frecuencia) === periodo)
+      .sort((a, b) => String(b.timestamp).localeCompare(String(a.timestamp)));
+    const m = candidatas[0] || null;
+    if (m) {
+      porEtapa[k].marcados++;
+      if (Number(m.valor) === 1) porEtapa[k].cumplidos++;
+    } else {
+      porEtapa[k].pendientes++;
+    }
+  });
+
+  Object.keys(porEtapa).forEach(k => {
+    const r = porEtapa[k];
+    r.pct_disciplina = r.marcados > 0 ? Math.round((r.cumplidos * 100) / r.marcados) : null;
+  });
+
+  return { periodos, porEtapa };
+}
+
+// =============================================================
+// PILAR C · Check list operativo del flujo de Inventarios
+// --------------------------------------------------------------
+// Derivado del flujo de 11 etapas con segregación de funciones
+// (Solicitud → Compra → Recepción → Surtimiento). Cada ítem está
+// atado a una etapa C (C01..C11) y a una sección legible del flujo
+// (Solicitud, Compra, Recepción, Surtimiento, Bloqueos, Cierre
+// semanal, Cierre mensual). El responsable_rol "administracion"
+// refleja que la supervisora (Estefanía) es quien marca; la persona
+// que ejecuta operativamente está descrita en el texto del ítem.
+//
+// Frecuencia (igual que A y B):
+//   D (diario)   → periodo  YYYY-MM-DD
+//   S (semanal)  → periodo  YYYY-Www  (ISO week, viernes en la práctica)
+//   M (mensual)  → periodo  YYYY-MM   (último viernes en la práctica)
+//
+// Reusa periodoActual() / periodoCanonico() del bloque Pilar A.
+// =============================================================
+
+// Quién puede marcar qué: la supervisora (administracion) siempre,
+// auditor/auxiliar/gerente también; otros roles solo si coinciden con
+// responsable_rol del ítem (en este pilar todos son administracion,
+// pero la regla queda abierta por si se diversifica el catálogo).
+function puedeMarcarChecklistC(user, item) {
+  if (!user) return false;
+  if (user.rol === 'auditor' || user.rol === 'auxiliar' ||
+      user.rol === 'gerente' || user.rol === 'administracion') return true;
+  return user.rol === item.responsable_rol;
+}
+
+function getChecklistC(user, payload) {
+  payload = payload || {};
+  const items = sheetData(SHEETS.PILAR_C_CK_ITEMS)
+    .filter(it => String(it.activo).toUpperCase() === 'TRUE')
+    .filter(it => !payload.etapa_id || it.etapa_id === payload.etapa_id);
+
+  const periodos = payload.periodos || {
+    D: periodoActual('D'),
+    S: periodoActual('S'),
+    M: periodoActual('M')
+  };
+
+  const marcasAll = sheetData(SHEETS.PILAR_C_CK_MARCAS);
+  const enriched = items.map(it => {
+    const periodo = periodos[it.frecuencia];
+    const marca = marcasAll
+      .filter(m => String(m.item_id) === String(it.id) &&
+                   periodoCanonico(m.periodo, it.frecuencia) === periodo)
+      .sort((a, b) => String(b.timestamp).localeCompare(String(a.timestamp)))[0] || null;
+    if (marca) marca.periodo = periodoCanonico(marca.periodo, it.frecuencia);
+    return Object.assign({}, it, {
+      periodo,
+      marca,
+      puedo_marcar: puedeMarcarChecklistC(user, it)
+    });
+  });
+
+  return { items: enriched, periodos };
+}
+
+function marcarChecklistC(user, payload) {
+  if (!payload || !payload.item_id) throw new Error('item_id requerido');
+  const item = findRow(SHEETS.PILAR_C_CK_ITEMS, it => it.id === payload.item_id);
+  if (!item) throw new Error('Ítem no encontrado: ' + payload.item_id);
+  if (!puedeMarcarChecklistC(user, item.data)) {
+    throw new Error('Tu rol no puede marcar este ítem (' + item.data.responsable_rol + ')');
+  }
+  const periodo = payload.periodo || periodoActual(item.data.frecuencia);
+  const valor = (payload.valor === 1 || payload.valor === '1' || payload.valor === true) ? 1
+              : (payload.valor === 0 || payload.valor === '0' || payload.valor === false) ? 0
+              : null;
+  if (valor === null) throw new Error('valor debe ser 0 o 1');
+
+  const existing = findRow(SHEETS.PILAR_C_CK_MARCAS,
+    m => String(m.item_id) === String(payload.item_id) &&
+         periodoCanonico(m.periodo, item.data.frecuencia) === periodo);
+
+  const rowData = {
+    timestamp: nowISO(),
+    item_id: payload.item_id,
+    periodo: "'" + periodo,  // apóstrofo defensivo (ver bug ce8c9f9)
+    valor: valor,
+    usuario_email: user.email,
+    observaciones: payload.observaciones || ''
+  };
+
+  if (existing) {
+    updateRow(SHEETS.PILAR_C_CK_MARCAS, existing.rowIdx, rowData);
+  } else {
+    appendRow(SHEETS.PILAR_C_CK_MARCAS, rowData);
+  }
+
+  logBitacora(user.email, 'marcarChecklistC',
+    payload.item_id + ' / ' + periodo + ' = ' + valor);
+
+  return { ok: true, periodo: periodo, valor: valor };
+}
+
+// Resumen por etapa C: % de disciplina del periodo actual.
+//   disciplina = (suma valor) / (total ítems con marca)  · 100
+// Items no marcados aún no penalizan (se reportan en pendientes).
+function getChecklistResumenC(user) {
+  const items = sheetData(SHEETS.PILAR_C_CK_ITEMS)
+    .filter(it => String(it.activo).toUpperCase() === 'TRUE');
+  const marcas = sheetData(SHEETS.PILAR_C_CK_MARCAS);
   const periodos = {
     D: periodoActual('D'),
     S: periodoActual('S'),

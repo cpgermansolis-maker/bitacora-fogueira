@@ -237,6 +237,41 @@ Cada vez que una requisición avanza una etapa, se registra aquí. Es la traza d
 
 ---
 
+## Pestaña 11.1: `PilarC_ChecklistItems` *(catálogo, agregada en mayo 2026)*
+
+Catálogo de los **35 ítems del check list operativo del flujo de inventarios**. Cada ítem se ata a una etapa C (`etapa_id`, C01..C11) y a una **sección del flujo**: Solicitud → Compra → Recepción → Surtimiento → Bloqueos → Cierre semanal → Cierre mensual.
+
+| id | etapa_id | seccion | frecuencia | responsable_rol | descripcion | activo |
+|---|---|---|---|---|---|---|
+| CKCD08 | C05 | Compra | D | administracion | VoBo de Administración firmado ANTES de emitir la orden de compra | TRUE |
+| CKCD11 | C07 | Recepción | D | administracion | Crítico: quien recibe físicamente NO es quien compró (segregación de funciones) | TRUE |
+| CKCD14 | C09 | Recepción | D | administracion | Cantidad capturada en SR12 = cantidad en factura/remisión (3-way match) | TRUE |
+| CKCM06 | C07 | Cierre mensual | M | administracion | Auditoría de segregación: ninguna recepción del mes la firmó el comprador | TRUE |
+| ... | | | | | | |
+
+**Distribución:** 20 diarios (Solicitud 5 · Compra 5 · Recepción 5 · Surtimiento 3 · Bloqueos 2) + 6 semanales (viernes) + 9 mensuales (último viernes) = **35 ítems**.
+
+> El `responsable_rol` es siempre `administracion` (Estefanía es quien marca); la persona que ejecuta operativamente está descrita en el texto del ítem. El backend permite además que `auditor`, `auxiliar` o `gerente` marquen cualquier ítem.
+
+> **Controles críticos:** dos ítems explicitan la segregación de funciones del flujo (el comprador NUNCA recibe físicamente): `CKCD11` (verificación diaria) y `CKCM06` (auditoría mensual del mes completo).
+
+---
+
+## Pestaña 11.2: `PilarC_ChecklistMarcas` *(transaccional, agregada en mayo 2026)*
+
+Cada marca de cumplimiento del check list operativo es una fila aquí. Mismo esquema que `PilarA_ChecklistMarcas` y `PilarB_ChecklistMarcas`. Una sola marca vigente por `(item_id, periodo)`.
+
+| timestamp | item_id | periodo | valor | usuario_email | observaciones |
+|---|---|---|---|---|---|
+| 2026-05-07T10:00:00.000Z | CKCD08 | 2026-05-07 | 1 | administracion@fogueira.mx | VoBo firmado por Mónica |
+| 2026-05-07T18:30:00.000Z | CKCD11 | 2026-05-07 | 0 | administracion@fogueira.mx | Recibió el comprador hoy — investigar |
+
+**Codificación de `periodo`:** `YYYY-MM-DD` (D) · `YYYY-Www` ISO week (S) · `YYYY-MM` (M).
+
+> Igual que en A y B, esta columna se formatea como texto (`@`) automáticamente para evitar que Sheets convierta `2026-05-07` en Date (ver bug fix en commit `ce8c9f9`).
+
+---
+
 ## Pestaña 12: `Bitacora_Comentarios`
 
 Diálogo entre la auxiliar y el auditor (tú). Aparece en el dashboard.
@@ -259,6 +294,6 @@ Diálogo entre la auxiliar y el auditor (tú). Aparece en el dashboard.
 
 ## Resumen rápido
 
-17 pestañas en total. Los catálogos (`Config`, `Usuarios`, `Areas`, `PilarA_Modulos`, `PilarA_ChecklistItems`, `PilarB_Etapas`, `PilarB_ChecklistItems`, `PilarC_Etapas`) los carga `setupSheet()`. Las transaccionales (`PilarA_PlanAccion`, `PilarA_Historico`, `PilarA_ChecklistMarcas`, `PilarB_Diario`, `PilarB_ChecklistMarcas`, `PilarC_Requisiciones`, `PilarC_Movimientos`, `Bitacora_*`) se llenan solas conforme se usa la herramienta.
+19 pestañas en total. Los catálogos (`Config`, `Usuarios`, `Areas`, `PilarA_Modulos`, `PilarA_ChecklistItems`, `PilarB_Etapas`, `PilarB_ChecklistItems`, `PilarC_Etapas`, `PilarC_ChecklistItems`) los carga `setupSheet()`. Las transaccionales (`PilarA_PlanAccion`, `PilarA_Historico`, `PilarA_ChecklistMarcas`, `PilarB_Diario`, `PilarB_ChecklistMarcas`, `PilarC_Requisiciones`, `PilarC_Movimientos`, `PilarC_ChecklistMarcas`, `Bitacora_*`) se llenan solas conforme se usa la herramienta.
 
 Cuando avancemos a la Fase 2 te paso una plantilla con todas estas pestañas ya creadas para que solo cargues tus datos. Por ahora, esta es la referencia técnica.

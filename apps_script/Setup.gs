@@ -255,6 +255,67 @@ const SHEET_DEFINITIONS = [
     rows: []
   },
   {
+    // Check list operativo del flujo de Inventarios — 35 ítems organizados
+    // por sección cronológica del flujo (Solicitud → Compra → Recepción →
+    // Surtimiento → Bloqueos) + cierres semanal/mensual. Cada ítem se ata
+    // a una etapa C (C01..C11). La supervisora (Estefanía, "administracion")
+    // es quien marca; auditor/auxiliar/gerente también pueden.
+    // Frecuencia: D (diario) · S (semanal, viernes) · M (mensual, último viernes).
+    // Marcas con el control crítico de segregación de funciones marcadas en
+    // el texto: el comprador NUNCA recibe físicamente (ver C07).
+    name: 'PilarC_ChecklistItems',
+    headers: ['id', 'etapa_id', 'seccion', 'frecuencia', 'responsable_rol', 'descripcion', 'activo'],
+    rows: [
+      // ----- Diario · Solicitud y revisión (5) — etapas C01/C02/C03 -----
+      ['CKCD01', 'C01', 'Solicitud',     'D', 'administracion', 'Solicitudes nuevas del día con descripción, cantidad y área registradas',                'TRUE'],
+      ['CKCD02', 'C02', 'Solicitud',     'D', 'administracion', 'Almacén verificó existencias antes de escalar a Compras (sin saltos)',                   'TRUE'],
+      ['CKCD03', 'C03', 'Solicitud',     'D', 'administracion', 'Escalación a Compras solo cuando no hay stock o stock < mínimo',                         'TRUE'],
+      ['CKCD04', 'C01', 'Solicitud',     'D', 'administracion', 'Folio único asignado a cada requisición, sin huecos en la serie',                        'TRUE'],
+      ['CKCD05', 'C01', 'Solicitud',     'D', 'administracion', 'Solicitudes de áreas críticas (cocina/bar) atendidas el mismo día',                      'TRUE'],
+      // ----- Diario · Compra (5) — etapas C04/C05/C06 -----
+      ['CKCD06', 'C04', 'Compra',        'D', 'administracion', 'Cotizaciones x3 obtenidas de proveedores distintos (no consanguíneos)',                  'TRUE'],
+      ['CKCD07', 'C04', 'Compra',        'D', 'administracion', 'Comparativo con sugerencia (precio + calidad + plazo) documentado',                      'TRUE'],
+      ['CKCD08', 'C05', 'Compra',        'D', 'administracion', 'VoBo de Administración firmado ANTES de emitir la orden de compra',                      'TRUE'],
+      ['CKCD09', 'C06', 'Compra',        'D', 'administracion', 'Cada orden del día con datos fiscales del proveedor completos',                          'TRUE'],
+      ['CKCD10', 'C06', 'Compra',        'D', 'administracion', 'Compras urgentes (mismo día) con justificación documentada',                             'TRUE'],
+      // ----- Diario · Recepción (5) — etapas C07/C08/C09 — incluye control crítico -----
+      ['CKCD11', 'C07', 'Recepción',     'D', 'administracion', 'Crítico: quien recibe físicamente NO es quien compró (segregación de funciones)',        'TRUE'],
+      ['CKCD12', 'C07', 'Recepción',     'D', 'administracion', 'Recepción firmada por almacén con cantidad, lote/caducidad y temperatura cuando aplica', 'TRUE'],
+      ['CKCD13', 'C08', 'Recepción',     'D', 'administracion', 'Insumos especiales (carnes, pescados) inspeccionados por el área usuaria',               'TRUE'],
+      ['CKCD14', 'C09', 'Recepción',     'D', 'administracion', 'Cantidad capturada en SR12 = cantidad en factura/remisión (3-way match)',                'TRUE'],
+      ['CKCD15', 'C09', 'Recepción',     'D', 'administracion', 'Mermas o faltantes documentados con foto y firma',                                       'TRUE'],
+      // ----- Diario · Surtimiento al área (3) — etapas C10/C11 -----
+      ['CKCD16', 'C10', 'Surtimiento',   'D', 'administracion', 'Surtimientos del día capturados en SR12 con folio',                                      'TRUE'],
+      ['CKCD17', 'C11', 'Surtimiento',   'D', 'administracion', 'Recepción del área firmada por responsable del área (no por almacén)',                   'TRUE'],
+      ['CKCD18', 'C10', 'Surtimiento',   'D', 'administracion', 'Diferencias entre surtido y recibido por área documentadas y conciliadas',               'TRUE'],
+      // ----- Diario · Bloqueos del flujo (2) -----
+      ['CKCD19', 'C03', 'Bloqueos',      'D', 'administracion', 'Requisiciones bloqueadas del día con motivo claro y plan de desbloqueo',                 'TRUE'],
+      ['CKCD20', 'C04', 'Bloqueos',      'D', 'administracion', 'Requisiciones sin avance >24 h identificadas y escaladas',                               'TRUE'],
+      // ----- Semanal · viernes (6) — sección Cierre semanal -----
+      ['CKCS01', 'C04', 'Cierre semanal','S', 'administracion', 'Tiempo promedio del flujo C01→C11 medido vs. semana previa',                             'TRUE'],
+      ['CKCS02', 'C04', 'Cierre semanal','S', 'administracion', 'Cotizaciones x3: ¿se repite siempre el mismo proveedor sugerido?',                       'TRUE'],
+      ['CKCS03', 'C09', 'Cierre semanal','S', 'administracion', 'Discrepancias de recepción de la semana analizadas (cantidad/calidad)',                  'TRUE'],
+      ['CKCS04', 'C10', 'Cierre semanal','S', 'administracion', 'Mermas en tránsito (almacén → área) cuantificadas por categoría',                        'TRUE'],
+      ['CKCS05', 'C11', 'Cierre semanal','S', 'administracion', 'Reclamaciones de áreas usuarias atendidas',                                              'TRUE'],
+      ['CKCS06', 'C05', 'Cierre semanal','S', 'administracion', 'Reporte semanal a Mónica con KPIs del flujo y bloqueos pendientes',                      'TRUE'],
+      // ----- Mensual · último viernes (9) — sección Cierre mensual -----
+      ['CKCM01', 'C04', 'Cierre mensual','M', 'administracion', '% de requisiciones completadas en tiempo (≤ meta de días)',                              'TRUE'],
+      ['CKCM02', 'C01', 'Cierre mensual','M', 'administracion', 'Top 5 áreas con más requisiciones del mes — análisis de patrones',                       'TRUE'],
+      ['CKCM03', 'C04', 'Cierre mensual','M', 'administracion', 'Top 10 insumos más solicitados — ¿stock mínimo bien calibrado?',                         'TRUE'],
+      ['CKCM04', 'C04', 'Cierre mensual','M', 'administracion', 'Concentración de compra por proveedor — riesgo de dependencia',                          'TRUE'],
+      ['CKCM05', 'C05', 'Cierre mensual','M', 'administracion', 'Muestreo 10 % de compras del mes: x3 cotizaciones físicamente revisadas',                'TRUE'],
+      ['CKCM06', 'C07', 'Cierre mensual','M', 'administracion', 'Auditoría de segregación: ninguna recepción del mes la firmó el comprador',              'TRUE'],
+      ['CKCM07', 'C09', 'Cierre mensual','M', 'administracion', 'Conciliación: total comprado vs. SR12 vs. facturas (3-way mensual)',                     'TRUE'],
+      ['CKCM08', 'C04', 'Cierre mensual','M', 'administracion', 'Catálogo de proveedores actualizado (altas/bajas/cambios fiscales)',                     'TRUE'],
+      ['CKCM09', 'C11', 'Cierre mensual','M', 'administracion', 'Reporte mensual a dirección con hallazgos y plan de mejora',                             'TRUE']
+    ]
+  },
+  {
+    name: 'PilarC_ChecklistMarcas',
+    headers: ['timestamp', 'item_id', 'periodo', 'valor', 'usuario_email', 'observaciones'],
+    rows: []
+  },
+  {
     name: 'Bitacora_Comentarios',
     headers: ['timestamp', 'usuario_email', 'tipo', 'pilar', 'objeto_id', 'mensaje', 'leido'],
     rows: []
@@ -328,10 +389,12 @@ function setupSheet() {
       }
     }
 
-    // ChecklistMarcas (Pilar A y B): forzar la columna 'periodo' a formato
+    // ChecklistMarcas (Pilar A, B y C): forzar la columna 'periodo' a formato
     // texto (@) para que Sheets no convierta '2026-05-07' en Date al escribirlo.
     // Idempotente. Ver bug #ce8c9f9 para el contexto del Date vs string.
-    if (def.name === 'PilarA_ChecklistMarcas' || def.name === 'PilarB_ChecklistMarcas') {
+    if (def.name === 'PilarA_ChecklistMarcas' ||
+        def.name === 'PilarB_ChecklistMarcas' ||
+        def.name === 'PilarC_ChecklistMarcas') {
       const periodoCol = def.headers.indexOf('periodo') + 1;
       if (periodoCol > 0) {
         s.getRange(1, periodoCol, s.getMaxRows(), 1).setNumberFormat('@');
