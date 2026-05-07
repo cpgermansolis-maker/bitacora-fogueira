@@ -588,6 +588,107 @@ body.has-modo-banner .nav { top: calc(70px + 40px); }
 .ck-btn-si.active { background: var(--green); color: #fff; border-color: var(--green); }
 .ck-btn-no.active { background: var(--red);   color: #fff; border-color: var(--red); }
 
+/* ----- Vista guiada del Pilar A (auxiliar y otros roles operativos) ----- */
+.guiada-intro {
+  background: var(--bg-paper); border-left: 3px solid var(--gold);
+  padding: 0.75rem 1rem; border-radius: 3px;
+  font-size: 0.92rem; color: var(--ink-soft);
+  margin-bottom: 1.5rem;
+}
+.guiada-grupo {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong); border-radius: 4px;
+  margin-bottom: 1.25rem; overflow: hidden;
+}
+.guiada-grupo-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1rem; padding: 1rem 1.25rem 0.75rem;
+  flex-wrap: wrap;
+}
+.guiada-grupo-titulo {
+  display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap;
+}
+.guiada-grupo-titulo h2 {
+  font-family: var(--font-display); font-weight: 600;
+  font-size: 1.4rem; color: var(--ink); margin: 0;
+}
+.guiada-grupo-emoji { font-size: 1.4rem; }
+.guiada-grupo-hint { font-size: 0.85rem; color: var(--ink-soft); text-transform: lowercase; }
+.guiada-grupo-conteo {
+  font-family: var(--font-display); font-size: 1rem; color: var(--ink-soft);
+}
+.guiada-grupo-conteo strong {
+  font-size: 1.6rem; color: var(--green); margin-right: 0.2rem;
+}
+.guiada-grupo-conteo .conteo-no { color: var(--red); margin-left: 0.5rem; font-size: 0.85rem; }
+.guiada-bar-wrap {
+  position: relative; height: 12px; margin: 0 1.25rem 1rem;
+  background: var(--bg-paper); border-radius: 6px; overflow: hidden;
+  display: flex;
+}
+.guiada-bar { height: 100%; transition: width 0.4s ease; }
+.guiada-bar-ok { background: var(--green); }
+.guiada-bar-no { background: var(--red); }
+.guiada-list {
+  border-top: 1px dashed var(--border);
+  display: flex; flex-direction: column;
+}
+.guiada-row {
+  display: grid; grid-template-columns: 1fr auto; gap: 1rem;
+  padding: 0.95rem 1.25rem; border-bottom: 1px solid var(--border);
+  align-items: center; transition: background 0.15s;
+}
+.guiada-row:last-child { border-bottom: none; }
+.guiada-row:hover { background: var(--bg-paper); }
+.guiada-row.guiada-cumplido   { background: var(--green-bg); }
+.guiada-row.guiada-nocumplido { background: var(--red-bg); }
+.guiada-row.guiada-cumplido:hover   { background: #D5E5D2; }
+.guiada-row.guiada-nocumplido:hover { background: #ECC9BD; }
+.guiada-row-text {
+  font-size: 0.98rem; line-height: 1.35; color: var(--ink); font-weight: 500;
+}
+.guiada-row-line {
+  margin-top: 0.35rem; display: flex; gap: 0.6rem; flex-wrap: wrap;
+  align-items: center; font-size: 0.78rem; color: var(--ink-soft);
+}
+.guiada-rol-tag {
+  display: inline-block; padding: 0.12rem 0.5rem; border-radius: 2px;
+  background: var(--bg-deep); color: var(--gold-line);
+  font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+}
+.guiada-meta { color: var(--ink-soft); }
+.guiada-meta-pending { font-style: italic; }
+.guiada-toggle { display: flex; gap: 0.4rem; }
+.guiada-btn {
+  width: 48px; height: 48px;
+  border: 2px solid var(--border-strong);
+  background: var(--bg-elevated); color: var(--ink);
+  font-size: 1.4rem; font-weight: 700;
+  border-radius: 4px; cursor: pointer; transition: all 0.15s;
+  display: grid; place-items: center;
+}
+.guiada-btn:hover:not(:disabled) {
+  border-color: var(--gold-deep); transform: scale(1.05);
+}
+.guiada-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.guiada-btn-si.active {
+  background: var(--green); color: #fff; border-color: var(--green);
+  box-shadow: 0 2px 6px rgba(74, 124, 89, 0.35);
+}
+.guiada-btn-no.active {
+  background: var(--red); color: #fff; border-color: var(--red);
+  box-shadow: 0 2px 6px rgba(168, 65, 42, 0.35);
+}
+
+@media (max-width: 640px) {
+  .guiada-grupo-head { padding: 0.85rem 1rem 0.6rem; }
+  .guiada-grupo-titulo h2 { font-size: 1.2rem; }
+  .guiada-bar-wrap { margin: 0 1rem 0.85rem; }
+  .guiada-row { padding: 0.85rem 1rem; grid-template-columns: 1fr; gap: 0.6rem; }
+  .guiada-toggle { justify-content: flex-end; }
+  .guiada-btn { width: 56px; height: 44px; font-size: 1.3rem; }
+}
+
 @media (max-width: 768px) {
   .modulo-row {
     grid-template-columns: 32px 1fr;
@@ -1187,6 +1288,7 @@ const State = {
   dashboard: null,
   pilarA: null,
   pilarAChecklist: null,
+  pilarAGuiada: null,
   pilarB: null,
   pilarC: null
 };
@@ -1474,6 +1576,16 @@ const App = {
 
   /* =========== PILAR A =========== */
   async render_pilar_a() {
+    // El auditor sigue viendo la vista de auditor (12 módulos + plan + check list).
+    // Cualquier otro rol entra a la vista guiada: check list al frente con barras
+    // que se llenan al marcar. Llevar de la mano a quien no sabe dar seguimiento.
+    if (State.user && State.user.rol !== 'auditor') {
+      return this.render_pilar_a_guiada();
+    }
+    return this.render_pilar_a_auditor();
+  },
+
+  async render_pilar_a_auditor() {
     const c = el('pilar-a-content');
     try {
       const [data, ckResumen] = await Promise.all([
@@ -1495,7 +1607,7 @@ const App = {
       c.innerHTML = `
         <div class="section-head">
           <h1><span class="badge">Pilar A</span> Madurez de Soft Restaurant 12</h1>
-          <div class="meta">${total} módulos · Corte ${escapeHtml(State.config.fecha_corte_softrestaurant || '—')}</div>
+          <div class="meta">${total} módulos · Corte ${escapeHtml(formatDate(State.config.fecha_corte_softrestaurant) || '—')}</div>
         </div>
 
         <div class="summary-row">
@@ -1535,6 +1647,99 @@ const App = {
     } catch (err) {
       c.innerHTML = `<div class="empty-state"><div class="big-icon">!</div><p>${escapeHtml(err.message)}</p></div>`;
     }
+  },
+
+  // Vista guiada: el check list es la pantalla principal del Pilar A.
+  // Tres secciones (Hoy / Esta semana / Este mes) con barra grande que se llena al marcar.
+  async render_pilar_a_guiada() {
+    const c = el('pilar-a-content');
+    c.innerHTML = '<div class="empty-state"><div class="spinner"></div></div>';
+    try {
+      const data = await apiCall('getChecklistA', {});
+      State.pilarAGuiada = data;
+      if (!data.items || data.items.length === 0) {
+        c.innerHTML = `<div class="empty-state">
+          <div class="big-icon">!</div>
+          <p>El check list aún no está cargado en el Sheet. Pídele al auditor que ejecute <code>setupSheet()</code> y haga <code>clasp redeploy</code> del backend.</p>
+        </div>`;
+        return;
+      }
+      this._renderGuiadaBody();
+    } catch (err) {
+      c.innerHTML = `<div class="empty-state"><div class="big-icon">!</div>
+        <p>${escapeHtml(err.message)}</p>
+        <p style="margin-top:0.6rem; font-size:0.85rem; color:var(--ink-soft);">
+          Si dice que la acción no existe, falta hacer <code>clasp redeploy</code> del backend.
+        </p>
+      </div>`;
+    }
+  },
+
+  // Render aislado del cuerpo (se llama también después de marcar para refrescar sin parpadeo).
+  _renderGuiadaBody() {
+    const c = el('pilar-a-content');
+    const data = State.pilarAGuiada;
+    if (!data) return;
+    const items = data.items;
+    const grupos = [
+      { freq: 'D', label: 'Hoy',         hint: data.periodos.D ? labelDiario(data.periodos.D)  : '—', emoji: '☀️' },
+      { freq: 'S', label: 'Esta semana', hint: data.periodos.S ? labelSemanal(data.periodos.S) : '—', emoji: '📅' },
+      { freq: 'M', label: 'Este mes',    hint: data.periodos.M ? labelMensual(data.periodos.M) : '—', emoji: '🗓️' }
+    ];
+    const nombre = State.user.nombre.split(' ')[0];
+
+    const cuerpoGrupos = grupos.map(g => {
+      const grupo = items.filter(it => it.frecuencia === g.freq);
+      if (grupo.length === 0) return '';
+      const cumplidos = grupo.filter(it => it.marca && Number(it.marca.valor) === 1).length;
+      const noCumplidos = grupo.filter(it => it.marca && Number(it.marca.valor) === 0).length;
+      const total = grupo.length;
+      const pctCumplidos = total > 0 ? Math.round((cumplidos * 100) / total) : 0;
+      const pctNoCumplidos = total > 0 ? Math.round((noCumplidos * 100) / total) : 0;
+      const filas = grupo.map(it => guiadaItemRowHTML(it)).join('');
+      return `
+        <section class="guiada-grupo">
+          <div class="guiada-grupo-head">
+            <div class="guiada-grupo-titulo">
+              <span class="guiada-grupo-emoji">${g.emoji}</span>
+              <h2>${g.label}</h2>
+              <span class="guiada-grupo-hint">${escapeHtml(g.hint)}</span>
+            </div>
+            <div class="guiada-grupo-conteo">
+              <strong>${cumplidos}</strong> de ${total}
+              ${noCumplidos > 0 ? `<span class="conteo-no">(${noCumplidos} no cumplidas)</span>` : ''}
+            </div>
+          </div>
+          <div class="guiada-bar-wrap" title="${cumplidos} cumplidas, ${noCumplidos} no cumplidas, ${total - cumplidos - noCumplidos} sin marcar">
+            <div class="guiada-bar guiada-bar-ok"  style="width:${pctCumplidos}%;"></div>
+            <div class="guiada-bar guiada-bar-no" style="width:${pctNoCumplidos}%;"></div>
+          </div>
+          <div class="guiada-list">${filas}</div>
+        </section>`;
+    }).join('');
+
+    c.innerHTML = `
+      <div class="section-head">
+        <h1><span class="badge">Pilar A</span> Bitácora del día</h1>
+        <div class="meta">${escapeHtml(nombre)} · ${escapeHtml(labelDiario(data.periodos.D || todayInputValue()))}</div>
+      </div>
+      <p class="guiada-intro">
+        Marca cada actividad cuando la termines. Las barras se llenan solas y queda registro de quién marcó qué y a qué hora.
+      </p>
+      ${cuerpoGrupos}
+    `;
+  },
+
+  // Marcar/desmarcar desde la vista guiada (refresca sin parpadeo).
+  async marcarGuiada(item_id, valor) {
+    try {
+      const res = await apiCall('marcarChecklistA', { item_id, valor });
+      // Optimista: refrescar los datos completos para mantener consistencia.
+      const data = await apiCall('getChecklistA', {});
+      State.pilarAGuiada = data;
+      this._renderGuiadaBody();
+      toast(valor === 1 ? 'Cumplido ✓' : 'No cumplido');
+    } catch (err) { toast(err.message, true); }
   },
 
   openModuloModal(id) {
@@ -3081,6 +3286,64 @@ function planRowHTML(p, modulos) {
       </select>
     </div>
   `;
+}
+
+// Convierte un periodo (YYYY-MM-DD / YYYY-Www / YYYY-MM) a texto legible en es-MX.
+function labelDiario(periodo) {
+  // periodo: 2026-05-07
+  const [y, m, d] = String(periodo).split('-');
+  if (!y || !m || !d) return periodo || '—';
+  const fecha = new Date(Number(y), Number(m) - 1, Number(d));
+  if (isNaN(fecha.getTime())) return periodo;
+  return fecha.toLocaleDateString('es-MX', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+}
+function labelSemanal(periodo) {
+  // periodo: 2026-W19
+  const m = String(periodo).match(/^(\d{4})-W(\d{1,2})$/);
+  if (!m) return periodo || '—';
+  return `Semana ${Number(m[2])} de ${m[1]}`;
+}
+function labelMensual(periodo) {
+  // periodo: 2026-05
+  const [y, mm] = String(periodo).split('-');
+  if (!y || !mm) return periodo || '—';
+  const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const idx = Number(mm) - 1;
+  if (idx < 0 || idx > 11) return periodo;
+  return `${meses[idx]} de ${y}`;
+}
+
+// Fila grande para la vista guiada (un solo tap por botón, tap-friendly).
+function guiadaItemRowHTML(it) {
+  const m = it.marca;
+  const valor = m ? Number(m.valor) : null;
+  const cumplido = valor === 1;
+  const noCumplido = valor === 0;
+  const rowClass = cumplido ? 'guiada-row guiada-cumplido'
+                  : noCumplido ? 'guiada-row guiada-nocumplido'
+                  : 'guiada-row';
+  const disabled = it.puedo_marcar ? '' : 'disabled';
+  const meta = m
+    ? `<span class="guiada-meta">marcada por ${escapeHtml(m.usuario_email || '')} · ${escapeHtml(String(m.timestamp || '').slice(11,16))}</span>`
+    : '<span class="guiada-meta guiada-meta-pending">pendiente</span>';
+  const sinPerm = it.puedo_marcar ? '' : '<span class="guiada-meta" style="color:var(--red);">tu rol no marca esto</span>';
+  return `
+    <article class="${rowClass}">
+      <div class="guiada-row-info">
+        <div class="guiada-row-text">${escapeHtml(it.descripcion)}</div>
+        <div class="guiada-row-line">
+          <span class="guiada-rol-tag">${escapeHtml(it.responsable_rol)}</span>
+          ${meta}
+          ${sinPerm}
+        </div>
+      </div>
+      <div class="guiada-toggle">
+        <button class="guiada-btn guiada-btn-no ${noCumplido ? 'active' : ''}" ${disabled}
+          onclick="App.marcarGuiada('${escapeHtml(it.id)}', 0)" aria-label="Marcar como no cumplida">✗</button>
+        <button class="guiada-btn guiada-btn-si ${cumplido ? 'active' : ''}" ${disabled}
+          onclick="App.marcarGuiada('${escapeHtml(it.id)}', 1)" aria-label="Marcar como cumplida">✓</button>
+      </div>
+    </article>`;
 }
 
 function checklistItemRowHTML(it) {
