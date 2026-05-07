@@ -102,6 +102,33 @@ Cada login y cada acción quedan registrados en la pestaña `Bitacora_Sistema` d
 
 ---
 
+## 🚦 Modo de responsabilidad
+
+El sistema soporta **dos modos de operación** controlados desde la pestaña `Config` del Sheet, fila `modo_responsable`:
+
+| valor | Comportamiento |
+|---|---|
+| `auxiliar_unica` *(default actual)* | La auxiliar es la única responsable. Banner ámbar visible en toda la app. La auxiliar ve un pill verde "Tienes a cargo los 3 pilares". Los demás roles ven "X es la responsable hoy · tu captura es opcional". |
+| `por_rol` | Cada rol opera su área (modo design original). Sin banner. |
+
+### Cambiar de modo
+
+1. Abre el [Sheet](https://docs.google.com/spreadsheets/d/1E-bgQJCi9UFNktoNmVazUQ-b6JOWyU0lK9uVtsD2ILA/edit) → pestaña `Config`.
+2. Edita la celda de la fila `modo_responsable` y escribe `auxiliar_unica` o `por_rol`.
+3. La app se actualiza la próxima vez que cualquier usuario recargue (F5) o navegue al tablero — `getDashboard` trae el config fresco en cada llamada.
+
+### Personalizar el nombre que aparece en el banner
+
+La fila `auxiliar_nombre` (default `Mónica Solís`) se muestra entre comillas en el aviso. Edítala si la auxiliar a cargo cambia.
+
+### Notas técnicas
+
+- En modo `auxiliar_unica` el backend permite a la auxiliar marcar/avanzar todo (ya tenía esos permisos abiertos).
+- Los demás roles **siguen pudiendo capturar** — el modo solo cambia la comunicación visual, no bloquea endpoints. Para bloquear roles en el futuro, usa `activo = FALSE` en `Usuarios`.
+- El check list operativo del Pilar A respeta el rol responsable de cada ítem **excepto** para auditor / auxiliar / gerente, que pueden marcar cualquier ítem siempre.
+
+---
+
 ## ⬆️ Upgrade · Check List SR12 (mayo 2026)
 
 Si tu instancia se publicó **antes del 7 de mayo 2026**, agregamos el check list operativo de Mónica Solís dentro del Pilar A. Para activarlo:

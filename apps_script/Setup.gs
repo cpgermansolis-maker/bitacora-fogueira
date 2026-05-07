@@ -27,7 +27,14 @@ const SHEET_DEFINITIONS = [
       ['auditor_email', ''],
       ['fecha_corte_softrestaurant', '2026-05-01'],
       ['meta_softrestaurant', 100],
-      ['zona_horaria', 'America/Mexico_City']
+      ['zona_horaria', 'America/Mexico_City'],
+      // modo_responsable controla quién responde por los 3 pilares.
+      //   'auxiliar_unica' → la auxiliar es la única responsable, banner visible
+      //                       en toda la app, otros roles ven aviso.
+      //   'por_rol'        → cada rol opera su área (modo design original).
+      // Para cambiar: edita esta celda directamente en el Sheet.
+      ['modo_responsable', 'auxiliar_unica'],
+      ['auxiliar_nombre', 'Mónica Solís']
     ]
   },
   {
@@ -239,6 +246,14 @@ function setupSheet() {
     if (lastRow <= 1 && def.rows.length > 0) {
       s.getRange(2, 1, def.rows.length, def.headers.length).setValues(def.rows);
       log.push('    + ' + def.rows.length + ' filas iniciales cargadas');
+    } else if (def.name === 'Config' && def.rows.length > 0) {
+      // Config es especial: agregar claves nuevas sin pisar valores existentes.
+      const existingKeys = s.getRange(2, 1, lastRow - 1, 1).getValues().map(r => String(r[0]).trim());
+      const newRows = def.rows.filter(r => existingKeys.indexOf(String(r[0])) === -1);
+      if (newRows.length > 0) {
+        s.getRange(lastRow + 1, 1, newRows.length, def.headers.length).setValues(newRows);
+        log.push('    + ' + newRows.length + ' clave(s) nueva(s) en Config: ' + newRows.map(r => r[0]).join(', '));
+      }
     }
   });
 

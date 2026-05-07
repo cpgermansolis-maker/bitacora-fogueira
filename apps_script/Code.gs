@@ -439,7 +439,8 @@ function getDashboard(user) {
     },
     comentarios: comentarios,
     fecha: hoy,
-    usuario: user
+    usuario: user,
+    config: configMap()
   };
 }
 
