@@ -81,6 +81,10 @@ function doPost(e) {
         case 'addComentario':      response = addComentario(user, payload); break;
         case 'getReporte':         response = getReporte(user, payload); break;
         case 'subirEvidencia':     response = subirEvidencia(user, payload); break;
+        case 'getUsuarios':        response = getUsuarios(user); break;
+        case 'addUsuario':         response = addUsuario(user, payload); break;
+        case 'updateUsuario':      response = updateUsuario(user, payload); break;
+        case 'deleteUsuario':      response = deleteUsuario(user, payload); break;
         default: throw new Error('Acción desconocida: ' + action);
       }
     }
@@ -195,6 +199,151 @@ function validarUsuario(email) {
     String(x.activo).toUpperCase() === 'TRUE'
   );
   return u || null;
+}
+
+// =============================================================
+// USUARIOS — administración (solo auditor)
+// =============================================================
+const ROLES_VALIDOS = [
+  'auditor', 'auxiliar', 'gerente', 'controlador',
+  'almacen', 'compras', 'administracion',
+  'host', 'cocina', 'cajera', 'area'
+];
+
+function requireAuditor(user) {
+  if (!user || user.rol !== 'auditor') {
+    throw new Error('Solo el auditor puede administrar usuarios');
+  }
+}
+
+function getUsuarios(user) {
+  requireAuditor(user);
+  return sheetData(SHEETS.USUARIOS).map(u => ({
+    email: String(u.email || '').toLowerCase().trim(),
+    nombre: String(u.nombre || ''),
+    rol: String(u.rol || ''),
+    activo: String(u.activo).toUpperCase() === 'TRUE'
+  }));
+}
+
+function addUsuario(user, payload) {
+  requireAuditor(user);
+  const email = String(payload.email || '').toLowerCase().trim();
+  const nombre = String(payload.nombre || '').trim();
+  const rol = String(payload.rol || '').toLowerCase().trim();
+  const activo = payload.activo !== false;
+
+  if (!email || email.indexOf('@') < 0) throw new Error('Email inválido');
+  if (!nombre) throw new Error('Falta el nombre');
+  if (ROLES_VALIDOS.indexOf(rol) < 0) {
+    throw new Error('Rol inválido. Válidos: ' + ROLES_VALIDOS.join(', '));
+  }
+
+  // Unicidad por email
+  const usuarios = sheetData(SHEETS.USUARIOS);
+  if (usuarios.some(u => String(u.email).toLowerCase().trim() === email)) {
+    throw new Error('Ya existe un usuario con ese correo');
+  }
+
+  appendRow(SHEETS.USUARIOS, {
+    email: email,
+    nombre: nombre,
+    rol: rol,
+    activo: activo ? 'TRUE' : 'FALSE'
+  });
+  return { ok: true };
+}
+
+function updateUsuario(user, payload) {
+  requireAuditor(user);
+  const emailOriginal = String(payload.email_original || payload.email || '').toLowerCase().trim();
+  if (!emailOriginal) throw new Error('Falta el email del usuario a editar');
+
+  const found = findRow(SHEETS.USUARIOS, u =>
+    String(u.email).toLowerCase().trim() === emailOriginal
+  );
+  if (!found) throw new Error('Usuario no encontrado: ' + emailOriginal);
+
+  const updates = {};
+
+  if (payload.email !== undefined) {
+    const nuevoEmail = String(payload.email).toLowerCase().trim();
+    if (!nuevoEmail || nuevoEmail.indexOf('@') < 0) throw new Error('Email inválido');
+    // Si cambió el email, validar que no choque con otro existente
+    if (nuevoEmail !== emailOriginal) {
+      const choca = sheetData(SHEETS.USUARIOS).some(u =>
+        String(u.email).toLowerCase().trim() === nuevoEmail
+      );
+      if (choca) throw new Error('Ya existe otro usuario con ese correo');
+    }
+    updates.email = nuevoEmail;
+  }
+
+  if (payload.nombre !== undefined) {
+    const nombre = String(payload.nombre).trim();
+    if (!nombre) throw new Error('Falta el nombre');
+    updates.nombre = nombre;
+  }
+
+  if (payload.rol !== undefined) {
+    const rol = String(payload.rol).toLowerCase().trim();
+    if (ROLES_VALIDOS.indexOf(rol) < 0) {
+      throw new Error('Rol inválido. Válidos: ' + ROLES_VALIDOS.join(', '));
+    }
+    updates.rol = rol;
+  }
+
+  if (payload.activo !== undefined) {
+    updates.activo = payload.activo ? 'TRUE' : 'FALSE';
+  }
+
+  // Protección: no dejar al sistema sin ningún auditor activo
+  const seraDesactivado = updates.activo === 'FALSE' ||
+                          (updates.rol && updates.rol !== 'auditor');
+  if (seraDesactivado && String(found.data.rol).toLowerCase() === 'auditor' &&
+      String(found.data.activo).toUpperCase() === 'TRUE') {
+    const otrosAuditoresActivos = sheetData(SHEETS.USUARIOS).filter(u =>
+      String(u.email).toLowerCase().trim() !== emailOriginal &&
+      String(u.rol).toLowerCase() === 'auditor' &&
+      String(u.activo).toUpperCase() === 'TRUE'
+    ).length;
+    if (otrosAuditoresActivos === 0) {
+      throw new Error('No puedes dejar el sistema sin un auditor activo');
+    }
+  }
+
+  updateRow(SHEETS.USUARIOS, found.rowIdx, updates);
+  return { ok: true };
+}
+
+function deleteUsuario(user, payload) {
+  requireAuditor(user);
+  const email = String(payload.email || '').toLowerCase().trim();
+  if (!email) throw new Error('Falta el email');
+  if (email === user.email.toLowerCase().trim()) {
+    throw new Error('No puedes eliminarte a ti mismo');
+  }
+
+  const found = findRow(SHEETS.USUARIOS, u =>
+    String(u.email).toLowerCase().trim() === email
+  );
+  if (!found) throw new Error('Usuario no encontrado');
+
+  // Protección: si es el último auditor activo, no permitir
+  if (String(found.data.rol).toLowerCase() === 'auditor' &&
+      String(found.data.activo).toUpperCase() === 'TRUE') {
+    const otrosAuditoresActivos = sheetData(SHEETS.USUARIOS).filter(u =>
+      String(u.email).toLowerCase().trim() !== email &&
+      String(u.rol).toLowerCase() === 'auditor' &&
+      String(u.activo).toUpperCase() === 'TRUE'
+    ).length;
+    if (otrosAuditoresActivos === 0) {
+      throw new Error('No puedes eliminar al último auditor activo');
+    }
+  }
+
+  sheet(SHEETS.USUARIOS).deleteRow(found.rowIdx);
+  return { ok: true };
 }
 
 // =============================================================

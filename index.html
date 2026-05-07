@@ -706,6 +706,103 @@ label { display: block; font-size: 0.82rem; font-weight: 500; color: var(--ink-s
   border-radius: 3px; font-size: 0.85em; border: 1px solid var(--border);
 }
 
+/* =========================================================
+   PANEL DE USUARIOS
+   ========================================================= */
+.users-table-wrap {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  margin-top: 1rem;
+}
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+.users-table thead {
+  background: var(--bg-paper);
+  border-bottom: 2px solid var(--border-strong);
+}
+.users-table th {
+  text-align: left;
+  padding: 0.85rem 1rem;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+.users-table td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+.users-table tbody tr:last-child td { border-bottom: none; }
+.users-table tbody tr:hover { background: var(--bg-paper); }
+.user-row.inactive { opacity: 0.5; }
+.user-row.inactive .user-email { text-decoration: line-through; }
+.user-email {
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 0.88em;
+}
+.me-pill {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.1rem 0.5rem;
+  background: var(--gold-soft);
+  color: var(--gold-deep);
+  border-radius: 99px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.role-badge {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  text-transform: lowercase;
+  background: var(--border);
+  color: var(--ink-soft);
+}
+.role-badge.role-auditor { background: var(--navy); color: white; }
+.role-badge.role-auxiliar { background: var(--gold-soft); color: var(--gold-deep); }
+.role-badge.role-gerente { background: var(--green-bg); color: var(--green); }
+.role-badge.role-controlador { background: var(--amber-bg); color: var(--amber); }
+.status-badge {
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+.status-badge.active { color: var(--green); }
+.status-badge.inactive { color: var(--ink-muted); }
+.btn-link {
+  background: none;
+  border: none;
+  color: var(--gold-deep);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.3rem 0.5rem;
+  margin-left: 0.2rem;
+  border-radius: 3px;
+  transition: background 0.15s;
+}
+.btn-link:hover { background: var(--gold-soft); }
+.btn-link.danger { color: var(--red); }
+.btn-link.danger:hover { background: var(--red-bg); }
+
+@media (max-width: 640px) {
+  .users-table th:nth-child(2),
+  .users-table td:nth-child(2) { display: none; }
+  .users-table { font-size: 0.85rem; }
+  .users-table th, .users-table td { padding: 0.6rem 0.5rem; }
+  .btn-link { display: block; padding: 0.4rem; margin: 0.15rem 0; text-align: right; }
+}
+
 @media (max-width: 640px) {
   .header-inner { padding: 0.7rem 1rem; }
   .brand-name { font-size: 0.95rem; }
@@ -758,6 +855,7 @@ label { display: block; font-size: 0.82rem; font-weight: 500; color: var(--ink-s
     <button class="nav-tab" data-view="pilar-b">Pilar B · Conciliación</button>
     <button class="nav-tab" data-view="pilar-c">Pilar C · Inventarios</button>
     <button class="nav-tab" data-view="reporte">Reporte</button>
+    <button class="nav-tab" data-view="usuarios" data-rol="auditor" style="display:none;">Usuarios</button>
   </div>
 </nav>
 
@@ -815,6 +913,11 @@ label { display: block; font-size: 0.82rem; font-weight: 500; color: var(--ink-s
   <!-- REPORTE -->
   <section class="view" id="view-reporte">
     <div id="reporte-content"><div class="empty-state"><div class="spinner"></div></div></div>
+  </section>
+
+  <!-- USUARIOS (solo auditor) -->
+  <section class="view" id="view-usuarios">
+    <div id="usuarios-content"><div class="empty-state"><div class="spinner"></div></div></div>
   </section>
 
 </main>
@@ -977,6 +1080,10 @@ const App = {
     el('user-name').textContent = State.user.nombre;
     el('user-role').textContent = State.user.rol;
     el('nav-bar').style.display = '';
+    // Mostrar/ocultar tabs que requieren un rol específico
+    document.querySelectorAll('.nav-tab[data-rol]').forEach(tab => {
+      tab.style.display = (tab.dataset.rol === State.user.rol) ? '' : 'none';
+    });
     try { State.config = JSON.parse(localStorage.getItem('fogueira_config') || '{}'); } catch(e){}
     this.go('dashboard');
   },
@@ -1622,6 +1729,221 @@ const App = {
 
   imprimir() { window.print(); },
 
+  /* =========== USUARIOS (admin, solo auditor) =========== */
+  async render_usuarios() {
+    const out = el('usuarios-content');
+    if (!State.user || State.user.rol !== 'auditor') {
+      out.innerHTML = `<div class="empty-state"><p>Solo el auditor puede administrar usuarios.</p></div>`;
+      return;
+    }
+    out.innerHTML = `<div class="empty-state"><div class="spinner"></div></div>`;
+    try {
+      const usuarios = await apiCall('getUsuarios', {});
+      State.usuarios = usuarios;
+      out.innerHTML = `
+        <div class="dash-hero">
+          <div class="dash-hero-text">
+            <h1>Administración de usuarios</h1>
+            <div class="meta">
+              <span>${usuarios.length} ${usuarios.length === 1 ? 'usuario' : 'usuarios'}</span>
+              <span>${usuarios.filter(u => u.activo).length} activos</span>
+              <span>${usuarios.filter(u => u.rol === 'auditor' && u.activo).length} auditor(es)</span>
+            </div>
+          </div>
+          <div>
+            <button class="btn-primary" onclick="App.usuariosOpenAdd()">+ Agregar usuario</button>
+          </div>
+        </div>
+
+        <div class="users-table-wrap">
+          <table class="users-table">
+            <thead>
+              <tr>
+                <th>Correo</th>
+                <th>Nombre</th>
+                <th>Rol</th>
+                <th>Estado</th>
+                <th style="text-align:right;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${usuarios.map(u => usuarioRowHTML(u)).join('')}
+            </tbody>
+          </table>
+        </div>
+
+        <p style="margin-top:1rem; color:var(--ink-soft); font-size:0.85rem;">
+          <strong>Nota:</strong> los cambios surten efecto inmediatamente. Un usuario inactivo no podrá iniciar sesión hasta que se reactive.
+        </p>
+      `;
+    } catch (err) {
+      out.innerHTML = `<div class="empty-state"><p>${escapeHtml(err.message)}</p></div>`;
+    }
+  },
+
+  usuariosOpenAdd() {
+    this.openModal(`
+      <div class="modal-head">
+        <h2>Agregar usuario</h2>
+      </div>
+      <div class="modal-body">
+        <div style="margin-bottom:0.85rem;">
+          <label for="u-email">Correo electrónico</label>
+          <input type="email" id="u-email" placeholder="persona@correo.com" autocomplete="off" required>
+        </div>
+        <div style="margin-bottom:0.85rem;">
+          <label for="u-nombre">Nombre completo</label>
+          <input type="text" id="u-nombre" placeholder="Nombre Apellido" required>
+        </div>
+        <div style="margin-bottom:0.85rem;">
+          <label for="u-rol">Rol</label>
+          <select id="u-rol">
+            ${rolesSelectOptionsHTML('auxiliar')}
+          </select>
+        </div>
+        <div style="margin-bottom:0.85rem;">
+          <label style="display:flex; align-items:center; gap:0.5rem; text-transform:none; letter-spacing:0;">
+            <input type="checkbox" id="u-activo" checked style="width:auto;"> Activo
+          </label>
+        </div>
+        <div id="u-error" class="login-error"></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-ghost" onclick="App.closeModal()">Cancelar</button>
+        <button class="btn-primary" onclick="App.usuariosSubmitAdd()">Guardar</button>
+      </div>
+    `);
+  },
+
+  async usuariosSubmitAdd() {
+    const errBox = el('u-error');
+    errBox.classList.remove('show');
+    const email = el('u-email').value.trim().toLowerCase();
+    const nombre = el('u-nombre').value.trim();
+    const rol = el('u-rol').value;
+    const activo = el('u-activo').checked;
+    if (!email || !nombre) {
+      errBox.textContent = 'Correo y nombre son obligatorios';
+      errBox.classList.add('show'); return;
+    }
+    try {
+      await apiCall('addUsuario', { email, nombre, rol, activo });
+      this.closeModal();
+      toast('Usuario agregado');
+      this.render_usuarios();
+    } catch (err) {
+      errBox.textContent = err.message;
+      errBox.classList.add('show');
+    }
+  },
+
+  usuariosOpenEdit(email) {
+    const u = (State.usuarios || []).find(x => x.email === email);
+    if (!u) return toast('Usuario no encontrado', true);
+    this.openModal(`
+      <div class="modal-head">
+        <h2>Editar usuario</h2>
+      </div>
+      <div class="modal-body">
+        <div style="margin-bottom:0.85rem;">
+          <label for="u-email">Correo electrónico</label>
+          <input type="email" id="u-email" value="${escapeHtml(u.email)}" required>
+        </div>
+        <div style="margin-bottom:0.85rem;">
+          <label for="u-nombre">Nombre completo</label>
+          <input type="text" id="u-nombre" value="${escapeHtml(u.nombre)}" required>
+        </div>
+        <div style="margin-bottom:0.85rem;">
+          <label for="u-rol">Rol</label>
+          <select id="u-rol">
+            ${rolesSelectOptionsHTML(u.rol)}
+          </select>
+        </div>
+        <div style="margin-bottom:0.85rem;">
+          <label style="display:flex; align-items:center; gap:0.5rem; text-transform:none; letter-spacing:0;">
+            <input type="checkbox" id="u-activo" ${u.activo ? 'checked' : ''} style="width:auto;"> Activo
+          </label>
+        </div>
+        <div id="u-error" class="login-error"></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-ghost" onclick="App.closeModal()">Cancelar</button>
+        <button class="btn-primary" onclick="App.usuariosSubmitEdit('${escapeHtml(u.email)}')">Guardar cambios</button>
+      </div>
+    `);
+  },
+
+  async usuariosSubmitEdit(emailOriginal) {
+    const errBox = el('u-error');
+    errBox.classList.remove('show');
+    const email = el('u-email').value.trim().toLowerCase();
+    const nombre = el('u-nombre').value.trim();
+    const rol = el('u-rol').value;
+    const activo = el('u-activo').checked;
+    try {
+      await apiCall('updateUsuario', {
+        email_original: emailOriginal,
+        email, nombre, rol, activo
+      });
+      this.closeModal();
+      toast('Cambios guardados');
+      this.render_usuarios();
+    } catch (err) {
+      errBox.textContent = err.message;
+      errBox.classList.add('show');
+    }
+  },
+
+  async usuariosToggleActivo(email, nuevoEstado) {
+    try {
+      await apiCall('updateUsuario', {
+        email_original: email,
+        activo: nuevoEstado
+      });
+      toast(nuevoEstado ? 'Usuario activado' : 'Usuario desactivado');
+      this.render_usuarios();
+    } catch (err) {
+      toast(err.message, true);
+    }
+  },
+
+  usuariosOpenDelete(email) {
+    const u = (State.usuarios || []).find(x => x.email === email);
+    if (!u) return toast('Usuario no encontrado', true);
+    this.openModal(`
+      <div class="modal-head">
+        <h2>Eliminar usuario</h2>
+      </div>
+      <div class="modal-body">
+        <p>Vas a eliminar permanentemente al usuario:</p>
+        <p style="margin:0.85rem 0; padding:0.85rem; background:var(--bg-paper); border-radius:4px;">
+          <strong>${escapeHtml(u.nombre)}</strong><br>
+          <span style="color:var(--ink-soft); font-size:0.9em;">${escapeHtml(u.email)} · ${escapeHtml(u.rol)}</span>
+        </p>
+        <p style="color:var(--red); font-size:0.85em;">Esta acción no se puede deshacer. Si solo quieres revocar acceso temporalmente, mejor desactívalo.</p>
+        <div id="u-error" class="login-error"></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-ghost" onclick="App.closeModal()">Cancelar</button>
+        <button class="btn-primary" style="background:var(--red);" onclick="App.usuariosConfirmDelete('${escapeHtml(u.email)}')">Eliminar</button>
+      </div>
+    `);
+  },
+
+  async usuariosConfirmDelete(email) {
+    const errBox = el('u-error');
+    errBox.classList.remove('show');
+    try {
+      await apiCall('deleteUsuario', { email });
+      this.closeModal();
+      toast('Usuario eliminado');
+      this.render_usuarios();
+    } catch (err) {
+      errBox.textContent = err.message;
+      errBox.classList.add('show');
+    }
+  },
+
   /* =========== MODAL =========== */
   openModal(html) {
     el('modal').innerHTML = html;
@@ -1635,6 +1957,44 @@ const App = {
 /* =========================================================
    COMPONENTES — funciones que generan HTML
    ========================================================= */
+const ROLES_VALIDOS = [
+  'auditor', 'auxiliar', 'gerente', 'controlador',
+  'almacen', 'compras', 'administracion',
+  'host', 'cocina', 'cajera', 'area'
+];
+
+function rolesSelectOptionsHTML(seleccionado) {
+  return ROLES_VALIDOS.map(r =>
+    `<option value="${r}" ${r === seleccionado ? 'selected' : ''}>${r}</option>`
+  ).join('');
+}
+
+function usuarioRowHTML(u) {
+  const isMe = State.user && State.user.email.toLowerCase() === u.email.toLowerCase();
+  return `
+    <tr class="user-row ${u.activo ? '' : 'inactive'}">
+      <td>
+        <span class="user-email">${escapeHtml(u.email)}</span>
+        ${isMe ? '<span class="me-pill">tú</span>' : ''}
+      </td>
+      <td>${escapeHtml(u.nombre)}</td>
+      <td><span class="role-badge role-${escapeHtml(u.rol)}">${escapeHtml(u.rol)}</span></td>
+      <td>
+        <span class="status-badge ${u.activo ? 'active' : 'inactive'}">
+          ${u.activo ? '● activo' : '○ inactivo'}
+        </span>
+      </td>
+      <td style="text-align:right; white-space:nowrap;">
+        <button class="btn-link" onclick="App.usuariosOpenEdit('${escapeHtml(u.email)}')">Editar</button>
+        <button class="btn-link" onclick="App.usuariosToggleActivo('${escapeHtml(u.email)}', ${!u.activo})">
+          ${u.activo ? 'Desactivar' : 'Activar'}
+        </button>
+        ${isMe ? '' : `<button class="btn-link danger" onclick="App.usuariosOpenDelete('${escapeHtml(u.email)}')">Eliminar</button>`}
+      </td>
+    </tr>
+  `;
+}
+
 function pillarCardHTML(letra, titulo, p, target, line1, line2) {
   return `
     <div class="pillar-card ${p.semaforo ? 's-' + p.semaforo : ''}" data-target="${target}">
