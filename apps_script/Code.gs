@@ -548,6 +548,22 @@ function periodoActual(frecuencia) {
   throw new Error('Frecuencia inválida: ' + frecuencia);
 }
 
+// Cuando appendRow escribe "2026-05-07" en una celda, Google Sheets a veces lo
+// auto-convierte a Date. Al releer, m.periodo viene como Date y las comparaciones
+// con strings fallan silenciosamente. Este helper canoniza el valor leído al
+// formato esperado según frecuencia (yyyy-MM-dd / YYYY-Www / yyyy-MM).
+function periodoCanonico(value, frecuencia) {
+  if (value === null || value === undefined || value === '') return '';
+  if (Object.prototype.toString.call(value) === '[object Date]') {
+    const tz = ss().getSpreadsheetTimeZone() || 'America/Mexico_City';
+    if (frecuencia === 'M') return Utilities.formatDate(value, tz, 'yyyy-MM');
+    // Diario y default
+    return Utilities.formatDate(value, tz, 'yyyy-MM-dd');
+  }
+  // Limpia apóstrofo si por alguna ruta Sheets lo devolvió literal.
+  return String(value).trim().replace(/^'/, '');
+}
+
 // Quién puede marcar qué.
 // El responsable del rol del ítem y siempre auditor/auxiliar/gerente (Mónica supervisa).
 function puedeMarcarChecklist(user, item) {
@@ -574,8 +590,11 @@ function getChecklistA(user, payload) {
   const enriched = items.map(it => {
     const periodo = periodos[it.frecuencia];
     const marca = marcasAll
-      .filter(m => m.item_id === it.id && m.periodo === periodo)
+      .filter(m => String(m.item_id) === String(it.id) &&
+                   periodoCanonico(m.periodo, it.frecuencia) === periodo)
       .sort((a, b) => String(b.timestamp).localeCompare(String(a.timestamp)))[0] || null;
+    // Devolver la marca con el periodo ya canónico (para el frontend)
+    if (marca) marca.periodo = periodoCanonico(marca.periodo, it.frecuencia);
     return Object.assign({}, it, {
       periodo,
       marca,
@@ -600,13 +619,17 @@ function marcarChecklistA(user, payload) {
   if (valor === null) throw new Error('valor debe ser 0 o 1');
 
   // Una sola marca vigente por (item_id, periodo): si existe la actualizamos.
+  // Normalizar m.periodo porque Sheets puede haberlo convertido a Date en escrituras previas.
   const existing = findRow(SHEETS.PILAR_A_CK_MARCAS,
-    m => m.item_id === payload.item_id && m.periodo === periodo);
+    m => String(m.item_id) === String(payload.item_id) &&
+         periodoCanonico(m.periodo, item.data.frecuencia) === periodo);
 
   const rowData = {
     timestamp: nowISO(),
     item_id: payload.item_id,
-    periodo: periodo,
+    // Prefijar con apóstrofo fuerza a Sheets a tratarlo como texto (no Date).
+    // Sheets oculta el apóstrofo en la celda pero la API lo respeta como string.
+    periodo: "'" + periodo,
     valor: valor,
     usuario_email: user.email,
     observaciones: payload.observaciones || ''
@@ -638,13 +661,13 @@ function getChecklistResumenA(user) {
     M: periodoActual('M')
   };
 
-  // Indexar última marca por (item_id, periodo)
-  const ultima = {};
+  // Indexar marcas por item_id (usaremos la frecuencia del item para canonizar
+  // el periodo). Es necesario porque m.periodo puede venir como Date desde Sheets.
+  const marcasPorItem = {};
   marcas.forEach(m => {
-    const k = m.item_id + '|' + m.periodo;
-    if (!ultima[k] || String(m.timestamp) > String(ultima[k].timestamp)) {
-      ultima[k] = m;
-    }
+    const id = String(m.item_id);
+    if (!marcasPorItem[id]) marcasPorItem[id] = [];
+    marcasPorItem[id].push(m);
   });
 
   const porModulo = {};
@@ -655,7 +678,10 @@ function getChecklistResumenA(user) {
     }
     porModulo[k].total++;
     const periodo = periodos[it.frecuencia];
-    const m = ultima[it.id + '|' + periodo];
+    const candidatas = (marcasPorItem[it.id] || [])
+      .filter(mm => periodoCanonico(mm.periodo, it.frecuencia) === periodo)
+      .sort((a, b) => String(b.timestamp).localeCompare(String(a.timestamp)));
+    const m = candidatas[0] || null;
     if (m) {
       porModulo[k].marcados++;
       if (Number(m.valor) === 1) porModulo[k].cumplidos++;

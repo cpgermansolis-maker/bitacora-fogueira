@@ -255,6 +255,16 @@ function setupSheet() {
         log.push('    + ' + newRows.length + ' clave(s) nueva(s) en Config: ' + newRows.map(r => r[0]).join(', '));
       }
     }
+
+    // PilarA_ChecklistMarcas: forzar la columna 'periodo' a formato texto (@)
+    // para que Sheets no convierta '2026-05-07' en Date al escribirlo. Idempotente.
+    if (def.name === 'PilarA_ChecklistMarcas') {
+      const periodoCol = def.headers.indexOf('periodo') + 1;
+      if (periodoCol > 0) {
+        s.getRange(1, periodoCol, s.getMaxRows(), 1).setNumberFormat('@');
+        log.push('    · columna periodo formateada como texto');
+      }
+    }
   });
 
   // 2. Pestaña Usuarios — agregar al propietario como auditor si no existe
