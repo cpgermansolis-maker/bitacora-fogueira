@@ -42,8 +42,8 @@ Cualquiera con esta URL puede abrir el sitio, pero solo los emails listados en l
 
 ## ✅ Checklist de lo que quedó instalado
 
-- [x] Sheet "Bitácora Fogueira" con 13 pestañas (15 desde el upgrade de Check List SR12 · ver más abajo)
-- [x] Catálogos cargados (12 módulos Pilar A · 8 etapas Pilar B · 11 etapas Pilar C · 5 áreas · 8 valores Config · 36 ítems Check List SR12)
+- [x] Sheet "Bitácora Fogueira" con 13 pestañas (17 desde los upgrades de Check List SR12 y Check List Conciliación · ver más abajo)
+- [x] Catálogos cargados (12 módulos Pilar A · 8 etapas Pilar B · 11 etapas Pilar C · 5 áreas · 8 valores Config · 36 ítems Check List SR12 · 48 ítems Check List Conciliación)
 - [x] Auditor `cpgermansolis@gmail.com` registrado en `Usuarios` con `activo = TRUE`
 - [x] Carpeta Drive de evidencias creada con permiso público de lectura
 - [x] Backend con `Code.gs`, `Monitoring.gs`, `Setup.gs` desplegado como Web App
@@ -150,6 +150,33 @@ Si tu instancia se publicó **antes del 7 de mayo 2026**, agregamos el check lis
 - `cocina` → mermas con foto, recetas, re-costeo, análisis de mermas
 - `gerente` → reportes firmados, KPIs, márgenes, junta de remediación
 - `auditor` / `auxiliar` / `gerente` → pueden marcar cualquier ítem (supervisión)
+
+---
+
+## ⬆️ Upgrade · Check List Conciliación (mayo 2026)
+
+Si tu instancia se publicó **antes del 7 de mayo 2026**, agregamos el check list de supervisión de Conciliación dentro del Pilar B (derivado del manual operativo de Estefanía Martínez). Para activarlo, mismos pasos que el upgrade SR12:
+
+1. **Backend** — Abre el editor Apps Script y vuelve a correr `setupSheet()`. Crea las 2 pestañas nuevas (`PilarB_ChecklistItems` con 48 ítems precargados y `PilarB_ChecklistMarcas` vacía) sin tocar el resto del Sheet.
+2. **Re-deploy del Web App** (mantiene la URL):
+   ```bash
+   cd apps_script
+   clasp push
+   clasp redeploy AKfycbzD4CrG1aidpykl1VRmMN63v7rad3Rj8Dwr-auiJwB4OSzDsfnKH2gSqdCW92Nh39Zn
+   ```
+3. **Frontend** — `git pull` y `git push` se publican solos en GitHub Pages.
+4. **Verificación rápida:**
+   - Como `auditor` → Pilar B muestra píldora "X% disciplina" y botón **📋 Check list** en cada etapa.
+   - Como `administracion` (compras@fogueira.mx) o `auxiliar` → Pilar B abre directo en la **vista guiada** con los bloques cronológicos del manual.
+
+**Cobertura del check list (48 ítems):**
+- **Diario (31):** Apertura (5) · Durante el servicio (5) · Cierre profundo (8) · 10 Banderas rojas (10) · Firma final (3)
+- **Semanal (6):** revisión de viernes (histórico, banderas, arqueos recurrentes, cortesías por host, no-sales)
+- **Mensual (11):** último viernes — top motivos/montos de cortesías, balance de firmas Mónica/Gabriel, overrides admin, reporte mensual a dirección
+
+El manual operativo completo está archivado en [`docs/checklist_conciliacion_origen/`](docs/checklist_conciliacion_origen/) (markdown + html imprimible). Sirve como referencia para nuevos supervisores y como base para futuras ampliaciones del catálogo.
+
+**Quién marca:** `administracion` siempre (Estefanía supervisa); además `auditor`, `auxiliar` y `gerente` pueden marcar cualquier ítem.
 
 ---
 

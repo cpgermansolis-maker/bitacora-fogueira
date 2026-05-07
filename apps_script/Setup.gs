@@ -156,6 +156,78 @@ const SHEET_DEFINITIONS = [
     rows: []
   },
   {
+    // Check list operativo de Conciliación — derivado del manual de
+    // supervisión de Estefanía Martínez (Supervisora de Conciliación).
+    // Cada ítem se ata a una etapa B (B1..B8) y a una sección legible.
+    // Frecuencia: D (diario) · S (semanal, viernes) · M (mensual, último viernes).
+    // El responsable_rol "administracion" refleja que Estefanía es quien
+    // marca; el detalle del ejecutor real va en la descripción.
+    name: 'PilarB_ChecklistItems',
+    headers: ['id', 'etapa_id', 'seccion', 'frecuencia', 'responsable_rol', 'descripcion', 'activo'],
+    rows: [
+      // ----- Diario · Apertura (5) — etapa B1 -----
+      ['CKBD01', 'B1', 'Apertura',          'D', 'administracion', 'Tarifas vigentes verificadas en el sistema antes de abrir puertas',          'TRUE'],
+      ['CKBD02', 'B1', 'Apertura',          'D', 'administracion', 'Fondo de cambio entregado a cajera y firmado de recibido',                   'TRUE'],
+      ['CKBD03', 'B1', 'Apertura',          'D', 'administracion', 'Sellos de apertura de cocina y churrasca firmados',                          'TRUE'],
+      ['CKBD04', 'B1', 'Apertura',          'D', 'administracion', 'Plano del salón verificado y reservas del día revisadas',                    'TRUE'],
+      ['CKBD05', 'B1', 'Apertura',          'D', 'administracion', 'Sello de apertura del supervisor firmado en el sistema',                     'TRUE'],
+      // ----- Diario · Durante el servicio (5) — etapas B2/B3 -----
+      ['CKBD06', 'B2', 'Durante',           'D', 'administracion', 'Bitácora del host revisada al menos una vez por hora',                       'TRUE'],
+      ['CKBD07', 'B2', 'Durante',           'D', 'administracion', 'Cortesías nuevas confirmadas con quien las autorizó (Mónica/Gabriel)',       'TRUE'],
+      ['CKBD08', 'B3', 'Durante',           'D', 'administracion', 'Cocina y churrasca registrando charolas en vivo (cada 45 min)',              'TRUE'],
+      ['CKBD09', 'B2', 'Durante',           'D', 'administracion', 'Muestreo aleatorio: tickets POS cruzados contra bitácora (1 c/30 min)',      'TRUE'],
+      ['CKBD10', 'B2', 'Durante',           'D', 'administracion', 'Filas con datos faltantes (sin pax/mesa/nombre) corregidas con host',        'TRUE'],
+      // ----- Diario · Cierre profundo (8) — etapas B5/B7 -----
+      ['CKBD11', 'B7', 'Cierre profundo',   'D', 'administracion', 'Auto-llenar ejecutado por la cajera para consolidar bitácoras',              'TRUE'],
+      ['CKBD12', 'B5', 'Cierre profundo',   'D', 'administracion', 'Corte de caja contado dos veces por denominación',                            'TRUE'],
+      ['CKBD13', 'B5', 'Cierre profundo',   'D', 'administracion', 'Tarjetas separadas por tipo (Débito/MC/Visa/AMEX) y verificadas vs POS',     'TRUE'],
+      ['CKBD14', 'B7', 'Cierre profundo',   'D', 'administracion', 'Cortesías capturadas con los 3 datos completos (autoriza/folio/motivo)',     'TRUE'],
+      ['CKBD15', 'B7', 'Cierre profundo',   'D', 'administracion', 'Promociones del día aplicadas correctamente al cierre',                      'TRUE'],
+      ['CKBD16', 'B5', 'Cierre profundo',   'D', 'administracion', 'Depósito 1 (venta del día) capturado con folio de tesorería',                'TRUE'],
+      ['CKBD17', 'B5', 'Cierre profundo',   'D', 'administracion', 'Depósito 2 (comisiones bancarias) capturado con folio de tesorería',         'TRUE'],
+      ['CKBD18', 'B5', 'Cierre profundo',   'D', 'administracion', 'Arqueo ciego revisado y diferencia documentada (≥$200 → investigar)',        'TRUE'],
+      // ----- Diario · 10 Banderas rojas (10) — etapa B7 -----
+      ['CKBD19', 'B7', 'Banderas rojas',    'D', 'administracion', 'Bandera 1: Δ Comensales (Host vs POS) ≤ 2 personas',                         'TRUE'],
+      ['CKBD20', 'B7', 'Banderas rojas',    'D', 'administracion', 'Bandera 2: Δ Arqueo ciego ≤ $200 (>$1,000 NO firmar)',                       'TRUE'],
+      ['CKBD21', 'B7', 'Banderas rojas',    'D', 'administracion', 'Bandera 3: Δ Lote terminal vs POS = 0',                                      'TRUE'],
+      ['CKBD22', 'B7', 'Banderas rojas',    'D', 'administracion', 'Bandera 4: % Cancelaciones ≤ 3 %',                                           'TRUE'],
+      ['CKBD23', 'B7', 'Banderas rojas',    'D', 'administracion', 'Bandera 5: No-sales del día ≤ 2',                                            'TRUE'],
+      ['CKBD24', 'B7', 'Banderas rojas',    'D', 'administracion', 'Bandera 6: Todas las cortesías con autorización válida',                     'TRUE'],
+      ['CKBD25', 'B7', 'Banderas rojas',    'D', 'administracion', 'Bandera 7: Todas las cancelaciones con autorización documentada',            'TRUE'],
+      ['CKBD26', 'B7', 'Banderas rojas',    'D', 'administracion', 'Bandera 8: Cierre de lote bancario realizado en todas las terminales',       'TRUE'],
+      ['CKBD27', 'B7', 'Banderas rojas',    'D', 'administracion', 'Bandera 9: Δ Operaciones vs Vouchers físicos = 0',                           'TRUE'],
+      ['CKBD28', 'B7', 'Banderas rojas',    'D', 'administracion', 'Bandera 10: Sin saltos en folios POS consecutivos (crítico)',                'TRUE'],
+      // ----- Diario · Firma final (3) — etapas B7/B8 -----
+      ['CKBD29', 'B7', 'Firma final',       'D', 'administracion', 'Conclusión del auditor capturada (estatus + comentarios + plan)',            'TRUE'],
+      ['CKBD30', 'B7', 'Firma final',       'D', 'administracion', 'Sello de cierre del supervisor firmado en el sistema',                       'TRUE'],
+      ['CKBD31', 'B8', 'Firma final',       'D', 'administracion', 'Reporte breve a Germán/Mónica enviado por WhatsApp si hubo banderas',        'TRUE'],
+      // ----- Semanal · viernes (6) — etapas B7/B8 -----
+      ['CKBS01', 'B7', 'Cierre semanal',    'S', 'administracion', 'Histórico semanal de conciliaciones revisado',                               'TRUE'],
+      ['CKBS02', 'B7', 'Cierre semanal',    'S', 'administracion', 'Banderas rojas de la semana contadas por tipo',                              'TRUE'],
+      ['CKBS03', 'B7', 'Cierre semanal',    'S', 'administracion', 'Diferencias de arqueo recurrentes (>$50) analizadas',                        'TRUE'],
+      ['CKBS04', 'B7', 'Cierre semanal',    'S', 'administracion', 'Cortesías por host: ¿hay concentración sospechosa?',                         'TRUE'],
+      ['CKBS05', 'B7', 'Cierre semanal',    'S', 'administracion', 'No-sales repetidos por cajera analizados',                                   'TRUE'],
+      ['CKBS06', 'B8', 'Cierre semanal',    'S', 'administracion', 'Reporte semanal enviado a Mónica con hallazgos y riesgos',                   'TRUE'],
+      // ----- Mensual · último viernes (11) — etapas B7/B8 -----
+      ['CKBM01', 'B8', 'Cierre mensual',    'M', 'administracion', 'Bloque de 30-45 min agendado en el calendario',                              'TRUE'],
+      ['CKBM02', 'B7', 'Cierre mensual',    'M', 'administracion', 'Histórico mensual filtrado en módulo Histórico',                             'TRUE'],
+      ['CKBM03', 'B7', 'Cierre mensual',    'M', 'administracion', 'Total banderas rojas del mes contado por tipo',                              'TRUE'],
+      ['CKBM04', 'B7', 'Cierre mensual',    'M', 'administracion', 'Top 10 motivos de cortesías del mes analizado',                              'TRUE'],
+      ['CKBM05', 'B7', 'Cierre mensual',    'M', 'administracion', 'Top 5 montos de cortesías del mes (¿inusualmente altos?)',                   'TRUE'],
+      ['CKBM06', 'B7', 'Cierre mensual',    'M', 'administracion', 'Cortesías por host: ¿concentración en una persona?',                         'TRUE'],
+      ['CKBM07', 'B7', 'Cierre mensual',    'M', 'administracion', 'Cortesías por cliente: ¿alguien repite seguido?',                            'TRUE'],
+      ['CKBM08', 'B6', 'Cierre mensual',    'M', 'administracion', 'Balance de firmas de cortesías Mónica vs Gabriel (¿está parejo?)',           'TRUE'],
+      ['CKBM09', 'B7', 'Cierre mensual',    'M', 'administracion', 'Overrides admin del mes analizados (cantidad y motivos)',                    'TRUE'],
+      ['CKBM10', 'B7', 'Cierre mensual',    'M', 'administracion', 'Certificaciones vencidas del personal revisadas',                            'TRUE'],
+      ['CKBM11', 'B8', 'Cierre mensual',    'M', 'administracion', 'Reporte mensual a dirección generado y enviado (Anexo A)',                   'TRUE']
+    ]
+  },
+  {
+    name: 'PilarB_ChecklistMarcas',
+    headers: ['timestamp', 'item_id', 'periodo', 'valor', 'usuario_email', 'observaciones'],
+    rows: []
+  },
+  {
     name: 'PilarC_Etapas',
     headers: ['id', 'numero', 'nombre', 'responsable_rol', 'descripcion'],
     rows: [
@@ -256,9 +328,10 @@ function setupSheet() {
       }
     }
 
-    // PilarA_ChecklistMarcas: forzar la columna 'periodo' a formato texto (@)
-    // para que Sheets no convierta '2026-05-07' en Date al escribirlo. Idempotente.
-    if (def.name === 'PilarA_ChecklistMarcas') {
+    // ChecklistMarcas (Pilar A y B): forzar la columna 'periodo' a formato
+    // texto (@) para que Sheets no convierta '2026-05-07' en Date al escribirlo.
+    // Idempotente. Ver bug #ce8c9f9 para el contexto del Date vs string.
+    if (def.name === 'PilarA_ChecklistMarcas' || def.name === 'PilarB_ChecklistMarcas') {
       const periodoCol = def.headers.indexOf('periodo') + 1;
       if (periodoCol > 0) {
         s.getRange(1, periodoCol, s.getMaxRows(), 1).setNumberFormat('@');

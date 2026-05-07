@@ -31,6 +31,8 @@ const SHEETS = {
   PILAR_A_CK_MARCAS: 'PilarA_ChecklistMarcas',
   PILAR_B_ETAPAS: 'PilarB_Etapas',
   PILAR_B_DIARIO: 'PilarB_Diario',
+  PILAR_B_CK_ITEMS: 'PilarB_ChecklistItems',
+  PILAR_B_CK_MARCAS: 'PilarB_ChecklistMarcas',
   PILAR_C_ETAPAS: 'PilarC_Etapas',
   PILAR_C_REQS: 'PilarC_Requisiciones',
   PILAR_C_MOV: 'PilarC_Movimientos',
@@ -79,6 +81,9 @@ function doPost(e) {
         case 'getPilarB':          response = getPilarB(user, payload); break;
         case 'marcarEtapaB':       response = marcarEtapaB(user, payload); break;
         case 'validarEtapaB':      response = validarEtapaB(user, payload); break;
+        case 'getChecklistB':      response = getChecklistB(user, payload); break;
+        case 'marcarChecklistB':   response = marcarChecklistB(user, payload); break;
+        case 'getChecklistResumenB': response = getChecklistResumenB(user); break;
         case 'getPilarC':          response = getPilarC(user); break;
         case 'crearRequisicion':   response = crearRequisicion(user, payload); break;
         case 'avanzarRequisicion': response = avanzarRequisicion(user, payload); break;
@@ -697,6 +702,148 @@ function getChecklistResumenA(user) {
   });
 
   return { periodos, porModulo };
+}
+
+// =============================================================
+// PILAR B · Check list de supervisión de Conciliación
+// --------------------------------------------------------------
+// Derivado del manual operativo de Estefanía Martínez (Supervisora
+// de Conciliación). Cada ítem está atado a una etapa B (B1..B8) y
+// a una sección legible (Apertura, Durante, Cierre profundo,
+// Banderas rojas, Firma final, Cierre semanal, Cierre mensual).
+//
+// Frecuencia (igual que Pilar A):
+//   D (diario)   → periodo  YYYY-MM-DD
+//   S (semanal)  → periodo  YYYY-Www  (ISO week, viernes en la práctica)
+//   M (mensual)  → periodo  YYYY-MM   (último viernes en la práctica)
+//
+// Reusa periodoActual() / periodoCanonico() del bloque Pilar A.
+// =============================================================
+
+// Permite marcar items del check list B. La supervisora (Estefanía,
+// rol "administracion") siempre puede marcar; auditor/auxiliar/gerente
+// también; otros roles solo si coinciden con responsable_rol.
+function puedeMarcarChecklistB(user, item) {
+  if (!user) return false;
+  if (user.rol === 'auditor' || user.rol === 'auxiliar' ||
+      user.rol === 'gerente' || user.rol === 'administracion') return true;
+  return user.rol === item.responsable_rol;
+}
+
+function getChecklistB(user, payload) {
+  payload = payload || {};
+  const items = sheetData(SHEETS.PILAR_B_CK_ITEMS)
+    .filter(it => String(it.activo).toUpperCase() === 'TRUE')
+    .filter(it => !payload.etapa_id || it.etapa_id === payload.etapa_id);
+
+  const periodos = payload.periodos || {
+    D: periodoActual('D'),
+    S: periodoActual('S'),
+    M: periodoActual('M')
+  };
+
+  const marcasAll = sheetData(SHEETS.PILAR_B_CK_MARCAS);
+  const enriched = items.map(it => {
+    const periodo = periodos[it.frecuencia];
+    const marca = marcasAll
+      .filter(m => String(m.item_id) === String(it.id) &&
+                   periodoCanonico(m.periodo, it.frecuencia) === periodo)
+      .sort((a, b) => String(b.timestamp).localeCompare(String(a.timestamp)))[0] || null;
+    if (marca) marca.periodo = periodoCanonico(marca.periodo, it.frecuencia);
+    return Object.assign({}, it, {
+      periodo,
+      marca,
+      puedo_marcar: puedeMarcarChecklistB(user, it)
+    });
+  });
+
+  return { items: enriched, periodos };
+}
+
+function marcarChecklistB(user, payload) {
+  if (!payload || !payload.item_id) throw new Error('item_id requerido');
+  const item = findRow(SHEETS.PILAR_B_CK_ITEMS, it => it.id === payload.item_id);
+  if (!item) throw new Error('Ítem no encontrado: ' + payload.item_id);
+  if (!puedeMarcarChecklistB(user, item.data)) {
+    throw new Error('Tu rol no puede marcar este ítem (' + item.data.responsable_rol + ')');
+  }
+  const periodo = payload.periodo || periodoActual(item.data.frecuencia);
+  const valor = (payload.valor === 1 || payload.valor === '1' || payload.valor === true) ? 1
+              : (payload.valor === 0 || payload.valor === '0' || payload.valor === false) ? 0
+              : null;
+  if (valor === null) throw new Error('valor debe ser 0 o 1');
+
+  const existing = findRow(SHEETS.PILAR_B_CK_MARCAS,
+    m => String(m.item_id) === String(payload.item_id) &&
+         periodoCanonico(m.periodo, item.data.frecuencia) === periodo);
+
+  const rowData = {
+    timestamp: nowISO(),
+    item_id: payload.item_id,
+    periodo: "'" + periodo,  // apóstrofo defensivo (ver bug ce8c9f9)
+    valor: valor,
+    usuario_email: user.email,
+    observaciones: payload.observaciones || ''
+  };
+
+  if (existing) {
+    updateRow(SHEETS.PILAR_B_CK_MARCAS, existing.rowIdx, rowData);
+  } else {
+    appendRow(SHEETS.PILAR_B_CK_MARCAS, rowData);
+  }
+
+  logBitacora(user.email, 'marcarChecklistB',
+    payload.item_id + ' / ' + periodo + ' = ' + valor);
+
+  return { ok: true, periodo: periodo, valor: valor };
+}
+
+// Resumen por etapa B: % de disciplina del periodo actual.
+//   disciplina = (suma valor) / (total ítems con marca)  · 100
+// Items no marcados aún no penalizan (se reportan en pendientes).
+function getChecklistResumenB(user) {
+  const items = sheetData(SHEETS.PILAR_B_CK_ITEMS)
+    .filter(it => String(it.activo).toUpperCase() === 'TRUE');
+  const marcas = sheetData(SHEETS.PILAR_B_CK_MARCAS);
+  const periodos = {
+    D: periodoActual('D'),
+    S: periodoActual('S'),
+    M: periodoActual('M')
+  };
+
+  const marcasPorItem = {};
+  marcas.forEach(m => {
+    const id = String(m.item_id);
+    if (!marcasPorItem[id]) marcasPorItem[id] = [];
+    marcasPorItem[id].push(m);
+  });
+
+  const porEtapa = {};
+  items.forEach(it => {
+    const k = it.etapa_id;
+    if (!porEtapa[k]) {
+      porEtapa[k] = { total: 0, marcados: 0, cumplidos: 0, pendientes: 0 };
+    }
+    porEtapa[k].total++;
+    const periodo = periodos[it.frecuencia];
+    const candidatas = (marcasPorItem[it.id] || [])
+      .filter(mm => periodoCanonico(mm.periodo, it.frecuencia) === periodo)
+      .sort((a, b) => String(b.timestamp).localeCompare(String(a.timestamp)));
+    const m = candidatas[0] || null;
+    if (m) {
+      porEtapa[k].marcados++;
+      if (Number(m.valor) === 1) porEtapa[k].cumplidos++;
+    } else {
+      porEtapa[k].pendientes++;
+    }
+  });
+
+  Object.keys(porEtapa).forEach(k => {
+    const r = porEtapa[k];
+    r.pct_disciplina = r.marcados > 0 ? Math.round((r.cumplidos * 100) / r.marcados) : null;
+  });
+
+  return { periodos, porEtapa };
 }
 
 // =============================================================

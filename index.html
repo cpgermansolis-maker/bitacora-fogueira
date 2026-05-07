@@ -679,8 +679,33 @@ body.has-modo-banner .nav { top: calc(70px + 40px); }
   background: var(--red); color: #fff; border-color: var(--red);
   box-shadow: 0 2px 6px rgba(168, 65, 42, 0.35);
 }
+/* Sub-secciones cronológicas dentro de la vista guiada (Pilar B):
+   Apertura / Durante / Cierre profundo / Banderas rojas / Firma final */
+.guiada-seccion { margin: 0.4rem 0 0.6rem; padding: 0 1.4rem; }
+.guiada-seccion:first-of-type { margin-top: 0; }
+.guiada-seccion-titulo {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+  margin: 0.6rem 0 0.4rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px dashed var(--border);
+}
+/* Sub-grupo dentro del modal de check list (vista auditor) */
+.ck-subgroup { margin: 0.5rem 0 0.8rem; }
+.ck-subgroup-titulo {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+  margin: 0.4rem 0 0.4rem;
+}
 
 @media (max-width: 640px) {
+  .guiada-seccion { padding: 0 1rem; }
   .guiada-grupo-head { padding: 0.85rem 1rem 0.6rem; }
   .guiada-grupo-titulo h2 { font-size: 1.2rem; }
   .guiada-bar-wrap { margin: 0 1rem 0.85rem; }
@@ -1290,6 +1315,9 @@ const State = {
   pilarAChecklist: null,
   pilarAGuiada: null,
   pilarB: null,
+  pilarBChecklist: null,
+  pilarBChecklistDetalle: null,
+  pilarBGuiada: null,
   pilarC: null
 };
 
@@ -1914,19 +1942,33 @@ const App = {
   },
 
   /* =========== PILAR B =========== */
+  // Bifurcación por rol idéntica al Pilar A:
+  //   auditor          → vista clásica de 8 etapas + pildora % disciplina por etapa
+  //   resto (incl. administracion / auxiliar) → vista guiada con secciones operativas
   async render_pilar_b(fecha) {
+    if (State.user && State.user.rol !== 'auditor') {
+      return this.render_pilar_b_guiada();
+    }
+    return this.render_pilar_b_auditor(fecha);
+  },
+
+  async render_pilar_b_auditor(fecha) {
     const c = el('pilar-b-content');
     fecha = fecha || todayInputValue();
     try {
-      const data = await apiCall('getPilarB', { fecha });
+      const [data, ckResumen] = await Promise.all([
+        apiCall('getPilarB', { fecha }),
+        apiCall('getChecklistResumenB', {}).catch(() => ({ porEtapa: {}, periodos: {} }))
+      ]);
       State.pilarB = data;
+      State.pilarBChecklist = ckResumen;
       const completadas = data.estado.filter(e => e.registro && String(e.registro.completado).toUpperCase() === 'TRUE').length;
       const banderas = data.estado.filter(e => e.registro && String(e.registro.bandera_roja).toUpperCase() === 'TRUE').length;
       c.innerHTML = `
         <div class="section-head">
           <h1><span class="badge">Pilar B</span> Conciliación Fogueira — Triangulación HOST · POS · Arqueo</h1>
           <div class="meta">
-            <input type="date" value="${fecha}" onchange="App.render_pilar_b(this.value)" style="max-width:180px;">
+            <input type="date" value="${fecha}" onchange="App.render_pilar_b_auditor(this.value)" style="max-width:180px;">
           </div>
         </div>
 
@@ -1957,12 +1999,230 @@ const App = {
         </div>
 
         <div class="etapas-flow">
-          ${data.estado.map(e => etapaCardHTML(e)).join('')}
+          ${data.estado.map(e => etapaCardHTML(e, ckResumen.porEtapa && ckResumen.porEtapa[e.id])).join('')}
         </div>
       `;
     } catch (err) {
       c.innerHTML = `<div class="empty-state"><div class="big-icon">!</div><p>${escapeHtml(err.message)}</p></div>`;
     }
+  },
+
+  // Vista guiada para Estefanía (administracion) y la auxiliar:
+  // las 7 secciones del manual (Apertura → Durante → Cierre profundo →
+  // Banderas → Firma → Semanal → Mensual) en bloques cronológicos,
+  // agrupados por frecuencia (Hoy / Esta semana / Este mes).
+  async render_pilar_b_guiada() {
+    const c = el('pilar-b-content');
+    c.innerHTML = '<div class="empty-state"><div class="spinner"></div></div>';
+    try {
+      const data = await apiCall('getChecklistB', {});
+      State.pilarBGuiada = data;
+      if (!data.items || data.items.length === 0) {
+        c.innerHTML = `<div class="empty-state">
+          <div class="big-icon">!</div>
+          <p>El check list de conciliación aún no está cargado en el Sheet. Pídele al auditor que ejecute <code>setupSheet()</code> y haga <code>clasp redeploy</code> del backend.</p>
+        </div>`;
+        return;
+      }
+      this._renderGuiadaBodyB();
+    } catch (err) {
+      c.innerHTML = `<div class="empty-state"><div class="big-icon">!</div>
+        <p>${escapeHtml(err.message)}</p>
+        <p style="margin-top:0.6rem; font-size:0.85rem; color:var(--ink-soft);">
+          Si dice que la acción no existe, falta hacer <code>clasp redeploy</code> del backend.
+        </p>
+      </div>`;
+    }
+  },
+
+  // Render aislado del body — se llama también después de marcar para refrescar
+  // sin perder scroll ni reentrar a la red dos veces.
+  _renderGuiadaBodyB() {
+    const c = el('pilar-b-content');
+    const data = State.pilarBGuiada;
+    if (!data) return;
+    const items = data.items;
+    const grupos = [
+      { freq: 'D', label: 'Hoy',         hint: data.periodos.D ? labelDiario(data.periodos.D)  : '—', emoji: '☀️' },
+      { freq: 'S', label: 'Esta semana', hint: data.periodos.S ? labelSemanal(data.periodos.S) : '—', emoji: '📅' },
+      { freq: 'M', label: 'Este mes',    hint: data.periodos.M ? labelMensual(data.periodos.M) : '—', emoji: '🗓️' }
+    ];
+    const nombre = State.user.nombre.split(' ')[0];
+
+    // Ordena las secciones cronológicamente. Cualquier sección desconocida cae al final.
+    const ordenSecciones = ['Apertura', 'Durante', 'Cierre profundo', 'Banderas rojas', 'Firma final', 'Cierre semanal', 'Cierre mensual'];
+    const ordenIdx = s => {
+      const i = ordenSecciones.indexOf(s);
+      return i === -1 ? 999 : i;
+    };
+
+    const cuerpoGrupos = grupos.map(g => {
+      const grupo = items.filter(it => it.frecuencia === g.freq);
+      if (grupo.length === 0) return '';
+      const cumplidos = grupo.filter(it => it.marca && Number(it.marca.valor) === 1).length;
+      const noCumplidos = grupo.filter(it => it.marca && Number(it.marca.valor) === 0).length;
+      const total = grupo.length;
+      const pctCumplidos = total > 0 ? Math.round((cumplidos * 100) / total) : 0;
+      const pctNoCumplidos = total > 0 ? Math.round((noCumplidos * 100) / total) : 0;
+
+      // Sub-agrupación por sección cronológica (solo dentro de la frecuencia diaria
+      // tiene varias; las semanales / mensuales suelen tener una sola).
+      const secciones = {};
+      grupo.forEach(it => {
+        const k = it.seccion || '—';
+        if (!secciones[k]) secciones[k] = [];
+        secciones[k].push(it);
+      });
+      const secciOrdenadas = Object.keys(secciones).sort((a, b) => ordenIdx(a) - ordenIdx(b));
+      const cuerpoSecciones = secciOrdenadas.map(sec => {
+        const filas = secciones[sec].map(it => guiadaBItemRowHTML(it)).join('');
+        return `
+          <div class="guiada-seccion">
+            <h3 class="guiada-seccion-titulo">${escapeHtml(sec)}</h3>
+            <div class="guiada-list">${filas}</div>
+          </div>`;
+      }).join('');
+
+      return `
+        <section class="guiada-grupo">
+          <div class="guiada-grupo-head">
+            <div class="guiada-grupo-titulo">
+              <span class="guiada-grupo-emoji">${g.emoji}</span>
+              <h2>${g.label}</h2>
+              <span class="guiada-grupo-hint">${escapeHtml(g.hint)}</span>
+            </div>
+            <div class="guiada-grupo-conteo">
+              <strong>${cumplidos}</strong> de ${total}
+              ${noCumplidos > 0 ? `<span class="conteo-no">(${noCumplidos} no cumplidas)</span>` : ''}
+            </div>
+          </div>
+          <div class="guiada-bar-wrap" title="${cumplidos} cumplidas, ${noCumplidos} no cumplidas, ${total - cumplidos - noCumplidos} sin marcar">
+            <div class="guiada-bar guiada-bar-ok" style="width:${pctCumplidos}%;"></div>
+            <div class="guiada-bar guiada-bar-no" style="width:${pctNoCumplidos}%;"></div>
+          </div>
+          ${cuerpoSecciones}
+        </section>`;
+    }).join('');
+
+    c.innerHTML = `
+      <div class="section-head">
+        <h1><span class="badge">Pilar B</span> Supervisión de Conciliación</h1>
+        <div class="meta">${escapeHtml(nombre)} · ${escapeHtml(labelDiario(data.periodos.D || todayInputValue()))}</div>
+      </div>
+      <p class="guiada-intro">
+        Recorré la jornada por orden: <strong>Apertura → Durante → Cierre profundo → Banderas rojas → Firma final</strong>.
+        Marcá cada paso a medida que lo hacés. Las semanales (viernes) y mensuales (último viernes) están al final.
+      </p>
+      ${cuerpoGrupos}
+    `;
+  },
+
+  async marcarGuiadaB(item_id, valor) {
+    try {
+      await apiCall('marcarChecklistB', { item_id, valor });
+      const data = await apiCall('getChecklistB', {});
+      State.pilarBGuiada = data;
+      this._renderGuiadaBodyB();
+      toast(valor === 1 ? 'Cumplido ✓' : 'No cumplido');
+    } catch (err) { toast(err.message, true); }
+  },
+
+  // Modal del auditor: items de una etapa B agrupados por sección
+  // (las secciones del manual: Apertura, Durante, Cierre profundo, etc.).
+  async openChecklistBModal(etapa_id) {
+    const e = State.pilarB.estado.find(x => x.id === etapa_id);
+    if (!e) return;
+    this.openModal(`
+      <div class="modal-head">
+        <h2>Check list de supervisión · Etapa ${escapeHtml(String(e.numero))}</h2>
+        <div class="sub">${escapeHtml(e.nombre)}</div>
+      </div>
+      <div class="modal-body" id="ckb-body">
+        <div class="empty-state"><div class="spinner"></div></div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn-ghost" onclick="App.closeModal()">Cerrar</button>
+      </div>
+    `);
+    try {
+      const data = await apiCall('getChecklistB', { etapa_id });
+      State.pilarBChecklistDetalle = data;
+      this.renderChecklistBModalBody(etapa_id);
+    } catch (err) {
+      el('ckb-body').innerHTML = `<div class="empty-state"><p>${escapeHtml(err.message)}</p></div>`;
+    }
+  },
+
+  renderChecklistBModalBody(etapa_id) {
+    const data = State.pilarBChecklistDetalle;
+    if (!data) return;
+    const items = data.items;
+    if (items.length === 0) {
+      el('ckb-body').innerHTML = `<div class="empty-state"><p>Esta etapa no tiene ítems en el check list de supervisión.</p></div>`;
+      return;
+    }
+    const grupos = [
+      { freq: 'D', label: 'Diario',  hint: 'Periodo ' + (data.periodos.D || '—') },
+      { freq: 'S', label: 'Semanal', hint: 'Periodo ' + (data.periodos.S || '—') },
+      { freq: 'M', label: 'Mensual', hint: 'Periodo ' + (data.periodos.M || '—') }
+    ];
+    const html = grupos.map(g => {
+      const grupo = items.filter(it => it.frecuencia === g.freq);
+      if (grupo.length === 0) return '';
+      // Sub-agrupar por sección dentro de la frecuencia
+      const secciones = {};
+      grupo.forEach(it => {
+        const k = it.seccion || '—';
+        if (!secciones[k]) secciones[k] = [];
+        secciones[k].push(it);
+      });
+      const cuerpo = Object.keys(secciones).map(sec => {
+        const filas = secciones[sec].map(it => checklistBItemRowHTML(it)).join('');
+        return `
+          <div class="ck-subgroup">
+            <h4 class="ck-subgroup-titulo">${escapeHtml(sec)}</h4>
+            <div class="ck-list">${filas}</div>
+          </div>`;
+      }).join('');
+      return `
+        <div class="ck-group">
+          <div class="ck-group-head">
+            <h3>${g.label}</h3>
+            <span class="ck-group-meta">${g.hint}</span>
+          </div>
+          ${cuerpo}
+        </div>`;
+    }).join('');
+    el('ckb-body').innerHTML = html;
+  },
+
+  async marcarChecklistBItem(item_id, valor) {
+    try {
+      await apiCall('marcarChecklistB', { item_id, valor });
+      toast(valor === 1 ? 'Marcado cumplido' : 'Marcado no cumplido');
+      const detalle = State.pilarBChecklistDetalle;
+      const etapa_id = detalle && detalle.items[0] ? detalle.items[0].etapa_id : null;
+      if (etapa_id) {
+        const data = await apiCall('getChecklistB', { etapa_id });
+        State.pilarBChecklistDetalle = data;
+        this.renderChecklistBModalBody(etapa_id);
+      }
+      this.refreshChecklistResumenB();
+    } catch (err) { toast(err.message, true); }
+  },
+
+  async refreshChecklistResumenB() {
+    try {
+      const ckResumen = await apiCall('getChecklistResumenB', {});
+      State.pilarBChecklist = ckResumen;
+      const c = el('pilar-b-content');
+      if (!c || !State.pilarB) return;
+      const flow = c.querySelector('.etapas-flow');
+      if (!flow) return;
+      flow.innerHTML = State.pilarB.estado
+        .map(e => etapaCardHTML(e, ckResumen.porEtapa && ckResumen.porEtapa[e.id]))
+        .join('');
+    } catch (e) { /* silencioso */ }
   },
 
   async toggleEtapaB(etapaId, completado) {
@@ -3376,11 +3636,24 @@ function checklistItemRowHTML(it) {
     </div>`;
 }
 
-function etapaCardHTML(e) {
+function etapaCardHTML(e, ck) {
   const reg = e.registro || {};
   const completada = String(reg.completado).toUpperCase() === 'TRUE';
   const bandera = String(reg.bandera_roja).toUpperCase() === 'TRUE';
   const cls = (completada ? 'completada ' : '') + (bandera ? 'bandera-roja' : '');
+  // ck = { total, marcados, cumplidos, pendientes, pct_disciplina } | undefined
+  let ckLine = '';
+  let ckButton = '';
+  if (ck && ck.total > 0) {
+    const dis = ck.pct_disciplina;
+    const disClass = dis === null ? '' : semaforoClass(dis);
+    const disText = dis === null ? '— sin marcar' : dis + '% disciplina';
+    ckLine = `<div class="modulo-disciplina">
+      <span class="modulo-disciplina-pill ${disClass}">${disText}</span>
+      <span class="modulo-disciplina-meta">${ck.cumplidos}/${ck.marcados} marcados ✓ · ${ck.pendientes} sin marcar · ${ck.total} totales</span>
+    </div>`;
+    ckButton = `<button class="btn-ghost" style="font-size:0.78rem;" title="Check list de supervisión de la etapa" onclick="App.openChecklistBModal('${escapeHtml(e.id)}')">📋 Check list</button>`;
+  }
   return `
     <div class="etapa-card ${cls}">
       <div class="etapa-numero">${escapeHtml(String(e.numero))}</div>
@@ -3392,13 +3665,80 @@ function etapaCardHTML(e) {
           ${reg.usuario_completo_email ? '<span>Por <strong>' + escapeHtml(reg.usuario_completo_email) + '</strong></span>' : ''}
           ${reg.observaciones ? '<span>“' + escapeHtml(reg.observaciones).substring(0,80) + '”</span>' : ''}
         </div>
+        ${ckLine}
       </div>
       <div class="etapa-actions">
         <div class="check-btn ${completada ? 'checked' : ''}" onclick="App.toggleEtapaB('${escapeHtml(e.id)}', ${!completada})" title="${completada ? 'Reabrir' : 'Marcar completada'}">${completada ? '✓' : ''}</div>
         <button class="btn-ghost" style="font-size:0.78rem;" onclick="App.openEtapaBModal('${escapeHtml(e.id)}')">Detalles</button>
+        ${ckButton}
       </div>
     </div>
   `;
+}
+
+// Fila grande para la vista guiada de Pilar B (Estefanía / auxiliar).
+// Idéntica a guiadaItemRowHTML pero apunta a marcarGuiadaB y muestra
+// la sección como tag en lugar del responsable_rol (todos son administracion).
+function guiadaBItemRowHTML(it) {
+  const m = it.marca;
+  const valor = m ? Number(m.valor) : null;
+  const cumplido = valor === 1;
+  const noCumplido = valor === 0;
+  const rowClass = cumplido ? 'guiada-row guiada-cumplido'
+                  : noCumplido ? 'guiada-row guiada-nocumplido'
+                  : 'guiada-row';
+  const disabled = it.puedo_marcar ? '' : 'disabled';
+  const meta = m
+    ? `<span class="guiada-meta">marcada por ${escapeHtml(m.usuario_email || '')} · ${escapeHtml(String(m.timestamp || '').slice(11,16))}</span>`
+    : '<span class="guiada-meta guiada-meta-pending">pendiente</span>';
+  const sinPerm = it.puedo_marcar ? '' : '<span class="guiada-meta" style="color:var(--red);">tu rol no marca esto</span>';
+  return `
+    <article class="${rowClass}">
+      <div class="guiada-row-info">
+        <div class="guiada-row-text">${escapeHtml(it.descripcion)}</div>
+        <div class="guiada-row-line">
+          <span class="guiada-rol-tag">${escapeHtml(it.etapa_id || '')}</span>
+          ${meta}
+          ${sinPerm}
+        </div>
+      </div>
+      <div class="guiada-toggle">
+        <button class="guiada-btn guiada-btn-no ${noCumplido ? 'active' : ''}" ${disabled}
+          onclick="App.marcarGuiadaB('${escapeHtml(it.id)}', 0)" aria-label="Marcar como no cumplida">✗</button>
+        <button class="guiada-btn guiada-btn-si ${cumplido ? 'active' : ''}" ${disabled}
+          onclick="App.marcarGuiadaB('${escapeHtml(it.id)}', 1)" aria-label="Marcar como cumplida">✓</button>
+      </div>
+    </article>`;
+}
+
+// Fila del modal de check list B (vista auditor): apunta a marcarChecklistBItem.
+function checklistBItemRowHTML(it) {
+  const m = it.marca;
+  const valor = m ? Number(m.valor) : null;
+  const cumplido = valor === 1;
+  const noCumplido = valor === 0;
+  const rowClass = cumplido ? 'ck-row ck-cumplido'
+                  : noCumplido ? 'ck-row ck-nocumplido'
+                  : 'ck-row';
+  const disabled = it.puedo_marcar ? '' : 'disabled';
+  const meta = m
+    ? `<span class="ck-meta">por ${escapeHtml(m.usuario_email || '')} · ${escapeHtml(String(m.timestamp || '').slice(0,16).replace('T',' '))}</span>`
+    : '<span class="ck-meta">sin marcar</span>';
+  const noPerm = it.puedo_marcar ? '' : '<span class="ck-meta" style="color:var(--red);">tu rol no marca</span>';
+  return `
+    <div class="${rowClass}">
+      <div class="ck-id">${escapeHtml(it.id)}</div>
+      <div class="ck-desc">
+        <div class="ck-text">${escapeHtml(it.descripcion)}</div>
+        <div class="ck-line">${meta} ${noPerm}</div>
+      </div>
+      <div class="ck-toggle">
+        <button class="ck-btn ck-btn-no  ${noCumplido ? 'active' : ''}" ${disabled}
+          onclick="App.marcarChecklistBItem('${escapeHtml(it.id)}', 0)" title="No cumplido">0</button>
+        <button class="ck-btn ck-btn-si  ${cumplido   ? 'active' : ''}" ${disabled}
+          onclick="App.marcarChecklistBItem('${escapeHtml(it.id)}', 1)" title="Cumplido">1</button>
+      </div>
+    </div>`;
 }
 
 function reqCardHTML(r) {

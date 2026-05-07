@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checklist de Supervisión de Conciliación · Fogueira</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0A1A30; --muted:#5A6A7E; --line:#E6E9EE; --paper:#FAFBFC;
+  --good:#1E7F5C; --warn:#B97A1B; --bad:#9F2B1E;
+  --brand:#b8472a; --brand-deep:#6b1f0e; --brand-tint:#fbeee7;
+  --font-sans:'Geist',system-ui,-apple-system,sans-serif;
+  --font-serif:'Instrument Serif',Georgia,serif;
+  --font-mono:'Geist Mono',ui-monospace,'SF Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:var(--font-sans);color:var(--ink);background:var(--paper);line-height:1.6;-webkit-font-smoothing:antialiased;font-size:14px}
+.doc{max-width:920px;margin:0 auto;padding:50px 56px;background:#fff;min-height:100vh;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+@media print {
+  body{background:#fff}
+  .doc{box-shadow:none;padding:24px 32px;max-width:none}
+  .pagebreak{page-break-after:always}
+  h2{page-break-after:avoid}
+  table{page-break-inside:avoid}
+  .dont-print{display:none !important}
+}
+
+/* HEADER PRINCIPAL */
+.cover{border-bottom:3px solid var(--brand);padding-bottom:28px;margin-bottom:32px}
+.cover .eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:.16em;color:var(--brand);text-transform:uppercase;font-weight:600;margin-bottom:10px}
+.cover h1{font-family:var(--font-serif);font-style:italic;font-weight:400;font-size:44px;letter-spacing:-.015em;line-height:1.05;color:var(--ink);margin:0 0 6px}
+.cover .subtitle{font-size:15px;color:var(--muted);font-style:italic}
+.cover-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:24px}
+.cover-meta .item{padding:12px 16px;background:var(--brand-tint);border-radius:7px}
+.cover-meta .item .lbl{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.12em;color:var(--brand);text-transform:uppercase;font-weight:600;margin-bottom:3px}
+.cover-meta .item .val{font-size:14.5px;color:var(--ink);font-weight:500}
+
+/* HEADERS */
+h2{font-family:var(--font-serif);font-style:italic;font-weight:400;font-size:30px;color:var(--brand);margin:36px 0 14px;padding-bottom:7px;border-bottom:2px solid var(--brand-tint);line-height:1.15}
+h3{font-family:var(--font-serif);font-style:italic;font-weight:400;font-size:22px;color:var(--brand-deep);margin:24px 0 10px}
+h4{font-family:var(--font-sans);font-weight:600;font-size:14.5px;color:var(--ink);margin:18px 0 8px}
+
+/* TEXTO */
+p{margin:0 0 14px;line-height:1.65}
+strong{color:var(--ink);font-weight:600}
+em{color:var(--brand-deep)}
+ul,ol{margin:0 0 16px;padding-left:24px}
+li{margin-bottom:6px;line-height:1.6}
+hr{border:none;border-top:1px solid var(--line);margin:30px 0}
+
+/* CALLOUTS */
+blockquote{margin:14px 0;padding:14px 18px;background:var(--brand-tint);border-left:4px solid var(--brand);border-radius:0 7px 7px 0;color:var(--ink);font-size:14px;line-height:1.55}
+blockquote em{color:var(--brand-deep)}
+
+.callout{padding:14px 18px;border-radius:7px;margin:14px 0;font-size:14px}
+.callout-warn{background:rgba(185,122,27,.08);border-left:4px solid var(--warn)}
+.callout-info{background:rgba(64,138,191,.08);border-left:4px solid #408ABF}
+
+/* TABLAS */
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:13.5px;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+th{background:var(--brand);color:#fff;text-align:left;padding:10px 14px;font-weight:600;font-size:12.5px;letter-spacing:.02em}
+td{padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.5}
+tr:last-child td{border-bottom:none}
+tr:nth-child(even) td{background:var(--paper)}
+tr:hover td{background:var(--brand-tint)}
+
+/* CHECKLIST CHECKBOX */
+.cbox{display:inline-block;width:14px;height:14px;border:1.5px solid var(--brand);border-radius:3px;margin-right:6px;vertical-align:-2px;background:#fff}
+
+/* FORMATO IMPRIMIBLE - bloque ASCII */
+pre{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:18px 20px;font-family:var(--font-mono);font-size:11.5px;line-height:1.55;overflow-x:auto;margin:18px 0;color:var(--ink)}
+
+/* TOC */
+.toc{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:20px 24px;margin:20px 0 36px}
+.toc-title{font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;font-weight:600;margin-bottom:10px}
+.toc ol{margin:0;padding-left:22px;font-size:13.5px;line-height:1.85}
+.toc ol li{margin-bottom:0}
+.toc a{color:var(--ink);text-decoration:none}
+.toc a:hover{color:var(--brand)}
+
+/* ICONS INLINE */
+.icon{display:inline-block;width:16px;height:16px;vertical-align:-3px;margin-right:4px}
+
+/* DON'T PRINT */
+.dont-print{position:fixed;bottom:24px;right:24px;background:var(--brand);color:#fff;padding:14px 22px;border-radius:50px;font-family:var(--font-sans);font-size:13.5px;font-weight:600;box-shadow:0 6px 20px rgba(184,71,42,.35);cursor:pointer;border:none;z-index:100}
+.dont-print:hover{background:var(--brand-deep)}
+
+/* FOOTER */
+.foot{margin-top:50px;padding-top:24px;border-top:1px solid var(--line);font-size:12px;color:var(--muted);text-align:center;font-style:italic}
+
+/* BADGES */
+.badge{display:inline-block;padding:2px 9px;border-radius:10px;font-size:11px;font-weight:600;letter-spacing:.04em}
+.b-good{background:rgba(30,127,92,.12);color:var(--good)}
+.b-warn{background:rgba(185,122,27,.12);color:var(--warn)}
+.b-bad{background:rgba(159,43,30,.12);color:var(--bad)}
+
+/* COMPROMISO BOX */
+.compromiso{background:linear-gradient(135deg,var(--brand-tint),#fff);border:2px solid var(--brand);border-radius:12px;padding:28px 32px;margin:30px 0}
+.firma-line{border-bottom:1px solid var(--ink);display:inline-block;width:280px;margin-left:8px;height:1.6em}
+</style>
+</head>
+<body>
+
+<button class="dont-print" onclick="window.print()">🖨 Imprimir / Guardar como PDF</button>
+
+<div class="doc">
+
+<!-- COVER -->
+<div class="cover">
+  <div class="eyebrow">Restaurante Fogueira · Sistema de Gestión</div>
+  <h1>Checklist de Supervisión de Conciliación</h1>
+  <p class="subtitle">Manual operativo para garantizar conciliaciones efectivas y libres de error</p>
+  <div class="cover-meta">
+    <div class="item"><div class="lbl">Para</div><div class="val">Estefanía Martínez López</div></div>
+    <div class="item"><div class="lbl">Cargo</div><div class="val">Supervisora de Conciliación</div></div>
+    <div class="item"><div class="lbl">Acceso al sistema</div><div class="val">rol Administrador · compras@fogueira.mx</div></div>
+    <div class="item"><div class="lbl">Vigencia</div><div class="val">2026</div></div>
+  </div>
+</div>
+
+<!-- TOC -->
+<div class="toc">
+  <div class="toc-title">Contenido</div>
+  <ol>
+    <li><a href="#p1">¿Por qué existe este documento?</a></li>
+    <li><a href="#p2">Tu rol — qué SÍ y qué NO</a></li>
+    <li><a href="#p3">El flujo completo del sistema</a></li>
+    <li><a href="#p4">Tu día típico — timeline detallado</a></li>
+    <li><a href="#p5">Tu checklist por servicio (imprimible)</a></li>
+    <li><a href="#p6">Las 10 banderas rojas</a></li>
+    <li><a href="#p7">Los 11 KPIs</a></li>
+    <li><a href="#p8">Checklist semanal</a></li>
+    <li><a href="#p9">Checklist mensual</a></li>
+    <li><a href="#p10">Cuándo y cómo escalar</a></li>
+    <li><a href="#p11">Plan de comunicación</a></li>
+    <li><a href="#anexoA">Anexo A — Reporte mensual</a></li>
+    <li><a href="#anexoB">Anexo B — Glosario</a></li>
+    <li><a href="#compromiso">Compromiso</a></li>
+  </ol>
+</div>
+
+<h2 id="p1">¿Por qué existe este documento?</h2>
+<p>El <strong>cierre del día</strong> es el momento más sensible operativamente del restaurante. Si se firma con errores, esos errores pasan al consolidado contable y <strong>se vuelven irreversibles</strong>. Cuando se descubren después, ya no se pueden corregir limpiamente.</p>
+<p><strong>Tu rol como supervisora</strong> es ser la <strong>última línea de defensa</strong> antes de la firma final. La cajera (Saret/Reina) opera. Tú validas. La diferencia entre una conciliación efectiva y una con problemas no es la cajera — es la calidad de tu supervisión.</p>
+<p>Este documento es tu manual operativo: <strong>qué hacer, cuándo, cómo, y cuándo escalar</strong>. Tenlo a la mano, físico o digital, durante todo tu turno.</p>
+
+<h2 id="p2">1. Tu rol — qué SÍ y qué NO</h2>
+
+<h3>Tu autoridad</h3>
+<ul>
+  <li>✅ <strong>Supervisar</strong> el cierre profundo de la cajera</li>
+  <li>✅ <strong>Validar</strong> que las 10 banderas rojas estén explicadas o resueltas</li>
+  <li>✅ <strong>Revisar</strong> las cortesías y autorizar que los datos estén completos (no las firmas; eso es Mónica/Gabriel)</li>
+  <li>✅ <strong>Acompañar</strong> a la cajera en el arqueo</li>
+  <li>✅ <strong>Firmar tu sello</strong> como parte del proceso de cierre</li>
+  <li>✅ <strong>Escalar</strong> problemas a dirección cuando aplique</li>
+  <li>✅ <strong>Generar reportes</strong> mensuales para dirección</li>
+</ul>
+
+<h3>Lo que NO haces</h3>
+<ul>
+  <li>❌ <strong>No operas la caja</strong> (separación de funciones — la cajera cuenta el dinero, tú validas)</li>
+  <li>❌ <strong>No autorizas cortesías</strong> (eso lo hacen Mónica o Gabriel)</li>
+  <li>❌ <strong>No autorizas cancelaciones</strong> sin pasar por gerente</li>
+  <li>❌ <strong>No firmas el cierre con banderas rojas sin explicación</strong> — mejor tardar 1 hora más</li>
+</ul>
+
+<blockquote><strong>Regla de oro:</strong> Si firmas algo que no revisaste a fondo, los problemas que aparezcan mañana son responsabilidad tuya. Tu firma es prueba legal.</blockquote>
+
+<h2 id="p3">2. El flujo completo del sistema</h2>
+
+<pre>┌─────────────────────────────────────────────────────────────────────┐
+│                    DÍA DE OPERACIÓN — TIMELINE                       │
+└─────────────────────────────────────────────────────────────────────┘
+
+  ANTES DEL SERVICIO         DURANTE EL SERVICIO         CIERRE
+  ──────────────────         ───────────────────         ──────────
+  • Verificar tarifas        • Monitoreo bitácora        • Cierre profundo
+  • Revisar fondo            • Control de cortesías      • Validar 10 banderas
+  • Sellos apertura          • Detección temprana        • Validar 11 KPIs
+                             • Coordinación con          • Acompañar arqueo
+                               Gabriel/Mónica            • Firma final
+                                                         • Reportar a dirección</pre>
+
+<h3>Roles que intervienen</h3>
+<table>
+<thead><tr><th>Rol</th><th>Función</th></tr></thead>
+<tbody>
+<tr><td><strong>Cajera</strong> (Saret/Reina)</td><td>Captura corte, tarjetas, cortesías, depósitos. Cuenta dinero.</td></tr>
+<tr><td><strong>Tú</strong> (Estefanía)</td><td>Supervisas, validas, acompañas a la cajera, firmas como admin</td></tr>
+<tr><td><strong>Gabriel</strong> (Gerente Restaurante)</td><td>Autoriza cortesías durante el servicio</td></tr>
+<tr><td><strong>Mónica</strong> (Gerente Administrativo)</td><td>Co-autoriza cortesías + supervisa a nivel gerencial</td></tr>
+<tr><td><strong>Hosts</strong> (Yazmín, Natali, Marisol)</td><td>Capturan bitácora con cortesías ya autorizadas</td></tr>
+<tr><td><strong>Cocina/Churrasca</strong> (Sergio/Marcos)</td><td>Firman sellos de apertura/cierre</td></tr>
+</tbody>
+</table>
+
+<h3>Tu posición en la cadena</h3>
+<pre>Operación captura → Tú supervisas → Mónica/Gabriel autorizan → Tú firmas
+                                                                 ↓
+                                                       (si todo limpio)
+                                                                 ↓
+                                                       Reporte a dirección</pre>
+
+<div class="pagebreak"></div>
+
+<h2 id="p4">3. Tu día típico — timeline detallado</h2>
+
+<h3>3.1 Antes del servicio (15-20 min antes de abrir puertas)</h3>
+<p><strong>Objetivo:</strong> prevenir que los problemas empiecen mal.</p>
+<table>
+<thead><tr><th>✓</th><th>Tarea</th><th>Cómo</th></tr></thead>
+<tbody>
+<tr><td><span class="cbox"></span></td><td>Iniciar sesión en el sistema</td><td>Con tu cuenta <code>compras@fogueira.mx</code></td></tr>
+<tr><td><span class="cbox"></span></td><td>Verificar fecha del sistema</td><td>Si no coincide, avisar a Germán antes de operar</td></tr>
+<tr><td><span class="cbox"></span></td><td>Abrir Conciliación → Apertura</td><td>Verificar tarifas vigentes prellenadas correctas</td></tr>
+<tr><td><span class="cbox"></span></td><td>Confirmar fondo de cambio</td><td>Coordinar con cajera; firma de recibido en sistema</td></tr>
+<tr><td><span class="cbox"></span></td><td>Verificar sellos cocina/churrasca</td><td>En tablero de sellos. Si falta, recordarles</td></tr>
+<tr><td><span class="cbox"></span></td><td>Abrir el plano del salón</td><td>Verificar mesas configuradas correctamente</td></tr>
+<tr><td><span class="cbox"></span></td><td>Revisar reservas del día</td><td>Cuántas hay, confirmadas, grupos grandes</td></tr>
+<tr><td><span class="cbox"></span></td><td>Firmar tu sello de apertura</td><td>Desde tu sesión activa</td></tr>
+</tbody>
+</table>
+<blockquote><strong>Si hay problema en alguno:</strong> resuelve antes de abrir puertas. Notifica por WhatsApp a Germán/Mónica si requieres autorización.</blockquote>
+
+<h3>3.2 Durante el servicio (control proactivo)</h3>
+<p><strong>Objetivo:</strong> detectar problemas mientras se pueden corregir.</p>
+<table>
+<thead><tr><th>✓</th><th>Tarea</th><th>Frecuencia</th></tr></thead>
+<tbody>
+<tr><td><span class="cbox"></span></td><td>Revisar bitácora del host (capturas en vivo)</td><td>Cada hora</td></tr>
+<tr><td><span class="cbox"></span></td><td>Verificar cortesías que aparecen</td><td>Cada cortesía nueva</td></tr>
+<tr><td><span class="cbox"></span></td><td>Confirmar registro de charolas (cocina/churrasca)</td><td>Cada 45 min</td></tr>
+<tr><td><span class="cbox"></span></td><td>Verificar que no haya filas raras</td><td>Cada hora</td></tr>
+<tr><td><span class="cbox"></span></td><td>Cruzar tickets POS con bitácora</td><td>1 ticket cada 30 min</td></tr>
+<tr><td><span class="cbox"></span></td><td>Coordinar con Gabriel si hay clientes complejos</td><td>En vivo</td></tr>
+</tbody>
+</table>
+
+<h4>Cosas a vigilar específicamente</h4>
+<div class="callout callout-info"><strong>🔴 Rojo si lo ves:</strong> cortesía con nombre de Mónica/Gabriel que tú NO viste autorizar.<br><strong>Acción:</strong> confirmar directamente por WhatsApp. Si no la autorizó realmente → fraude operativo, escalar inmediato a Germán.</div>
+<div class="callout callout-warn"><strong>🟡 Amarillo si lo ves:</strong> muchas cancelaciones de tickets sin explicación → hablar con cajera, documentar cada motivo.</div>
+<div class="callout callout-warn"><strong>🟡 Amarillo si lo ves:</strong> hosts capturando con prisa, faltan datos → pedir a Gabriel que coordine.</div>
+
+<h3>3.3 Cierre del servicio (acompañando a la cajera)</h3>
+<p><strong>Objetivo:</strong> validar que el cierre profundo está limpio antes de firmar.</p>
+<div class="callout" style="background:rgba(159,43,30,.08);border-left:4px solid var(--bad)">⚠ Esta es la parte más crítica de tu día. Lee con atención.</div>
+
+<h4>Paso 1 — La cajera ejecuta el cierre profundo</h4>
+<p>Dile que tú la acompañas. Ella debe:</p>
+<ol>
+  <li>Click en <strong>Auto-llenar</strong> (consolida bitácoras del día)</li>
+  <li>Capturar corte de caja por denominación</li>
+  <li>Capturar tarjetas (Débito, MC, AMEX, Visa)</li>
+  <li>Validar cortesías (los 3 datos: autoriza, folio, motivo)</li>
+  <li>Capturar promociones aplicadas</li>
+  <li>Capturar <strong>los DOS depósitos a tesorería</strong> (venta + comisiones)</li>
+  <li>Ver el arqueo ciego automático</li>
+</ol>
+<p><strong>Tu papel durante este proceso:</strong> estar disponible, no encimada. Si te pregunta algo, ayúdale a pensar; no lo hagas tú.</p>
+
+<h4>Paso 2 — Vas a la pestaña Resumen</h4>
+<p>Ahora viene tu trabajo principal. Revisa:</p>
+
+<p><strong>A. Los 11 KPIs (vista panorámica)</strong> — Lectura rápida, 1 minuto. Pregúntate:</p>
+<ul>
+  <li>¿Los cobros del día se ven razonables?</li>
+  <li>¿Los comensales POS coinciden con el plano que viste?</li>
+  <li>¿El cobro promedio se ve normal? (si baja → ¿cortesías excesivas?)</li>
+  <li>¿Las propinas promedio se ven normales? (si caen → posible queja)</li>
+</ul>
+
+<p><strong>B. Las 10 banderas rojas (revisión sistemática)</strong> — Esta es la parte crítica. Recorre cada bandera. Verde = OK; Roja = acción. Ver <strong>sección 6</strong>.</p>
+
+<p><strong>C. La conclusión del auditor</strong>:</p>
+<ul>
+  <li><strong>Estatus general del día:</strong> OK / Observaciones menores / Graves / Críticas</li>
+  <li><strong>Comentarios y plan de acción</strong></li>
+</ul>
+
+<blockquote><strong>Tu firma significa:</strong> <em>"He revisado todo. Las banderas que están aquí están explicadas. Lo no resuelto fue escalado."</em></blockquote>
+
+<h4>Paso 3 — Firmar (o NO firmar)</h4>
+<p>Si todo está limpio o explicado → firma.<br>
+Si hay banderas críticas no resueltas → <strong>NO firmes</strong>. Escala a Germán/Mónica antes.</p>
+
+<h3>3.4 Cierre del día (después de firmar)</h3>
+<table>
+<thead><tr><th>✓</th><th>Tarea</th></tr></thead>
+<tbody>
+<tr><td><span class="cbox"></span></td><td>Verificar que la cajera depositó correctamente</td></tr>
+<tr><td><span class="cbox"></span></td><td>Anotar cualquier cosa importante en observaciones de la conciliación</td></tr>
+<tr><td><span class="cbox"></span></td><td>Despedirte del equipo: "Bien trabajado hoy"</td></tr>
+<tr><td><span class="cbox"></span></td><td>Reporte breve a Germán por WhatsApp si hay banderas o algo digno de reportar</td></tr>
+</tbody>
+</table>
+
+<div class="pagebreak"></div>
+
+<h2 id="p5">4. Tu checklist por servicio (formato imprimible)</h2>
+
+<pre>═══════════════════════════════════════════════════════════════════
+SUPERVISIÓN DE CIERRE — Fogueira
+Fecha: ___________   Servicio: [ ] Desayuno  [ ] Comida  [ ] Buffet
+Supervisora: Estefanía Martínez                Hora cierre: ______
+═══════════════════════════════════════════════════════════════════
+
+A. APERTURA (15 min antes)
+  ☐ Tarifas vigentes verificadas
+  ☐ Fondo de cambio confirmado: $ _____________
+  ☐ Sellos cocina/churrasca firmados
+  ☐ Mi sello de apertura firmado
+
+B. DURANTE SERVICIO (cada hora)
+  ☐ Hora 1: bitácora revisada     ☐ Hora 4: bitácora revisada
+  ☐ Hora 2: bitácora revisada     ☐ Hora 5: bitácora revisada
+  ☐ Hora 3: bitácora revisada     ☐ Hora 6+: bitácora revisada
+
+  Cortesías observadas durante servicio: _____ (autorizadas por _____)
+
+C. CIERRE PROFUNDO (acompañando cajera)
+  ☐ Auto-llenar ejecutado
+  ☐ Corte de caja contado dos veces
+  ☐ Tarjetas separadas por tipo y verificadas vs POS
+  ☐ Cortesías con los 3 datos completos (autoriza, folio, motivo)
+  ☐ Promociones aplicadas correctamente
+  ☐ Depósito 1 (venta del día) — folio: _____________
+  ☐ Depósito 2 (comisiones) — folio: _____________
+  ☐ Arqueo ciego: diferencia $ ________ ☐ Aceptable / ☐ Investigar
+
+D. RESUMEN — 10 BANDERAS ROJAS
+  ☐ 1. Δ Comensales (Host vs POS) > 2  →  ☐ Verde / ☐ Roja: _______
+  ☐ 2. Δ Arqueo ciego > $200            →  ☐ Verde / ☐ Roja: _______
+  ☐ 3. Δ Lote terminal vs POS           →  ☐ Verde / ☐ Roja: _______
+  ☐ 4. % Cancelaciones > 3%             →  ☐ Verde / ☐ Roja: _______
+  ☐ 5. No-sales > 2                     →  ☐ Verde / ☐ Roja: _______
+  ☐ 6. Cortesías sin autorización       →  ☐ Verde / ☐ Roja: _______
+  ☐ 7. Cancelaciones sin autorización   →  ☐ Verde / ☐ Roja: _______
+  ☐ 8. Cierre lote bancario             →  ☐ Verde / ☐ Roja: _______
+  ☐ 9. Δ Operaciones vs Vouchers        →  ☐ Verde / ☐ Roja: _______
+  ☐ 10. Saltos en folios                →  ☐ Verde / ☐ Roja: _______
+
+E. CONCLUSIÓN
+  Estatus: ☐ OK  ☐ Observaciones menores  ☐ Graves  ☐ Críticas
+  Comentarios: ________________________________________________
+  ____________________________________________________________
+
+F. FIRMA FINAL
+  ☐ Firmé mi sello de cierre desde mi sesión
+  ☐ Reporté a Germán/Mónica si fue necesario
+
+═══════════════════════════════════════════════════════════════════</pre>
+
+<div class="pagebreak"></div>
+
+<h2 id="p6">5. Las 10 banderas rojas — qué significa cada una y qué hacer</h2>
+<table>
+<thead><tr><th>#</th><th>Bandera</th><th>Umbral</th><th>Causa probable</th><th>Acción</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>Δ Comensales (Host vs POS) > 2</td><td>Diferencia > 2 personas</td><td>Host olvidó capturar, POS duplicó, división de grupo mal contada</td><td>Cruzar bitácora con tickets uno por uno. Identificar grupo faltante o duplicado</td></tr>
+<tr><td>2</td><td>Δ Arqueo ciego > $200</td><td>$200</td><td>Error de cambio, tickets no capturados, posible faltante</td><td>&lt;$50 OK · $50-200 revisar · $200-1000 investigar · <strong>>$1000 NO firmar y llamar a Germán</strong></td></tr>
+<tr><td>3</td><td>Δ Lote terminal vs POS</td><td>Cualquier diferencia</td><td>Cobro doble, devolución no aplicada, voucher mal capturado</td><td>Cruzar terminal vs POS por transacción</td></tr>
+<tr><td>4</td><td>% Cancelaciones > 3%</td><td>3% del total cobros</td><td>Errores POS, mal servicio, posible manipulación</td><td>Revisar cada cancelación con su autorización documentada</td></tr>
+<tr><td>5</td><td>No-sales > 2</td><td>2 en el día</td><td>Cambio legítimo o <strong>manipulación</strong></td><td>Preguntar a la cajera por cada uno; >2 sin justificación → escalar</td></tr>
+<tr><td>6</td><td>Cortesías sin autorización</td><td>1 sin Mónica/Gabriel</td><td>Host capturó mal, posible cortesía no autorizada</td><td>Identificar las cortesías afectadas; verificar con autoriza</td></tr>
+<tr><td>7</td><td>Cancelaciones sin autorización</td><td>1 sin nombre</td><td>Cajera canceló sin pasar por gerente — <strong>posible fraude</strong></td><td>Documentar autorización para cada cancelación; si no se sabe → escalar</td></tr>
+<tr><td>8</td><td>Cierre lote bancario no realizado</td><td>1 terminal sin cierre</td><td>Cajera olvidó cerrar terminal</td><td>Cerrar antes de irse; si imposible → documentar y avisar</td></tr>
+<tr><td>9</td><td>Δ Operaciones vs Vouchers</td><td>Cualquier diferencia</td><td>Vouchers físicos no cuadran con sistema</td><td>Contar vouchers físicos uno por uno</td></tr>
+<tr><td>10</td><td>Saltos en folios consecutivos</td><td>1 folio faltante</td><td>Tickets anulados sin documentar, perdidos, o <strong>fraude</strong></td><td><strong>Crítico:</strong> identificar folios faltantes y por qué. Si no hay explicación → escalar inmediato</td></tr>
+</tbody>
+</table>
+
+<h3>Cuándo NUNCA firmar</h3>
+<ul>
+  <li>❌ Δ Arqueo > $1,000 sin explicación clara</li>
+  <li>❌ Cortesía con nombre de Mónica/Gabriel que ellos no recuerdan haber autorizado</li>
+  <li>❌ Saltos en folios sin explicación</li>
+  <li>❌ No-sales > 2 sin justificación</li>
+  <li>❌ Cancelaciones masivas sin autorización</li>
+  <li>❌ Sospecha de manipulación intencional en cualquiera de las banderas</li>
+</ul>
+<p>En estos casos: documenta evidencia (captura de pantalla), llama a Germán/Mónica inmediato, NO firmes hasta resolución.</p>
+
+<h2 id="p7">6. Los 11 KPIs — qué buscar</h2>
+<table>
+<thead><tr><th>#</th><th>KPI</th><th>Qué te dice</th><th>Señal de alerta</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>Cobros del día</td><td>Total ingresos</td><td>$0 con operación → error grave</td></tr>
+<tr><td>2</td><td>Comensales POS</td><td>Personas según POS</td><td>Muy distinto a lo esperado → investigar</td></tr>
+<tr><td>3</td><td>Cobro promedio / comensal</td><td>Ticket promedio</td><td>Cae mucho → ¿descuentos no autorizados?</td></tr>
+<tr><td>4</td><td>Propina prom. / comensal</td><td>Indicador de servicio</td><td>Cae → posible problema de servicio</td></tr>
+<tr><td>5</td><td>Δ Host vs POS</td><td>Comensales bitácora vs POS</td><td>> 2 personas → bandera 1</td></tr>
+<tr><td>6</td><td>Δ Arqueo ciego</td><td>Contado vs teórico efectivo</td><td>> $200 → bandera 2</td></tr>
+<tr><td>7</td><td>Δ Terminal vs POS</td><td>Tarjetas POS vs lote bancario</td><td>Cualquier diferencia → bandera 3</td></tr>
+<tr><td>8</td><td>% Cancelaciones</td><td>% de tickets cancelados</td><td>> 3% → bandera 4</td></tr>
+<tr><td>9</td><td>No-sales día</td><td>Cajón abierto sin venta</td><td>> 2 → bandera 5</td></tr>
+<tr><td>10</td><td>Cortesías día</td><td>Total cortesías</td><td>Sube vs promedio → investigar</td></tr>
+<tr><td>11</td><td>Δ Folios</td><td>Folios consecutivos o no</td><td>Cualquier salto → bandera 10</td></tr>
+</tbody>
+</table>
+
+<div class="pagebreak"></div>
+
+<h2 id="p8">7. Tu checklist semanal (todos los viernes)</h2>
+<table>
+<thead><tr><th>✓</th><th>Tarea</th></tr></thead>
+<tbody>
+<tr><td><span class="cbox"></span></td><td>Revisar histórico de conciliaciones de la semana</td></tr>
+<tr><td><span class="cbox"></span></td><td>Cuántas tuvieron banderas rojas y qué tipos</td></tr>
+<tr><td><span class="cbox"></span></td><td>¿Hubo diferencias de arqueo recurrentes? ¿De cuánto?</td></tr>
+<tr><td><span class="cbox"></span></td><td>¿Algún host registra muchas cortesías sospechosas?</td></tr>
+<tr><td><span class="cbox"></span></td><td>¿La cajera tuvo no-sales repetidos?</td></tr>
+<tr><td><span class="cbox"></span></td><td>Reportar a Mónica los hallazgos de la semana</td></tr>
+</tbody>
+</table>
+
+<h2 id="p9">8. Tu checklist mensual (último viernes del mes)</h2>
+<p><strong>Bloquea 30-45 minutos en tu calendario.</strong> Sin excepciones.</p>
+<table>
+<thead><tr><th>✓</th><th>Tarea</th><th>Cómo</th></tr></thead>
+<tbody>
+<tr><td><span class="cbox"></span></td><td>Histórico mensual completo</td><td>Filtrar último mes en módulo Histórico</td></tr>
+<tr><td><span class="cbox"></span></td><td>Total de banderas rojas del mes</td><td>Contar por tipo</td></tr>
+<tr><td><span class="cbox"></span></td><td>Top 10 motivos de cortesías</td><td>¿Variedad o repetidos?</td></tr>
+<tr><td><span class="cbox"></span></td><td>Top 5 montos de cortesías</td><td>¿Inusualmente altos?</td></tr>
+<tr><td><span class="cbox"></span></td><td>Cortesías por host</td><td>¿Concentración en una persona?</td></tr>
+<tr><td><span class="cbox"></span></td><td>Cortesías por cliente</td><td>¿Alguien repite seguido?</td></tr>
+<tr><td><span class="cbox"></span></td><td>Balance Mónica vs Gabriel firmas</td><td>¿Está parejo?</td></tr>
+<tr><td><span class="cbox"></span></td><td>Overrides admin del mes</td><td>¿Cuántos? ¿Por qué motivos?</td></tr>
+<tr><td><span class="cbox"></span></td><td>Certificaciones vencidas</td><td>¿Quién falta certificarse?</td></tr>
+<tr><td><span class="cbox"></span></td><td>Reporte mensual a dirección</td><td>Ver Anexo A</td></tr>
+</tbody>
+</table>
+
+<h2 id="p10">9. Cuándo y cómo escalar</h2>
+
+<h3>Escalar a Gabriel (Gerente Restaurante)</h3>
+<ul>
+  <li>Conflictos de personal en piso</li>
+  <li>Decisiones operativas fuera de protocolo</li>
+  <li>Coordinación de cortesías mayores</li>
+</ul>
+
+<h3>Escalar a Mónica (Gerente Administrativo)</h3>
+<ul>
+  <li>Cortesías masivas de evento</li>
+  <li>Decisiones financieras gerenciales</li>
+  <li>Aprobación de cambios de tarifa</li>
+  <li>Conflictos serios de equipo</li>
+</ul>
+
+<h3>Escalar a Germán (Dirección)</h3>
+<ul>
+  <li><strong>Sospecha de fraude operativo confirmada</strong> (siempre)</li>
+  <li>Pérdidas materiales > $5,000</li>
+  <li>Reclamo legal o sanitario</li>
+  <li>Falla técnica del sistema mayor</li>
+  <li>Cualquier cosa que pueda dañar la imagen del restaurante</li>
+</ul>
+
+<h3>Cómo escalar (formato recomendado por WhatsApp)</h3>
+<pre>🚩 ALERTA — [TIPO DE PROBLEMA]
+
+Fecha y servicio: ___________
+Bandera detectada: ___________
+Monto/cantidad: ___________
+Evidencia: [adjunta captura o foto]
+
+Mi recomendación: ___________
+Acción solicitada: ☐ Autorizar / ☐ Investigar / ☐ Solo informar</pre>
+
+<h2 id="p11">10. Plan de comunicación con dirección</h2>
+<h3>Diario</h3>
+<p>WhatsApp breve a Germán/Mónica si hubo banderas: <em>"Cierre limpio sin observaciones"</em> o <em>"Cierre con bandera X, ya documentada"</em></p>
+<h3>Semanal</h3>
+<p>Mensaje en grupo (viernes): resumen de la semana. Banderas detectadas, resoluciones, riesgos identificados.</p>
+<h3>Mensual (Anexo A)</h3>
+<p>Reporte formal a dirección con análisis e indicadores.</p>
+
+<div class="pagebreak"></div>
+
+<h2 id="anexoA">Anexo A: Formato de reporte mensual</h2>
+<pre>═══════════════════════════════════════════════════════════════════
+REPORTE MENSUAL DE SUPERVISIÓN — FOGUEIRA
+Mes: __________________     Fecha: __________________
+Supervisora: Estefanía Martínez López
+═══════════════════════════════════════════════════════════════════
+
+1. INDICADORES DEL MES
+
+   Conciliaciones cerradas:        ____
+   Conciliaciones con banderas:    ____
+   % de días con bandera roja:     ___%
+
+2. BANDERAS POR TIPO
+
+   Δ Comensales:               ____ veces
+   Δ Arqueo ciego:             ____ veces  (monto promedio: $______)
+   Δ Terminal vs POS:          ____ veces
+   % Cancelaciones >3%:        ____ veces
+   No-sales >2:                ____ veces
+   Cortesías sin autorización: ____ veces
+   Saltos en folios:           ____ veces  ← CRÍTICAS si las hay
+
+3. CORTESÍAS DEL MES
+
+   Total cantidad:             ____
+   Total monto:                $______
+   Firmadas por Mónica:        ____
+   Firmadas por Gabriel:       ____
+   Niños 0-5 (automáticas):    ____
+   Top 3 motivos:
+     1. ____________________
+     2. ____________________
+     3. ____________________
+
+4. OVERRIDES ADMIN
+
+   Cantidad:                   ____
+   Motivos principales:        ____________________
+
+5. CERTIFICACIONES
+
+   Vencidas en el mes:         ____
+   Pendientes:                 ____
+   Resetes ejecutados:         ____
+
+6. HALLAZGOS RELEVANTES
+
+   ____________________________________________________________
+   ____________________________________________________________
+
+7. RECOMENDACIONES
+
+   ____________________________________________________________
+   ____________________________________________________________
+
+═══════════════════════════════════════════════════════════════════
+Firma: _____________________________</pre>
+
+<h2 id="anexoB">Anexo B: Glosario rápido</h2>
+<table>
+<thead><tr><th>Término</th><th>Significado</th></tr></thead>
+<tbody>
+<tr><td><strong>Bitácora</strong></td><td>Registro de cada grupo que entra al restaurante (lo lleva el host)</td></tr>
+<tr><td><strong>Conciliación</strong></td><td>Cierre financiero del día (caja, tarjetas, cortesías, depósitos)</td></tr>
+<tr><td><strong>Auto-llenar</strong></td><td>Botón que consolida automáticamente las bitácoras del día</td></tr>
+<tr><td><strong>Arqueo ciego</strong></td><td>Comparación entre dinero contado y dinero teórico calculado</td></tr>
+<tr><td><strong>Cortesía</strong></td><td>Cobro no realizado por queja, evento, error operativo, etc.</td></tr>
+<tr><td><strong>Sello</strong></td><td>Firma autenticada de un usuario en un momento del servicio</td></tr>
+<tr><td><strong>Override admin</strong></td><td>Excepción donde admin firma por otra persona con motivo</td></tr>
+<tr><td><strong>Bandera roja</strong></td><td>Alerta visual del sistema que requiere acción antes de firmar</td></tr>
+<tr><td><strong>No-sale</strong></td><td>Apertura del cajón sin venta asociada</td></tr>
+<tr><td><strong>Folio</strong></td><td>Número consecutivo único del ticket POS</td></tr>
+<tr><td><strong>Depósito a tesorería</strong></td><td>Entrega de efectivo recaudado (Fogueira hace 2: venta + comisiones)</td></tr>
+</tbody>
+</table>
+
+<h2 id="compromiso">Compromiso</h2>
+<div class="compromiso">
+<p>Como supervisora de conciliación, me comprometo a:</p>
+<ol>
+  <li>✅ Aplicar este checklist en cada cierre</li>
+  <li>✅ Firmar solo conciliaciones limpias o con banderas documentadas</li>
+  <li>✅ Escalar oportuna y formalmente cuando sea necesario</li>
+  <li>✅ Generar el reporte mensual a dirección</li>
+  <li>✅ Mantener la confidencialidad de los datos operativos</li>
+  <li>✅ Reportar cualquier sospecha de manipulación inmediatamente</li>
+</ol>
+<p style="margin-top:24px"><strong>Firma:</strong><span class="firma-line"></span></p>
+<p><strong>Fecha:</strong><span class="firma-line"></span></p>
+</div>
+
+<div class="foot">
+Documento de uso interno · Restaurante Fogueira · Sistema de Gestión y Conciliación<br>
+Para dudas o ajustes al checklist: contactar a Germán Solís (Auditor / Desarrollo del sistema)
+</div>
+
+</div>
+
+</body>
+</html>

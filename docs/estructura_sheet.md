@@ -161,6 +161,42 @@ El cumplimiento de cada día, una fila por día y por etapa.
 
 ---
 
+## Pestaña 8.1: `PilarB_ChecklistItems` *(catálogo, agregada en mayo 2026)*
+
+Catálogo de los **48 ítems del check list de supervisión de Conciliación** (derivado del manual operativo de Estefanía Martínez, Supervisora de Conciliación). Cada ítem se ata a una de las 8 etapas del Pilar B (`etapa_id`) y a una **sección cronológica** del manual: Apertura → Durante → Cierre profundo → Banderas rojas → Firma final → Cierre semanal → Cierre mensual.
+
+| id | etapa_id | seccion | frecuencia | responsable_rol | descripcion | activo |
+|---|---|---|---|---|---|---|
+| CKBD01 | B1 | Apertura | D | administracion | Tarifas vigentes verificadas en el sistema antes de abrir puertas | TRUE |
+| CKBD11 | B7 | Cierre profundo | D | administracion | Auto-llenar ejecutado por la cajera para consolidar bitácoras | TRUE |
+| CKBD19 | B7 | Banderas rojas | D | administracion | Bandera 1: Δ Comensales (Host vs POS) ≤ 2 personas | TRUE |
+| CKBS01 | B7 | Cierre semanal | S | administracion | Histórico semanal de conciliaciones revisado | TRUE |
+| CKBM11 | B8 | Cierre mensual | M | administracion | Reporte mensual a dirección generado y enviado (Anexo A) | TRUE |
+| ... | | | | | | |
+
+**Distribución:** 31 diarios (Apertura 5 · Durante 5 · Cierre profundo 8 · Banderas rojas 10 · Firma final 3) + 6 semanales (viernes) + 11 mensuales (último viernes) = **48 ítems**.
+
+> El `responsable_rol` es siempre `administracion` porque la supervisora (Estefanía) es quien marca; la persona que ejecuta operativamente está descrita en el texto del ítem. El backend permite además que `auditor`, `auxiliar` o `gerente` marquen cualquier ítem.
+
+El manual original (markdown + html imprimible) está archivado en [`docs/checklist_conciliacion_origen/`](checklist_conciliacion_origen/).
+
+---
+
+## Pestaña 8.2: `PilarB_ChecklistMarcas` *(transaccional, agregada en mayo 2026)*
+
+Cada marca de cumplimiento del check list de supervisión es una fila aquí. Mismo esquema que `PilarA_ChecklistMarcas`. Una sola marca vigente por `(item_id, periodo)`.
+
+| timestamp | item_id | periodo | valor | usuario_email | observaciones |
+|---|---|---|---|---|---|
+| 2026-05-07T20:30:00.000Z | CKBD05 | 2026-05-07 | 1 | compras@fogueira.mx | Sello firmado al inicio del servicio |
+| 2026-05-07T22:15:00.000Z | CKBD20 | 2026-05-07 | 0 | compras@fogueira.mx | Δ Arqueo $480 — pendiente investigar |
+
+**Codificación de `periodo`:** `YYYY-MM-DD` (D) · `YYYY-Www` ISO week (S) · `YYYY-MM` (M).
+
+> Igual que en Pilar A, esta columna se formatea como texto (`@`) automáticamente para evitar que Sheets convierta `2026-05-07` en Date (ver bug fix en commit `ce8c9f9`).
+
+---
+
 ## Pestaña 9: `PilarC_Etapas`
 
 Las 11 etapas del flujo de inventarios con segregación de funciones.
@@ -223,6 +259,6 @@ Diálogo entre la auxiliar y el auditor (tú). Aparece en el dashboard.
 
 ## Resumen rápido
 
-15 pestañas en total. Los catálogos (`Config`, `Usuarios`, `Areas`, `PilarA_Modulos`, `PilarA_ChecklistItems`, `PilarB_Etapas`, `PilarC_Etapas`) los carga `setupSheet()`. Las transaccionales (`PilarA_PlanAccion`, `PilarA_Historico`, `PilarA_ChecklistMarcas`, `PilarB_Diario`, `PilarC_Requisiciones`, `PilarC_Movimientos`, `Bitacora_*`) se llenan solas conforme se usa la herramienta.
+17 pestañas en total. Los catálogos (`Config`, `Usuarios`, `Areas`, `PilarA_Modulos`, `PilarA_ChecklistItems`, `PilarB_Etapas`, `PilarB_ChecklistItems`, `PilarC_Etapas`) los carga `setupSheet()`. Las transaccionales (`PilarA_PlanAccion`, `PilarA_Historico`, `PilarA_ChecklistMarcas`, `PilarB_Diario`, `PilarB_ChecklistMarcas`, `PilarC_Requisiciones`, `PilarC_Movimientos`, `Bitacora_*`) se llenan solas conforme se usa la herramienta.
 
 Cuando avancemos a la Fase 2 te paso una plantilla con todas estas pestañas ya creadas para que solo cargues tus datos. Por ahora, esta es la referencia técnica.
