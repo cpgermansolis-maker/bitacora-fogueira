@@ -536,6 +536,60 @@ label { display: block; font-size: 0.82rem; font-weight: 500; color: var(--ink-s
 /* Variante ancha para el manual */
 .modal.modal-wide { max-width: 760px; }
 
+/* Variante "tour" — bienvenida primera vez */
+.modal.modal-tour {
+  max-width: 540px;
+  border-top-color: var(--gold);
+  border-top-width: 6px;
+}
+.tour-body { padding: 1.6rem 1.8rem 0.4rem; }
+.tour-saludo {
+  font-family: var(--font-display); font-size: 1.55rem; font-weight: 600;
+  color: var(--ink); margin-bottom: 0.3rem; line-height: 1.15;
+}
+.tour-saludo .wave {
+  display: inline-block; transform-origin: 70% 70%;
+  animation: wave 2.4s ease-in-out 0.4s 2;
+}
+@keyframes wave {
+  0%, 100% { transform: rotate(0); }
+  20% { transform: rotate(14deg); }
+  40% { transform: rotate(-8deg); }
+  60% { transform: rotate(14deg); }
+  80% { transform: rotate(-4deg); }
+}
+.tour-rolinfo {
+  font-size: 0.8rem; color: var(--ink-muted);
+  text-transform: uppercase; letter-spacing: 0.12em;
+  margin-bottom: 1.1rem;
+}
+.tour-rolinfo strong { color: var(--gold-deep); font-weight: 600; }
+.tour-intro {
+  font-size: 1.0rem; color: var(--ink-soft); line-height: 1.55;
+  margin-bottom: 1.3rem;
+}
+.tour-pasos { display: flex; flex-direction: column; gap: 0.7rem; margin-bottom: 1rem; }
+.tour-paso {
+  display: grid; grid-template-columns: 32px 1fr; gap: 0.85rem; align-items: start;
+  padding: 0.7rem 0.85rem;
+  background: var(--bg-paper); border: 1px solid var(--border);
+  border-radius: 4px;
+}
+.tour-paso .dot {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--bg-deep); color: var(--gold-line);
+  display: grid; place-items: center;
+  font-family: var(--font-display); font-weight: 600; font-size: 0.82rem;
+}
+.tour-paso .txt { font-size: 0.92rem; line-height: 1.4; color: var(--ink); }
+.tour-paso .txt strong { color: var(--ink); font-weight: 600; }
+.tour-pista {
+  background: var(--gold-soft); border-left: 3px solid var(--gold);
+  padding: 0.65rem 0.9rem; border-radius: 3px;
+  font-size: 0.85rem; color: var(--ink-soft); line-height: 1.5;
+}
+.tour-pista strong { color: var(--gold-deep); }
+
 /* Contenido del manual de operación */
 .manual { font-size: 0.95rem; color: var(--ink); line-height: 1.65; }
 .manual .role-tag {
@@ -1158,6 +1212,8 @@ const App = {
     });
     try { State.config = JSON.parse(localStorage.getItem('fogueira_config') || '{}'); } catch(e){}
     this.go('dashboard');
+    // Tour de bienvenida — solo la primera vez que cada usuario entra.
+    this.maybeShowTour();
   },
 
   logout() {
@@ -2016,6 +2072,59 @@ const App = {
     }
   },
 
+  /* =========== TOUR DE BIENVENIDA =========== */
+  // Se llama después del login. Si es la primera vez del usuario en este
+  // navegador, abre un modal con saludo y 3 pasos clave.
+  maybeShowTour() {
+    if (!State.user) return;
+    const key = 'fogueira_tour_seen_' + State.user.email.toLowerCase();
+    if (localStorage.getItem(key)) return;
+    // Pequeño delay para que el dashboard renderice primero (mejor UX que
+    // un modal que aparece encima de un spinner).
+    setTimeout(() => this.showTour(), 700);
+  },
+
+  showTour() {
+    if (!State.user) return;
+    const rol = (State.user.rol || '').toLowerCase();
+    const m = MANUAL[rol] || MANUAL._fallback;
+    const pasos = TOUR[rol] || TOUR._fallback;
+    const nombre = (State.user.nombre || '').split(' ')[0] || 'compañero';
+    const pasosHTML = pasos.map((txt, i) => `
+      <div class="tour-paso">
+        <div class="dot">${i + 1}</div>
+        <div class="txt">${txt}</div>
+      </div>
+    `).join('');
+    el('modal').innerHTML = `
+      <div class="tour-body">
+        <div class="tour-saludo">¡Hola, ${escapeHtml(nombre)}! <span class="wave">👋</span></div>
+        <div class="tour-rolinfo">tu rol: <strong>${escapeHtml(rol)}</strong></div>
+        <p class="tour-intro">${m.intro.charAt(0).toUpperCase() + m.intro.slice(1)}</p>
+        <div class="tour-pasos">${pasosHTML}</div>
+        <div class="tour-pista">
+          <strong>Tip:</strong> el botón <strong>?</strong> de arriba a la derecha abre el manual completo de tu rol cuando lo necesites.
+        </div>
+      </div>
+      <div class="modal-foot" style="margin-top:1rem;">
+        <button class="btn-ghost" onclick="App.dismissTour(); App.openManual();">Ver manual completo</button>
+        <button class="btn-primary" style="width:auto; margin:0;" onclick="App.dismissTour()">Empezar</button>
+      </div>
+    `;
+    el('modal').classList.remove('modal-wide');
+    el('modal').classList.add('modal-tour');
+    el('modal-backdrop').classList.add('show');
+  },
+
+  dismissTour() {
+    if (State.user) {
+      const key = 'fogueira_tour_seen_' + State.user.email.toLowerCase();
+      try { localStorage.setItem(key, '1'); } catch (e) {}
+    }
+    el('modal').classList.remove('modal-tour');
+    el('modal-backdrop').classList.remove('show');
+  },
+
   /* =========== MANUAL DE OPERACIÓN =========== */
   openManual() {
     if (!State.user) return;
@@ -2519,6 +2628,73 @@ const MANUAL = {
       }
     ]
   }
+};
+
+/* =========================================================
+   TOUR DE BIENVENIDA — primera vez que cada usuario entra
+   3 pasos cortos por rol; el resto está en el Manual completo.
+   ========================================================= */
+const TOUR = {
+  auxiliar: [
+    '<strong>Tu pestaña principal</strong> es <em>Pilar B · Conciliación</em>. Ahí validas calidad y cierras las etapas 7 y 8 del día.',
+    'En <strong>Pilar A</strong> sube el % de los módulos de Soft Restaurant cuando avances en alguna mejora.',
+    'Si algo no cuadra, <strong>levanta una bandera roja</strong> en la etapa correspondiente — el auditor la ve al instante.'
+  ],
+  gerente: [
+    'Tu firma del día es la <strong>Etapa 6 del Pilar B</strong>. Sin tu autorización, la auxiliar no puede cerrar las etapas finales.',
+    'En el <strong>Tablero</strong> ves de un vistazo cuántas etapas se cerraron y si hay banderas rojas.',
+    'Usa los <strong>comentarios</strong> del dashboard para dejar instrucciones al equipo del siguiente turno.'
+  ],
+  controlador: [
+    'Tu pestaña estrella es <strong>Reporte</strong>. Ahí defines rangos de fecha y revisas tendencias.',
+    'En el <strong>Tablero</strong> revisa diariamente los semáforos de los 3 pilares.',
+    'Cuando detectes algo, deja un <strong>comentario</strong> tipo "validación" o "alerta" en el dashboard.'
+  ],
+  auditor: [
+    'Tienes una pestaña extra solo para ti: <strong>Usuarios</strong>. Desde ahí das de alta, baja y editas a todos.',
+    'Puedes <strong>validar calidad como auditor</strong> en cualquier etapa del Pilar B y cualquier tarea del Plan de Acción.',
+    'El histórico de cada cambio queda en el Sheet — es tu evidencia COSO.'
+  ],
+  almacen: [
+    'Tu pestaña principal es <strong>Pilar C · Inventarios</strong>. Ahí ves todas las requisiciones activas.',
+    'Te tocan 4 etapas: <strong>C02</strong> revisión, <strong>C07</strong> recepción física, <strong>C09</strong> ingreso al sistema y <strong>C10</strong> surtimiento.',
+    'Si algo no cuadra al recibir, <strong>marca como bloqueado</strong> con motivo — no avances la requisición.'
+  ],
+  compras: [
+    'Tu pestaña principal es <strong>Pilar C · Inventarios</strong>.',
+    'Te tocan 2 etapas: <strong>C04</strong> con las 3 cotizaciones y <strong>C06</strong> la compra al proveedor (después del VoBo).',
+    '<strong>Nunca recibes el insumo</strong> — eso siempre lo hace Almacén. Es la base de la segregación de funciones.'
+  ],
+  administracion: [
+    'Tu pestaña principal es <strong>Pilar C · Inventarios</strong>, filtra requisiciones en etapa <strong>C05</strong>.',
+    'Revisas las 3 cotizaciones que subió Compras y la sugerencia que marcaron.',
+    'Si autorizas, avanza a C06; si no, deja comentario y la requisición queda detenida.'
+  ],
+  host: [
+    'Tu pestaña principal es <strong>Pilar B · Conciliación</strong>.',
+    'Te tocan las etapas <strong>B1 · Apertura</strong> y <strong>B2 · Bitácora del HOST</strong> — captura reservas y walk-ins en vivo.',
+    'Al terminar el día marca tus etapas como completadas; si hubo algo raro, levanta bandera roja.'
+  ],
+  cocina: [
+    'Tu pestaña principal es <strong>Pilar B · Conciliación</strong>.',
+    'Te toca la <strong>Etapa B3 · Cocina y Churrasca</strong> — captura las charolas en vivo desde tablet o celular.',
+    'Capturar en tiempo real toma 30 segundos; reconstruir al final del día toma 1 hora y queda mal.'
+  ],
+  cajera: [
+    'Tu pestaña principal es <strong>Pilar B · Conciliación</strong>.',
+    'Te tocan las etapas <strong>B4 · Cortes</strong> y <strong>B5 · Cierre de Cajera</strong>.',
+    '<strong>Arqueo ciego:</strong> cuenta el efectivo SIN ver primero el reporte del POS. La diferencia se registra como sea.'
+  ],
+  area: [
+    'Tu pestaña principal es <strong>Pilar C · Inventarios</strong>.',
+    'Crea requisiciones nuevas con <strong>"Nueva requisición"</strong>; describe bien el producto, cantidad y fecha.',
+    'Cuando llegue tu insumo, valida calidad (<strong>C08</strong>) y luego confirma recepción (<strong>C11</strong>).'
+  ],
+  _fallback: [
+    'Navega entre las pestañas del menú superior para conocer las distintas vistas.',
+    'El <strong>Tablero</strong> es el resumen de todo el día.',
+    'Si necesitas más detalle, en cualquier momento abre el manual con el botón <strong>?</strong> arriba a la derecha.'
+  ]
 };
 
 // Bloque común que se anexa al final del manual de TODOS los roles
