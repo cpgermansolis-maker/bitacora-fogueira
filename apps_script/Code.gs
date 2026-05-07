@@ -27,6 +27,8 @@ const SHEETS = {
   PILAR_A_MODULOS: 'PilarA_Modulos',
   PILAR_A_PLAN: 'PilarA_PlanAccion',
   PILAR_A_HIST: 'PilarA_Historico',
+  PILAR_A_CK_ITEMS: 'PilarA_ChecklistItems',
+  PILAR_A_CK_MARCAS: 'PilarA_ChecklistMarcas',
   PILAR_B_ETAPAS: 'PilarB_Etapas',
   PILAR_B_DIARIO: 'PilarB_Diario',
   PILAR_C_ETAPAS: 'PilarC_Etapas',
@@ -71,6 +73,9 @@ function doPost(e) {
         case 'updateModulo':       response = updateModulo(user, payload); break;
         case 'addPlanAccion':      response = addPlanAccion(user, payload); break;
         case 'updatePlanAccion':   response = updatePlanAccion(user, payload); break;
+        case 'getChecklistA':      response = getChecklistA(user, payload); break;
+        case 'marcarChecklistA':   response = marcarChecklistA(user, payload); break;
+        case 'getChecklistResumenA': response = getChecklistResumenA(user); break;
         case 'getPilarB':          response = getPilarB(user, payload); break;
         case 'marcarEtapaB':       response = marcarEtapaB(user, payload); break;
         case 'validarEtapaB':      response = validarEtapaB(user, payload); break;
@@ -512,6 +517,159 @@ function updatePlanAccion(user, payload) {
   }
   updateRow(SHEETS.PILAR_A_PLAN, found.rowIdx, updates);
   return { ok: true };
+}
+
+// =============================================================
+// PILAR A · Check list operativo SR12
+// --------------------------------------------------------------
+// Cada ítem del check list pertenece a un módulo y tiene una frecuencia:
+//   D (diario)   → periodo  YYYY-MM-DD   (ej. 2026-05-07)
+//   S (semanal)  → periodo  YYYY-Www     (ej. 2026-W19, ISO week)
+//   M (mensual)  → periodo  YYYY-MM      (ej. 2026-05)
+// Una marca = (item_id, periodo) único. Re-marcar pisa la fila previa.
+// =============================================================
+
+// Devuelve el periodo "actual" según frecuencia, en zona horaria del Sheet.
+function periodoActual(frecuencia) {
+  const tz = ss().getSpreadsheetTimeZone() || 'America/Mexico_City';
+  const now = new Date();
+  if (frecuencia === 'D') return Utilities.formatDate(now, tz, 'yyyy-MM-dd');
+  if (frecuencia === 'M') return Utilities.formatDate(now, tz, 'yyyy-MM');
+  if (frecuencia === 'S') {
+    // ISO week: YYYY-Www. Calculamos el jueves de la semana (truco ISO).
+    const d = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+    const dayNum = (d.getUTCDay() + 6) % 7;        // lunes=0
+    d.setUTCDate(d.getUTCDate() - dayNum + 3);     // jueves de esa semana
+    const firstThursday = new Date(Date.UTC(d.getUTCFullYear(), 0, 4));
+    const week = 1 + Math.round(((d - firstThursday) / 86400000 - 3 + ((firstThursday.getUTCDay() + 6) % 7)) / 7);
+    return d.getUTCFullYear() + '-W' + ('0' + week).slice(-2);
+  }
+  throw new Error('Frecuencia inválida: ' + frecuencia);
+}
+
+// Quién puede marcar qué.
+// El responsable del rol del ítem y siempre auditor/auxiliar/gerente (Mónica supervisa).
+function puedeMarcarChecklist(user, item) {
+  if (!user) return false;
+  if (user.rol === 'auditor' || user.rol === 'auxiliar' || user.rol === 'gerente') return true;
+  return user.rol === item.responsable_rol;
+}
+
+function getChecklistA(user, payload) {
+  payload = payload || {};
+  const items = sheetData(SHEETS.PILAR_A_CK_ITEMS)
+    .filter(it => String(it.activo).toUpperCase() === 'TRUE')
+    .filter(it => !payload.modulo_id || it.modulo_id === payload.modulo_id);
+
+  // Si no se piden marcas filtradas, devolvemos las del periodo actual de cada ítem.
+  // Si payload.periodos === { D: '2026-05-07', S: '2026-W19', M: '2026-05' }, usamos esos.
+  const periodos = payload.periodos || {
+    D: periodoActual('D'),
+    S: periodoActual('S'),
+    M: periodoActual('M')
+  };
+
+  const marcasAll = sheetData(SHEETS.PILAR_A_CK_MARCAS);
+  const enriched = items.map(it => {
+    const periodo = periodos[it.frecuencia];
+    const marca = marcasAll
+      .filter(m => m.item_id === it.id && m.periodo === periodo)
+      .sort((a, b) => String(b.timestamp).localeCompare(String(a.timestamp)))[0] || null;
+    return Object.assign({}, it, {
+      periodo,
+      marca,
+      puedo_marcar: puedeMarcarChecklist(user, it)
+    });
+  });
+
+  return { items: enriched, periodos };
+}
+
+function marcarChecklistA(user, payload) {
+  if (!payload || !payload.item_id) throw new Error('item_id requerido');
+  const item = findRow(SHEETS.PILAR_A_CK_ITEMS, it => it.id === payload.item_id);
+  if (!item) throw new Error('Ítem no encontrado: ' + payload.item_id);
+  if (!puedeMarcarChecklist(user, item.data)) {
+    throw new Error('Tu rol no puede marcar este ítem (' + item.data.responsable_rol + ')');
+  }
+  const periodo = payload.periodo || periodoActual(item.data.frecuencia);
+  const valor = (payload.valor === 1 || payload.valor === '1' || payload.valor === true) ? 1
+              : (payload.valor === 0 || payload.valor === '0' || payload.valor === false) ? 0
+              : null;
+  if (valor === null) throw new Error('valor debe ser 0 o 1');
+
+  // Una sola marca vigente por (item_id, periodo): si existe la actualizamos.
+  const existing = findRow(SHEETS.PILAR_A_CK_MARCAS,
+    m => m.item_id === payload.item_id && m.periodo === periodo);
+
+  const rowData = {
+    timestamp: nowISO(),
+    item_id: payload.item_id,
+    periodo: periodo,
+    valor: valor,
+    usuario_email: user.email,
+    observaciones: payload.observaciones || ''
+  };
+
+  if (existing) {
+    updateRow(SHEETS.PILAR_A_CK_MARCAS, existing.rowIdx, rowData);
+  } else {
+    appendRow(SHEETS.PILAR_A_CK_MARCAS, rowData);
+  }
+
+  logBitacora(user.email, 'marcarChecklistA',
+    payload.item_id + ' / ' + periodo + ' = ' + valor);
+
+  return { ok: true, periodo: periodo, valor: valor };
+}
+
+// Resumen para la home y para mostrar junto al % estructural de cada módulo.
+// Devuelve por módulo el % de disciplina del periodo actual:
+//   disciplina = (suma valor) / (total ítems con marca en el periodo)  · 100
+// Ítems no marcados aún no penalizan (se reportan en pendientes).
+function getChecklistResumenA(user) {
+  const items = sheetData(SHEETS.PILAR_A_CK_ITEMS)
+    .filter(it => String(it.activo).toUpperCase() === 'TRUE');
+  const marcas = sheetData(SHEETS.PILAR_A_CK_MARCAS);
+  const periodos = {
+    D: periodoActual('D'),
+    S: periodoActual('S'),
+    M: periodoActual('M')
+  };
+
+  // Indexar última marca por (item_id, periodo)
+  const ultima = {};
+  marcas.forEach(m => {
+    const k = m.item_id + '|' + m.periodo;
+    if (!ultima[k] || String(m.timestamp) > String(ultima[k].timestamp)) {
+      ultima[k] = m;
+    }
+  });
+
+  const porModulo = {};
+  items.forEach(it => {
+    const k = it.modulo_id;
+    if (!porModulo[k]) {
+      porModulo[k] = { total: 0, marcados: 0, cumplidos: 0, pendientes: 0 };
+    }
+    porModulo[k].total++;
+    const periodo = periodos[it.frecuencia];
+    const m = ultima[it.id + '|' + periodo];
+    if (m) {
+      porModulo[k].marcados++;
+      if (Number(m.valor) === 1) porModulo[k].cumplidos++;
+    } else {
+      porModulo[k].pendientes++;
+    }
+  });
+
+  // Calcular % disciplina
+  Object.keys(porModulo).forEach(k => {
+    const r = porModulo[k];
+    r.pct_disciplina = r.marcados > 0 ? Math.round((r.cumplidos * 100) / r.marcados) : null;
+  });
+
+  return { periodos, porModulo };
 }
 
 // =============================================================

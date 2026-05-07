@@ -492,6 +492,69 @@ label { display: block; font-size: 0.82rem; font-weight: 500; color: var(--ink-s
 }
 .modulo-action:hover { background: var(--gold-deep); }
 
+/* ----- Pilar A · Check list operativo SR12 ----- */
+.modulo-disciplina {
+  margin-top: 0.45rem;
+  display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;
+  font-size: 0.78rem;
+}
+.modulo-disciplina-pill {
+  display: inline-block;
+  padding: 0.15rem 0.55rem; border-radius: 999px;
+  font-weight: 600; letter-spacing: 0.02em;
+  background: var(--bg-paper); color: var(--ink-soft);
+  border: 1px solid var(--border);
+}
+.modulo-disciplina-pill.s-verde    { background: var(--green-bg);  color: var(--green);  border-color: var(--green); }
+.modulo-disciplina-pill.s-amarillo { background: var(--amber-bg);  color: var(--amber);  border-color: var(--amber); }
+.modulo-disciplina-pill.s-naranja  { background: var(--orange-bg); color: var(--orange); border-color: var(--orange); }
+.modulo-disciplina-pill.s-rojo     { background: var(--red-bg);    color: var(--red);    border-color: var(--red); }
+.modulo-disciplina-meta { color: var(--ink-soft); }
+
+.ck-group { margin-bottom: 1.4rem; }
+.ck-group-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin-bottom: 0.6rem; padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--border);
+}
+.ck-group-head h3 {
+  font-family: var(--font-display); font-weight: 600;
+  color: var(--gold-deep); font-size: 1rem; margin: 0;
+}
+.ck-group-meta { font-size: 0.78rem; color: var(--ink-soft); }
+.ck-list { display: flex; flex-direction: column; gap: 0.4rem; }
+.ck-row {
+  display: grid; grid-template-columns: 56px 1fr auto; gap: 0.8rem;
+  padding: 0.6rem 0.7rem; border-radius: 3px;
+  background: var(--bg-paper); border: 1px solid var(--border);
+  align-items: center;
+}
+.ck-row.ck-cumplido   { background: var(--green-bg); border-color: var(--green); }
+.ck-row.ck-nocumplido { background: var(--red-bg);   border-color: var(--red); }
+.ck-id {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.72rem; color: var(--ink-soft); letter-spacing: 0.04em;
+}
+.ck-text { font-weight: 500; font-size: 0.9rem; line-height: 1.35; }
+.ck-line { margin-top: 0.25rem; font-size: 0.72rem; color: var(--ink-soft); display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+.ck-rol-tag {
+  display: inline-block; padding: 0.1rem 0.4rem; border-radius: 2px;
+  background: var(--bg-deep); color: var(--gold-line);
+  font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+}
+.ck-meta { font-size: 0.72rem; color: var(--ink-soft); }
+.ck-toggle { display: flex; gap: 0.3rem; }
+.ck-btn {
+  width: 36px; height: 32px; border: 1px solid var(--border-strong);
+  background: var(--bg-elevated); color: var(--ink);
+  font-family: var(--font-display); font-weight: 600;
+  border-radius: 3px; cursor: pointer; transition: all 0.15s;
+}
+.ck-btn:hover:not(:disabled) { border-color: var(--gold-deep); }
+.ck-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.ck-btn-si.active { background: var(--green); color: #fff; border-color: var(--green); }
+.ck-btn-no.active { background: var(--red);   color: #fff; border-color: var(--red); }
+
 @media (max-width: 768px) {
   .modulo-row {
     grid-template-columns: 32px 1fr;
@@ -502,6 +565,8 @@ label { display: block; font-size: 0.82rem; font-weight: 500; color: var(--ink-s
     grid-column: 2; justify-self: end;
   }
   .modulo-info { grid-column: 2; }
+  .ck-row { grid-template-columns: 1fr auto; }
+  .ck-id  { display: none; }
 }
 
 /* =========================================================
@@ -1078,6 +1143,7 @@ const State = {
   config: {},
   dashboard: null,
   pilarA: null,
+  pilarAChecklist: null,
   pilarB: null,
   pilarC: null
 };
@@ -1326,8 +1392,12 @@ const App = {
   async render_pilar_a() {
     const c = el('pilar-a-content');
     try {
-      const data = await apiCall('getPilarA', {});
+      const [data, ckResumen] = await Promise.all([
+        apiCall('getPilarA', {}),
+        apiCall('getChecklistResumenA', {}).catch(() => ({ porModulo: {}, periodos: {} }))
+      ]);
       State.pilarA = data;
+      State.pilarAChecklist = ckResumen;
       const modulos = data.modulos;
       const total = modulos.length;
       const sumPct = modulos.reduce((s,m) => s + Number(m.porcentaje_actual||0), 0);
@@ -1368,7 +1438,7 @@ const App = {
 
         <h2 style="margin-bottom:1rem;">Capacidad utilizada por módulo</h2>
         <div class="modulos-table">
-          ${modulos.map(m => modulRowHTML(m)).join('')}
+          ${modulos.map(m => modulRowHTML(m, ckResumen.porModulo && ckResumen.porModulo[m.id])).join('')}
         </div>
 
         <h2 style="margin-bottom:1rem;">Plan de acción</h2>
@@ -1466,6 +1536,92 @@ const App = {
       toast('Estatus actualizado');
       this.render_pilar_a();
     } catch (err) { toast(err.message, true); }
+  },
+
+  /* === Pilar A · Check list operativo SR12 === */
+  async openChecklistModal(modulo_id) {
+    const m = State.pilarA.modulos.find(x => x.id === modulo_id);
+    if (!m) return;
+    this.openModal(`
+      <div class="modal-head">
+        <h2>Check list operativo · Módulo ${escapeHtml(String(m.numero))}</h2>
+        <div class="sub">${escapeHtml(m.modulo)}</div>
+      </div>
+      <div class="modal-body" id="ck-body">
+        <div class="empty-state"><div class="spinner"></div></div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn-ghost" onclick="App.closeModal()">Cerrar</button>
+      </div>
+    `);
+    try {
+      const data = await apiCall('getChecklistA', { modulo_id });
+      State.pilarAChecklistDetalle = data;
+      this.renderChecklistModalBody(modulo_id);
+    } catch (err) {
+      el('ck-body').innerHTML = `<div class="empty-state"><p>${escapeHtml(err.message)}</p></div>`;
+    }
+  },
+
+  renderChecklistModalBody(modulo_id) {
+    const data = State.pilarAChecklistDetalle;
+    if (!data) return;
+    const items = data.items;
+    if (items.length === 0) {
+      el('ck-body').innerHTML = `<div class="empty-state"><p>Este módulo no tiene ítems operativos en el check list.</p></div>`;
+      return;
+    }
+    const grupos = [
+      { freq: 'D', label: 'Diario',  hint: 'Periodo ' + (data.periodos.D || '—') },
+      { freq: 'S', label: 'Semanal', hint: 'Periodo ' + (data.periodos.S || '—') },
+      { freq: 'M', label: 'Mensual', hint: 'Periodo ' + (data.periodos.M || '—') }
+    ];
+    const html = grupos.map(g => {
+      const grupo = items.filter(it => it.frecuencia === g.freq);
+      if (grupo.length === 0) return '';
+      const filas = grupo.map(it => checklistItemRowHTML(it)).join('');
+      return `
+        <div class="ck-group">
+          <div class="ck-group-head">
+            <h3>${g.label}</h3>
+            <span class="ck-group-meta">${g.hint}</span>
+          </div>
+          <div class="ck-list">${filas}</div>
+        </div>`;
+    }).join('');
+    el('ck-body').innerHTML = html;
+  },
+
+  async marcarChecklistItem(item_id, valor) {
+    try {
+      await apiCall('marcarChecklistA', { item_id, valor });
+      toast(valor === 1 ? 'Marcado cumplido' : 'Marcado no cumplido');
+      // Refrescar el modal y la tabla del Pilar A
+      const detalle = State.pilarAChecklistDetalle;
+      const modulo_id = detalle && detalle.items[0] ? detalle.items[0].modulo_id : null;
+      if (modulo_id) {
+        const data = await apiCall('getChecklistA', { modulo_id });
+        State.pilarAChecklistDetalle = data;
+        this.renderChecklistModalBody(modulo_id);
+      }
+      // Resumen global se refrescará al cerrar; refrescamos suave la tabla:
+      this.refreshChecklistResumen();
+    } catch (err) { toast(err.message, true); }
+  },
+
+  async refreshChecklistResumen() {
+    try {
+      const ckResumen = await apiCall('getChecklistResumenA', {});
+      State.pilarAChecklist = ckResumen;
+      // Re-render solo la tabla de módulos sin recargar datos del Pilar A.
+      const c = el('pilar-a-content');
+      if (!c || !State.pilarA) return;
+      const tbl = c.querySelector('.modulos-table');
+      if (!tbl) return;
+      tbl.innerHTML = State.pilarA.modulos
+        .map(m => modulRowHTML(m, ckResumen.porModulo && ckResumen.porModulo[m.id]))
+        .join('');
+    } catch (e) { /* silencioso */ }
   },
 
   /* =========== PILAR B =========== */
@@ -2786,20 +2942,35 @@ function comentariosListHTML(coms) {
   `).join('');
 }
 
-function modulRowHTML(m) {
+function modulRowHTML(m, ck) {
   const pct = Number(m.porcentaje_actual);
   const sclass = semaforoClass(pct);
+  // ck = { total, marcados, cumplidos, pendientes, pct_disciplina } | undefined
+  let ckLine = '';
+  let ckButton = '';
+  if (ck && ck.total > 0) {
+    const dis = ck.pct_disciplina;
+    const disClass = dis === null ? '' : semaforoClass(dis);
+    const disText = dis === null ? '— sin marcar' : dis + '% disciplina';
+    ckLine = `<div class="modulo-disciplina">
+      <span class="modulo-disciplina-pill ${disClass}">${disText}</span>
+      <span class="modulo-disciplina-meta">${ck.cumplidos}/${ck.marcados} marcados ✓ · ${ck.pendientes} sin marcar · ${ck.total} totales</span>
+    </div>`;
+    ckButton = `<button class="btn-ghost" title="Check list operativo del módulo" onclick="App.openChecklistModal('${escapeHtml(m.id)}')">📋 Check list</button>`;
+  }
   return `
     <div class="modulo-row">
       <div class="modulo-numero">${escapeHtml(String(m.numero))}</div>
       <div class="modulo-info">
         <div class="name">${escapeHtml(m.modulo)}</div>
         <div class="modulo-bar-wrap"><div class="modulo-bar ${sclass}" style="width:${pct}%"></div></div>
+        ${ckLine}
       </div>
       <div class="modulo-pct ${sclass}">${pct}%</div>
-      <div style="display:flex; gap:0.4rem;">
+      <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
         <button class="modulo-action" onclick="App.openModuloModal('${escapeHtml(m.id)}')">Actualizar</button>
         <button class="btn-ghost" onclick="App.openPlanModal('${escapeHtml(m.id)}')">+ Tarea</button>
+        ${ckButton}
       </div>
     </div>
   `;
@@ -2826,6 +2997,36 @@ function planRowHTML(p, modulos) {
       </select>
     </div>
   `;
+}
+
+function checklistItemRowHTML(it) {
+  const m = it.marca;
+  const valor = m ? Number(m.valor) : null;
+  const cumplido = valor === 1;
+  const noCumplido = valor === 0;
+  const rowClass = cumplido ? 'ck-row ck-cumplido'
+                  : noCumplido ? 'ck-row ck-nocumplido'
+                  : 'ck-row';
+  const disabled = it.puedo_marcar ? '' : 'disabled';
+  const meta = m
+    ? `<span class="ck-meta">por ${escapeHtml(m.usuario_email || '')} · ${escapeHtml(String(m.timestamp || '').slice(0,16).replace('T',' '))}</span>`
+    : '<span class="ck-meta">sin marcar</span>';
+  const badgeRol = `<span class="ck-rol-tag">${escapeHtml(it.responsable_rol)}</span>`;
+  const noPerm = it.puedo_marcar ? '' : '<span class="ck-meta" style="color:var(--red);">tu rol no marca</span>';
+  return `
+    <div class="${rowClass}">
+      <div class="ck-id">${escapeHtml(it.id)}</div>
+      <div class="ck-desc">
+        <div class="ck-text">${escapeHtml(it.descripcion)}</div>
+        <div class="ck-line">${badgeRol} ${meta} ${noPerm}</div>
+      </div>
+      <div class="ck-toggle">
+        <button class="ck-btn ck-btn-no  ${noCumplido ? 'active' : ''}" ${disabled}
+          onclick="App.marcarChecklistItem('${escapeHtml(it.id)}', 0)" title="No cumplido">0</button>
+        <button class="ck-btn ck-btn-si  ${cumplido   ? 'active' : ''}" ${disabled}
+          onclick="App.marcarChecklistItem('${escapeHtml(it.id)}', 1)" title="Cumplido">1</button>
+      </div>
+    </div>`;
 }
 
 function etapaCardHTML(e) {

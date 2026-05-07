@@ -77,6 +77,59 @@ const SHEET_DEFINITIONS = [
     rows: []
   },
   {
+    // Check list operativo SR12 — 36 ítems derivados del check list de Mónica.
+    // Frecuencia: D (diario) · S (semanal) · M (mensual).
+    // periodo en PilarA_ChecklistMarcas se codifica como YYYY-MM-DD / YYYY-Www / YYYY-MM.
+    name: 'PilarA_ChecklistItems',
+    headers: ['id', 'modulo_id', 'frecuencia', 'responsable_rol', 'descripcion', 'activo'],
+    rows: [
+      // ----- Diario (14) -----
+      ['CKD01', 'M07', 'D', 'cajera',  'Imprimir y archivar el Corte Z al cierre del turno',                       'TRUE'],
+      ['CKD02', 'M07', 'D', 'cajera',  'Cuadrar efectivo del POS contra caja física (diferencia ≤ $50)',           'TRUE'],
+      ['CKD03', 'M06', 'D', 'cajera',  'Todas las cuentas/comandas del día quedaron cerradas',                     'TRUE'],
+      ['CKD04', 'M07', 'D', 'cajera',  'Cancelaciones del día justificadas y autorizadas por gerente',             'TRUE'],
+      ['CKD05', 'M02', 'D', 'almacen', 'Capturar en SR12 todas las entradas de mercancía recibidas hoy',           'TRUE'],
+      ['CKD06', 'M02', 'D', 'almacen', 'Registrar salidas/traspasos del día (cocina, bar, sub-almacenes)',         'TRUE'],
+      ['CKD07', 'M02', 'D', 'almacen', 'Registrar mermas y desperdicios del día (si los hubo)',                    'TRUE'],
+      ['CKD08', 'M02', 'D', 'almacen', 'Refrigeradores con temperatura registrada (≤ 4 °C / ≤ -18 °C)',            'TRUE'],
+      ['CKD09', 'M05', 'D', 'compras', 'Cada factura recibida hoy capturada en SR12 con su orden de compra',       'TRUE'],
+      ['CKD10', 'M05', 'D', 'compras', 'Compras del día con precio actualizado en el catálogo',                    'TRUE'],
+      ['CKD11', 'M09', 'D', 'cocina',  'Mermas y desperdicios del turno reportados con foto/firma',                'TRUE'],
+      ['CKD12', 'M04', 'D', 'cocina',  'Platos vendidos sin receta cargada en SR12 = CERO',                        'TRUE'],
+      ['CKD13', 'M10', 'D', 'gerente', 'Reporte de ventas del día y Corte Z revisados y firmados',                 'TRUE'],
+      ['CKD14', 'M10', 'D', 'gerente', 'Reporte de descuentos/cortesías del día revisado',                         'TRUE'],
+      // ----- Semanal (11) -----
+      ['CKS01', 'M02', 'S', 'almacen', 'Conteo cíclico semanal de al menos 1 sección (rotando)',                   'TRUE'],
+      ['CKS02', 'M02', 'S', 'almacen', 'Top 10 productos críticos: saldo SR12 vs físico (diferencia ≤ 2 %)',       'TRUE'],
+      ['CKS03', 'M02', 'S', 'almacen', 'Inventario teórico de bar al cierre semanal',                              'TRUE'],
+      ['CKS04', 'M05', 'S', 'compras', 'Conciliar facturas vs orden de compra y entrada (3-way match)',            'TRUE'],
+      ['CKS05', 'M05', 'S', 'compras', 'Actualizar precios de insumos críticos (top 20 por valor)',                'TRUE'],
+      ['CKS06', 'M04', 'S', 'cocina',  'Top 20 platos más vendidos con receta vigente cargada',                    'TRUE'],
+      ['CKS07', 'M04', 'S', 'cocina',  'Cargar en SR12 las recetas de cualquier plato nuevo introducido',          'TRUE'],
+      ['CKS08', 'M07', 'S', 'cajera',  'Descuentos/cancelaciones de la semana validados con autorización',         'TRUE'],
+      ['CKS09', 'M09', 'S', 'cocina',  'Análisis semanal de mermas por categoría (proteína, lácteos, vegetales)',  'TRUE'],
+      ['CKS10', 'M10', 'S', 'gerente', 'Reunión semanal de KPIs con responsables de área',                         'TRUE'],
+      ['CKS11', 'M10', 'S', 'gerente', 'Revisar margen bruto semanal y comparar contra meta',                      'TRUE'],
+      // ----- Mensual (11) -----
+      ['CKM01', 'M02', 'M', 'almacen', 'Inventario físico mensual completo (almacén general + sub-almacenes + bar)', 'TRUE'],
+      ['CKM02', 'M09', 'M', 'almacen', 'Diferencias > 2 % con justificación documentada y firma',                  'TRUE'],
+      ['CKM03', 'M05', 'M', 'compras', 'Conciliación de cuentas por pagar contra estados del proveedor',           'TRUE'],
+      ['CKM04', 'M05', 'M', 'compras', 'Catálogo de proveedores revisado y actualizado',                           'TRUE'],
+      ['CKM05', 'M07', 'M', 'cajera',  'Conciliación POS vs caja chica del mes',                                   'TRUE'],
+      ['CKM06', 'M02', 'M', 'almacen', 'Reporte de productos sin movimiento del mes',                              'TRUE'],
+      ['CKM07', 'M09', 'M', 'cocina',  'Análisis mensual de mermas por categoría con plan de acción',              'TRUE'],
+      ['CKM08', 'M04', 'M', 'cocina',  'Re-costeo mensual de recetas con precios vigentes de insumos',             'TRUE'],
+      ['CKM09', 'M01', 'M', 'gerente', 'Cierre mensual ejecutado en SR12 (cierre contable / inventarios)',         'TRUE'],
+      ['CKM10', 'M10', 'M', 'gerente', 'Reporte gerencial mensual generado y firmado por Contralor',               'TRUE'],
+      ['CKM11', 'M10', 'M', 'gerente', 'Junta mensual de revisión de avance de Plan de Remediación',               'TRUE']
+    ]
+  },
+  {
+    name: 'PilarA_ChecklistMarcas',
+    headers: ['timestamp', 'item_id', 'periodo', 'valor', 'usuario_email', 'observaciones'],
+    rows: []
+  },
+  {
     name: 'PilarB_Etapas',
     headers: ['id', 'numero', 'nombre', 'descripcion', 'responsable_rol'],
     rows: [

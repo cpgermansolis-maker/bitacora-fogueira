@@ -94,6 +94,44 @@ Cada vez que alguien actualiza el % de un módulo, se registra aquí. Es tu hist
 
 ---
 
+## Pestaña 6.1: `PilarA_ChecklistItems` *(catálogo, agregada en mayo 2026)*
+
+Catálogo de los 36 ítems del **check list operativo SR12** de Mónica. Cada ítem se ata a un módulo del Pilar A y a una frecuencia: Diario (D), Semanal (S) o Mensual (M).
+
+| id | modulo_id | frecuencia | responsable_rol | descripcion | activo |
+|---|---|---|---|---|---|
+| CKD01 | M07 | D | cajera | Imprimir y archivar el Corte Z al cierre del turno | TRUE |
+| CKD05 | M02 | D | almacen | Capturar en SR12 todas las entradas de mercancía recibidas hoy | TRUE |
+| CKS01 | M02 | S | almacen | Conteo cíclico semanal de al menos 1 sección (rotando) | TRUE |
+| CKM01 | M02 | M | almacen | Inventario físico mensual completo | TRUE |
+| ... | | | | | |
+
+> **Frecuencias válidas:** `D` · `S` · `M`. **Roles válidos:** los mismos de `Usuarios`. La columna `activo` permite desactivar un ítem sin borrar el histórico.
+>
+> Los 36 ítems precargados los crea `setupSheet()` automáticamente. Si quieres ajustar redacción o agregar nuevos ítems, edita esta pestaña directamente.
+
+---
+
+## Pestaña 6.2: `PilarA_ChecklistMarcas` *(transaccional, agregada en mayo 2026)*
+
+Cada marca de cumplimiento es una fila aquí. Una sola fila por `(item_id, periodo)` — re-marcar pisa la fila previa.
+
+| timestamp | item_id | periodo | valor | usuario_email | observaciones |
+|---|---|---|---|---|---|
+| 2026-05-07T15:42:11.000Z | CKD01 | 2026-05-07 | 1 | cajera@... | |
+| 2026-05-06T10:00:00.000Z | CKS04 | 2026-W19 | 0 | compras@... | Falta factura proveedor X |
+
+**Codificación de `periodo`:**
+- Diario → `YYYY-MM-DD` (ej. `2026-05-07`)
+- Semanal → `YYYY-Www` ISO week (ej. `2026-W19`)
+- Mensual → `YYYY-MM` (ej. `2026-05`)
+
+**Valor:** `1` cumplido · `0` no cumplido. Sin marca = sin revisar.
+
+> El backend impone que el responsable del rol del ítem (o auditor/auxiliar/gerente) sea quien escribe.
+
+---
+
 ## Pestaña 7: `PilarB_Etapas`
 
 Catálogo de las 8 etapas del flujo de Conciliación Fogueira.
@@ -185,6 +223,6 @@ Diálogo entre la auxiliar y el auditor (tú). Aparece en el dashboard.
 
 ## Resumen rápido
 
-13 pestañas en total. Las catálogos (`Config`, `Usuarios`, `Areas`, `PilarA_Modulos`, `PilarB_Etapas`, `PilarC_Etapas`) las cargas tú una vez. Las transaccionales (`PilarA_PlanAccion`, `PilarA_Historico`, `PilarB_Diario`, `PilarC_Requisiciones`, `PilarC_Movimientos`, `Bitacora_*`) se llenan solas conforme se usa la herramienta.
+15 pestañas en total. Los catálogos (`Config`, `Usuarios`, `Areas`, `PilarA_Modulos`, `PilarA_ChecklistItems`, `PilarB_Etapas`, `PilarC_Etapas`) los carga `setupSheet()`. Las transaccionales (`PilarA_PlanAccion`, `PilarA_Historico`, `PilarA_ChecklistMarcas`, `PilarB_Diario`, `PilarC_Requisiciones`, `PilarC_Movimientos`, `Bitacora_*`) se llenan solas conforme se usa la herramienta.
 
 Cuando avancemos a la Fase 2 te paso una plantilla con todas estas pestañas ya creadas para que solo cargues tus datos. Por ahora, esta es la referencia técnica.

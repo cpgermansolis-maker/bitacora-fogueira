@@ -42,8 +42,8 @@ Cualquiera con esta URL puede abrir el sitio, pero solo los emails listados en l
 
 ## ✅ Checklist de lo que quedó instalado
 
-- [x] Sheet "Bitácora Fogueira" con 13 pestañas
-- [x] Catálogos cargados (12 módulos Pilar A · 8 etapas Pilar B · 11 etapas Pilar C · 5 áreas · 8 valores Config)
+- [x] Sheet "Bitácora Fogueira" con 13 pestañas (15 desde el upgrade de Check List SR12 · ver más abajo)
+- [x] Catálogos cargados (12 módulos Pilar A · 8 etapas Pilar B · 11 etapas Pilar C · 5 áreas · 8 valores Config · 36 ítems Check List SR12)
 - [x] Auditor `cpgermansolis@gmail.com` registrado en `Usuarios` con `activo = TRUE`
 - [x] Carpeta Drive de evidencias creada con permiso público de lectura
 - [x] Backend con `Code.gs`, `Monitoring.gs`, `Setup.gs` desplegado como Web App
@@ -99,6 +99,30 @@ clasp redeploy AKfycbzD4CrG1aidpykl1VRmMN63v7rad3Rj8Dwr-auiJwB4OSzDsfnKH2gSqdCW9
 ## 🔍 Auditoría
 
 Cada login y cada acción quedan registrados en la pestaña `Bitacora_Sistema` del Sheet con timestamp, usuario y detalle. Es tu evidencia COSO de que el sistema funcionó.
+
+---
+
+## ⬆️ Upgrade · Check List SR12 (mayo 2026)
+
+Si tu instancia se publicó **antes del 7 de mayo 2026**, agregamos el check list operativo de Mónica Solís dentro del Pilar A. Para activarlo:
+
+1. **Backend** — Abre el [editor Apps Script](https://script.google.com/d/1IH20PScbgrW2lkWADHN50ytHgLfpI4heLL3p6vTquD66QOVy0DFfhg46/edit) y corre `setupSheet()` una vez. Crea las 2 pestañas nuevas (`PilarA_ChecklistItems` con 36 ítems precargados y `PilarA_ChecklistMarcas` vacía) sin tocar el resto del Sheet (idempotente).
+2. **Re-deploy del Web App** (mantiene la URL):
+   ```bash
+   cd apps_script
+   clasp push
+   clasp redeploy AKfycbzD4CrG1aidpykl1VRmMN63v7rad3Rj8Dwr-auiJwB4OSzDsfnKH2gSqdCW92Nh39Zn
+   ```
+3. **Frontend** — `git pull` y `git push` se publican solos en GitHub Pages.
+4. **Verificación rápida:** abre la app → Pilar A → cada módulo con ítems muestra una píldora "X% disciplina" y un botón **📋 Check list**.
+
+**Quién marca qué (impuesto en backend):**
+- `cajera` → ítems de POS / Caja (Corte Z, cuadre efectivo, descuentos)
+- `almacen` → entradas, salidas, mermas almacén, refrigeradores, conteo cíclico, inventario físico
+- `compras` → facturas con OC, precios, 3-way match, conciliación CxP, catálogo proveedores
+- `cocina` → mermas con foto, recetas, re-costeo, análisis de mermas
+- `gerente` → reportes firmados, KPIs, márgenes, junta de remediación
+- `auditor` / `auxiliar` / `gerente` → pueden marcar cualquier ítem (supervisión)
 
 ---
 
