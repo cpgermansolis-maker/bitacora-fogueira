@@ -73,6 +73,8 @@ function doPost(e) {
       switch (action) {
         case 'getDashboard':       response = getDashboard(user); break;
         case 'getMonitoring':      response = getMonitoring(user); break;
+        case 'getDiaPersona':      response = getDiaPersona(user, payload); break;
+        case 'getPersonasDia':     response = getPersonasDia(user); break;
         case 'getPilarA':          response = getPilarA(user); break;
         case 'updateModulo':       response = updateModulo(user, payload); break;
         case 'addPlanAccion':      response = addPlanAccion(user, payload); break;

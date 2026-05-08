@@ -33,7 +33,7 @@ Quién puede entrar y con qué rol. Roles válidos: `auditor`, `auxiliar`, `gere
 | ... | Mónica Solís Zurita | gerente | TRUE |
 | ... | Farit | almacen | TRUE |
 | ... | Weslley | compras | TRUE |
-| ... | Estefania | administracion | TRUE |
+| ... | Estefania Martínez | auxiliar | TRUE |
 
 > **Control COSO:** un usuario sin email registrado aquí no entra. Esto es tu lista blanca de acceso.
 
@@ -176,7 +176,7 @@ Catálogo de los **48 ítems del check list de supervisión de Conciliación** (
 
 **Distribución:** 31 diarios (Apertura 5 · Durante 5 · Cierre profundo 8 · Banderas rojas 10 · Firma final 3) + 6 semanales (viernes) + 11 mensuales (último viernes) = **48 ítems**.
 
-> El `responsable_rol` es siempre `administracion` porque la supervisora (Estefanía) es quien marca; la persona que ejecuta operativamente está descrita en el texto del ítem. El backend permite además que `auditor`, `auxiliar` o `gerente` marquen cualquier ítem.
+> El `responsable_rol` del catálogo es `administracion` porque así nació el modelo (la supervisora original tenía ese rol). Hoy Estefanía es `auxiliar` y por eso puede marcar todo igual: el rol `auxiliar` es super-capturista en los tres pilares. La persona que ejecuta operativamente cada ítem está descrita en el texto. El backend permite que `auditor`, `auxiliar`, `gerente` o `administracion` marquen cualquier ítem.
 
 El manual original (markdown + html imprimible) está archivado en [`docs/checklist_conciliacion_origen/`](checklist_conciliacion_origen/).
 
@@ -251,7 +251,7 @@ Catálogo de los **35 ítems del check list operativo del flujo de inventarios**
 
 **Distribución:** 20 diarios (Solicitud 5 · Compra 5 · Recepción 5 · Surtimiento 3 · Bloqueos 2) + 6 semanales (viernes) + 9 mensuales (último viernes) = **35 ítems**.
 
-> El `responsable_rol` es siempre `administracion` (Estefanía es quien marca); la persona que ejecuta operativamente está descrita en el texto del ítem. El backend permite además que `auditor`, `auxiliar` o `gerente` marquen cualquier ítem.
+> El `responsable_rol` del catálogo es `administracion` por herencia del modelo original; Estefanía hoy entra con rol `auxiliar` (super-capturista) y marca todo igual. La persona que ejecuta operativamente está descrita en el texto del ítem. El backend permite que `auditor`, `auxiliar`, `gerente` o `administracion` marquen cualquier ítem.
 
 > **Controles críticos:** dos ítems explicitan la segregación de funciones del flujo (el comprador NUNCA recibe físicamente): `CKCD11` (verificación diaria) y `CKCM06` (auditoría mensual del mes completo).
 
@@ -297,3 +297,16 @@ Diálogo entre la auxiliar y el auditor (tú). Aparece en el dashboard.
 19 pestañas en total. Los catálogos (`Config`, `Usuarios`, `Areas`, `PilarA_Modulos`, `PilarA_ChecklistItems`, `PilarB_Etapas`, `PilarB_ChecklistItems`, `PilarC_Etapas`, `PilarC_ChecklistItems`) los carga `setupSheet()`. Las transaccionales (`PilarA_PlanAccion`, `PilarA_Historico`, `PilarA_ChecklistMarcas`, `PilarB_Diario`, `PilarB_ChecklistMarcas`, `PilarC_Requisiciones`, `PilarC_Movimientos`, `PilarC_ChecklistMarcas`, `Bitacora_*`) se llenan solas conforme se usa la herramienta.
 
 Cuando avancemos a la Fase 2 te paso una plantilla con todas estas pestañas ya creadas para que solo cargues tus datos. Por ahora, esta es la referencia técnica.
+
+---
+
+## Vista "Mi Día" — cobertura individual
+
+No es una pestaña del Sheet — es una **vista derivada** que el frontend pinta llamando al endpoint `getDiaPersona`. Mide la ejecución de una persona en una fecha:
+
+- **Numerador** (lo que hizo): sus marcas y movimientos del día en `PilarA_ChecklistMarcas`, `PilarA_Historico`, `PilarB_ChecklistMarcas`, `PilarB_Diario`, `PilarC_ChecklistMarcas`, `PilarC_Movimientos`.
+- **Denominador** (lo esperado): items con `frecuencia=D AND activo=TRUE` de cada catálogo de check list, más las 8 etapas del día del Pilar B.
+- **Cobertura** = numerador / denominador, agregada y por pilar.
+- **Faltantes**: items diarios sin marca de nadie todavía → la lista accionable de "lo que aún se puede hacer hoy".
+
+Aterrizan aquí por defecto los roles `auxiliar` y `administracion`. El auditor y el gerente pueden ver el día de cualquier persona desde un selector. Cualquier otro rol solo ve el suyo.

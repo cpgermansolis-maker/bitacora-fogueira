@@ -342,3 +342,269 @@ function calcularKPIs() {
     }
   ];
 }
+
+// =============================================================
+// DÍA DE UNA PERSONA — cobertura del trabajo del día
+// --------------------------------------------------------------
+// Devuelve qué hizo, qué le faltaba y cuánto cubrió de lo esperado
+// para una persona en una fecha. Pensado para evaluar la ejecución
+// diaria de la auxiliar (Estefanía), pero sirve para cualquier email.
+//
+// Modelo de cobertura (denominador "lo que se esperaba hoy"):
+//   A · items diarios activos de PilarA_ChecklistItems
+//   B · items diarios activos de PilarB_ChecklistItems + 8 etapas del día
+//   C · items diarios activos de PilarC_ChecklistItems
+// Numerador: acciones del email en cada tabla con timestamp/fecha del día.
+// Movimientos de Pilar C y actualizaciones de % en Pilar A son trabajo
+// extra (no tienen denominador esperado fijo); cuentan como "actividad".
+//
+// Solo el auditor o gerente pueden consultar el día de otra persona;
+// cualquier usuario puede consultar el suyo.
+// =============================================================
+function getDiaPersona(user, payload) {
+  payload = payload || {};
+  const email = String(payload.email || user.email || '').toLowerCase().trim();
+  if (!email) throw new Error('Falta el email de la persona');
+
+  // Solo auditor/gerente pueden ver el día de otra persona
+  if (email !== String(user.email).toLowerCase().trim() &&
+      user.rol !== 'auditor' && user.rol !== 'gerente') {
+    throw new Error('Solo el auditor o el gerente pueden ver el día de otra persona');
+  }
+
+  // Verificar que la persona exista (y traer su nombre/rol)
+  const persona = sheetData(SHEETS.USUARIOS).find(u =>
+    String(u.email).toLowerCase().trim() === email
+  );
+  if (!persona) throw new Error('Persona no encontrada en Usuarios: ' + email);
+
+  const fecha = String(payload.fecha || todayStr()); // YYYY-MM-DD
+  const tz = ss().getSpreadsheetTimeZone() || 'America/Mexico_City';
+
+  // Predicado: ¿este timestamp ISO cae en la fecha local de la operación?
+  // Usamos la TZ del Sheet para que "hoy" signifique el día del restaurante,
+  // no UTC (un cierre a las 23:30 hora MX no debe contar al día siguiente).
+  function esDelDia(ts) {
+    if (!ts) return false;
+    const d = new Date(ts);
+    if (isNaN(d.getTime())) return false;
+    return Utilities.formatDate(d, tz, 'yyyy-MM-dd') === fecha;
+  }
+
+  // ---------- A · Soft Restaurant ----------
+  const itemsA = sheetData(SHEETS.PILAR_A_CK_ITEMS)
+    .filter(it => String(it.activo).toUpperCase() === 'TRUE');
+  const itemsADiarios = itemsA.filter(it => it.frecuencia === 'D');
+  const marcasA = sheetData(SHEETS.PILAR_A_CK_MARCAS);
+  const marcasAHoy = marcasA.filter(m =>
+    periodoCanonico(m.periodo, 'D') === fecha
+  );
+  const marcasAPersonaHoy = marcasAHoy.filter(m =>
+    String(m.usuario_email).toLowerCase().trim() === email
+  );
+  const histA = sheetData(SHEETS.PILAR_A_HIST).filter(h =>
+    esDelDia(h.timestamp) &&
+    String(h.usuario_email).toLowerCase().trim() === email
+  );
+
+  // Faltantes A: items diarios sin marca de NADIE el día (los que ella podría atacar)
+  const itemsAMarcadosIds = {};
+  marcasAHoy.forEach(m => { itemsAMarcadosIds[String(m.item_id)] = true; });
+  const faltantesA = itemsADiarios
+    .filter(it => !itemsAMarcadosIds[String(it.id)])
+    .map(it => ({ pilar: 'A', tipo: 'checklist',
+                  id: it.id, descripcion: it.descripcion,
+                  responsable_rol: it.responsable_rol }));
+
+  const denomA = itemsADiarios.length;
+  const numA = marcasAPersonaHoy.length;
+  const pctA = denomA > 0 ? Math.round((numA * 100) / denomA) : null;
+
+  // ---------- B · Conciliación ----------
+  const itemsB = sheetData(SHEETS.PILAR_B_CK_ITEMS)
+    .filter(it => String(it.activo).toUpperCase() === 'TRUE');
+  const itemsBDiarios = itemsB.filter(it => it.frecuencia === 'D');
+  const marcasB = sheetData(SHEETS.PILAR_B_CK_MARCAS);
+  const marcasBHoy = marcasB.filter(m =>
+    periodoCanonico(m.periodo, 'D') === fecha
+  );
+  const marcasBPersonaHoy = marcasBHoy.filter(m =>
+    String(m.usuario_email).toLowerCase().trim() === email
+  );
+  const etapasB = sheetData(SHEETS.PILAR_B_ETAPAS);
+  const diarioB = sheetData(SHEETS.PILAR_B_DIARIO).filter(d =>
+    String(d.fecha).indexOf(fecha) === 0
+  );
+  const etapasBPersonaHoy = diarioB.filter(d =>
+    String(d.usuario_completo_email).toLowerCase().trim() === email &&
+    String(d.completado).toUpperCase() === 'TRUE'
+  );
+
+  const itemsBMarcadosIds = {};
+  marcasBHoy.forEach(m => { itemsBMarcadosIds[String(m.item_id)] = true; });
+  const faltantesB = itemsBDiarios
+    .filter(it => !itemsBMarcadosIds[String(it.id)])
+    .map(it => ({ pilar: 'B', tipo: 'checklist',
+                  id: it.id, descripcion: it.descripcion,
+                  responsable_rol: it.responsable_rol, etapa_id: it.etapa_id }));
+  // Etapas B no marcadas por nadie hoy
+  const etapasBCompletadasIds = {};
+  diarioB.forEach(d => {
+    if (String(d.completado).toUpperCase() === 'TRUE') etapasBCompletadasIds[d.etapa_id] = true;
+  });
+  const etapasBFaltantes = etapasB
+    .filter(et => !etapasBCompletadasIds[et.id])
+    .map(et => ({ pilar: 'B', tipo: 'etapa',
+                  id: et.id, descripcion: et.nombre,
+                  responsable_rol: et.responsable_rol }));
+
+  const denomB = itemsBDiarios.length + etapasB.length;
+  const numB = marcasBPersonaHoy.length + etapasBPersonaHoy.length;
+  const pctB = denomB > 0 ? Math.round((numB * 100) / denomB) : null;
+
+  // ---------- C · Inventarios ----------
+  const itemsC = sheetData(SHEETS.PILAR_C_CK_ITEMS)
+    .filter(it => String(it.activo).toUpperCase() === 'TRUE');
+  const itemsCDiarios = itemsC.filter(it => it.frecuencia === 'D');
+  const marcasC = sheetData(SHEETS.PILAR_C_CK_MARCAS);
+  const marcasCHoy = marcasC.filter(m =>
+    periodoCanonico(m.periodo, 'D') === fecha
+  );
+  const marcasCPersonaHoy = marcasCHoy.filter(m =>
+    String(m.usuario_email).toLowerCase().trim() === email
+  );
+  const movsCPersonaHoy = sheetData(SHEETS.PILAR_C_MOV).filter(m =>
+    esDelDia(m.timestamp) &&
+    String(m.usuario_email).toLowerCase().trim() === email
+  );
+
+  const itemsCMarcadosIds = {};
+  marcasCHoy.forEach(m => { itemsCMarcadosIds[String(m.item_id)] = true; });
+  const faltantesC = itemsCDiarios
+    .filter(it => !itemsCMarcadosIds[String(it.id)])
+    .map(it => ({ pilar: 'C', tipo: 'checklist',
+                  id: it.id, descripcion: it.descripcion,
+                  responsable_rol: it.responsable_rol, etapa_id: it.etapa_id }));
+
+  const denomC = itemsCDiarios.length;
+  const numC = marcasCPersonaHoy.length;
+  const pctC = denomC > 0 ? Math.round((numC * 100) / denomC) : null;
+
+  // ---------- Cobertura total ----------
+  const denomTotal = denomA + denomB + denomC;
+  const numTotal = numA + numB + numC;
+  const pctTotal = denomTotal > 0 ? Math.round((numTotal * 100) / denomTotal) : null;
+
+  // ---------- Línea de tiempo (todo lo que sí hizo) ----------
+  const lineaTiempo = [];
+  marcasAPersonaHoy.forEach(m => {
+    const it = itemsA.find(x => x.id === m.item_id);
+    lineaTiempo.push({
+      timestamp: m.timestamp,
+      pilar: 'A',
+      icon: Number(m.valor) === 1 ? '✓' : '✗',
+      titulo: 'Check list A · ' + (it ? it.descripcion : m.item_id),
+      detalle: m.observaciones || ''
+    });
+  });
+  histA.forEach(h => {
+    lineaTiempo.push({
+      timestamp: h.timestamp,
+      pilar: 'A',
+      icon: '↑',
+      titulo: `Pilar A · ${h.modulo_id} ${h.porcentaje_anterior}% → ${h.porcentaje_nuevo}%`,
+      detalle: h.observaciones || ''
+    });
+  });
+  marcasBPersonaHoy.forEach(m => {
+    const it = itemsB.find(x => x.id === m.item_id);
+    lineaTiempo.push({
+      timestamp: m.timestamp,
+      pilar: 'B',
+      icon: Number(m.valor) === 1 ? '✓' : '✗',
+      titulo: 'Check list B · ' + (it ? it.descripcion : m.item_id),
+      detalle: m.observaciones || ''
+    });
+  });
+  etapasBPersonaHoy.forEach(d => {
+    const et = etapasB.find(x => x.id === d.etapa_id);
+    lineaTiempo.push({
+      timestamp: fecha + 'T' + (d.hora_completado || '00:00') + ':00',
+      pilar: 'B',
+      icon: '●',
+      titulo: 'Etapa B · ' + (et ? et.nombre : d.etapa_id) + ' cerrada',
+      detalle: d.observaciones || (String(d.bandera_roja).toUpperCase() === 'TRUE' ? '🚩 bandera roja' : '')
+    });
+  });
+  marcasCPersonaHoy.forEach(m => {
+    const it = itemsC.find(x => x.id === m.item_id);
+    lineaTiempo.push({
+      timestamp: m.timestamp,
+      pilar: 'C',
+      icon: Number(m.valor) === 1 ? '✓' : '✗',
+      titulo: 'Check list C · ' + (it ? it.descripcion : m.item_id),
+      detalle: m.observaciones || ''
+    });
+  });
+  movsCPersonaHoy.forEach(m => {
+    lineaTiempo.push({
+      timestamp: m.timestamp,
+      pilar: 'C',
+      icon: '→',
+      titulo: 'Pilar C · ' + m.requisicion_id + ' → ' + m.etapa_id,
+      detalle: m.observaciones || ''
+    });
+  });
+  // Cronología ascendente (lo primero del día arriba)
+  lineaTiempo.sort((a, b) => String(a.timestamp).localeCompare(String(b.timestamp)));
+
+  // ---------- Faltantes consolidados (lo que aún puede ejecutar) ----------
+  const faltantes = []
+    .concat(faltantesA, etapasBFaltantes, faltantesB, faltantesC);
+
+  return {
+    persona: {
+      email: String(persona.email).toLowerCase().trim(),
+      nombre: persona.nombre,
+      rol: persona.rol
+    },
+    fecha,
+    cobertura: {
+      numerador: numTotal,
+      denominador: denomTotal,
+      pct: pctTotal,
+      semaforo: pctTotal === null ? 'amarillo' : (
+        pctTotal >= 80 ? 'verde' :
+        pctTotal >= 50 ? 'amarillo' :
+        pctTotal >= 30 ? 'naranja' : 'rojo'
+      )
+    },
+    por_pilar: {
+      A: { numerador: numA, denominador: denomA, pct: pctA,
+           extra_actualizaciones: histA.length },
+      B: { numerador: numB, denominador: denomB, pct: pctB,
+           items_marcados: marcasBPersonaHoy.length,
+           etapas_cerradas: etapasBPersonaHoy.length,
+           total_items_dia: itemsBDiarios.length, total_etapas: etapasB.length },
+      C: { numerador: numC, denominador: denomC, pct: pctC,
+           extra_movimientos: movsCPersonaHoy.length }
+    },
+    faltantes,
+    linea_tiempo: lineaTiempo
+  };
+}
+
+// Lista de personas seleccionables por el auditor en la vista "Mi Día".
+// Devuelve solo emails activos. El auditor ve a todos; otros roles
+// reciben solo su propia ficha (la UI no muestra el selector).
+function getPersonasDia(user) {
+  const usuarios = sheetData(SHEETS.USUARIOS)
+    .filter(u => String(u.activo).toUpperCase() === 'TRUE')
+    .map(u => ({
+      email: String(u.email).toLowerCase().trim(),
+      nombre: String(u.nombre || ''),
+      rol: String(u.rol || '')
+    }));
+  if (user.rol === 'auditor' || user.rol === 'gerente') return usuarios;
+  return usuarios.filter(u => u.email === String(user.email).toLowerCase().trim());
+}
