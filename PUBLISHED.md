@@ -115,7 +115,7 @@ El sistema soporta **dos modos de operación** controlados desde la pestaña `Co
 
 1. Abre el [Sheet](https://docs.google.com/spreadsheets/d/1E-bgQJCi9UFNktoNmVazUQ-b6JOWyU0lK9uVtsD2ILA/edit) → pestaña `Config`.
 2. Edita la celda de la fila `modo_responsable` y escribe `auxiliar_unica` o `por_rol`.
-3. La app se actualiza la próxima vez que cualquier usuario recargue (F5) o navegue al tablero — `getDashboard` trae el config fresco en cada llamada.
+3. La app se actualiza la próxima vez que cualquier usuario recargue (F5) o entre a Mi Día — `getDiaPersona` trae el config fresco en cada llamada.
 
 ### Personalizar el nombre que aparece en el banner
 

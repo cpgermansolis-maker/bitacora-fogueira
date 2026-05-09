@@ -609,7 +609,165 @@ function getDiaPersona(user, payload) {
            extra_movimientos: movsCPersonaHoy.length }
     },
     faltantes,
-    linea_tiempo: lineaTiempo
+    linea_tiempo: lineaTiempo,
+    // Config fresca en cada llamada — Mi Día es la home, así que aquí
+    // refrescamos modo_responsable / auxiliar_nombre sin requerir logout.
+    config: configMap()
+  };
+}
+
+// =============================================================
+// Mi Día · Tendencia de N días (default 7) para una persona
+// --------------------------------------------------------------
+// Misma definición que getDiaPersona pero comprimida al par
+// (cobertura, cumplimiento) por día. Cargamos cada sheet una sola
+// vez y filtramos en memoria por fecha — es 7x más rápido que
+// llamar getDiaPersona en bucle (mismo I/O, distinto particionado).
+// =============================================================
+function getTendenciaPersona(user, payload) {
+  payload = payload || {};
+  const email = String(payload.email || user.email || '').toLowerCase().trim();
+  if (!email) throw new Error('Falta el email de la persona');
+
+  if (email !== String(user.email).toLowerCase().trim() &&
+      user.rol !== 'auditor' && user.rol !== 'gerente') {
+    throw new Error('Solo el auditor o el gerente pueden ver la tendencia de otra persona');
+  }
+
+  const persona = sheetData(SHEETS.USUARIOS).find(u =>
+    String(u.email).toLowerCase().trim() === email
+  );
+  if (!persona) throw new Error('Persona no encontrada en Usuarios: ' + email);
+
+  const tz = ss().getSpreadsheetTimeZone() || 'America/Mexico_City';
+  const fmt = (d) => Utilities.formatDate(d, tz, 'yyyy-MM-dd');
+  const dias = Math.max(2, Math.min(30, Number(payload.dias || 7)));
+  const fechaCorte = String(payload.fecha_corte || todayStr());
+  // Anclamos al mediodía local para que el offset diario no salte
+  // entre TZs (un new Date('YYYY-MM-DD') se interpreta UTC y restar
+  // 86400000 ms en la frontera de zona horaria saltaría dos días).
+  const dCorte = new Date(fechaCorte + 'T12:00:00');
+
+  const fechas = [];
+  for (let i = dias - 1; i >= 0; i--) {
+    fechas.push(fmt(new Date(dCorte.getTime() - i * 86400000)));
+  }
+  const fechaMin = fechas[0];
+
+  // Catálogos estáticos (denominadores constantes en la ventana).
+  const itemsADiarios = sheetData(SHEETS.PILAR_A_CK_ITEMS)
+    .filter(it => String(it.activo).toUpperCase() === 'TRUE' && it.frecuencia === 'D');
+  const itemsBDiarios = sheetData(SHEETS.PILAR_B_CK_ITEMS)
+    .filter(it => String(it.activo).toUpperCase() === 'TRUE' && it.frecuencia === 'D');
+  const itemsCDiarios = sheetData(SHEETS.PILAR_C_CK_ITEMS)
+    .filter(it => String(it.activo).toUpperCase() === 'TRUE' && it.frecuencia === 'D');
+  const etapasB = sheetData(SHEETS.PILAR_B_ETAPAS);
+
+  // Marcas y movimientos del email, dentro de la ventana, normalizados.
+  function normMarcas(name) {
+    return sheetData(name)
+      .map(m => ({
+        _per: periodoCanonico(m.periodo, 'D'),
+        _val: Number(m.valor),
+        _user: String(m.usuario_email).toLowerCase().trim(),
+        item_id: m.item_id
+      }))
+      .filter(m => m._per >= fechaMin && m._per <= fechaCorte && m._user === email);
+  }
+  const marcasA = normMarcas(SHEETS.PILAR_A_CK_MARCAS);
+  const marcasB = normMarcas(SHEETS.PILAR_B_CK_MARCAS);
+  const marcasC = normMarcas(SHEETS.PILAR_C_CK_MARCAS);
+
+  const diarioB = sheetData(SHEETS.PILAR_B_DIARIO)
+    .map(d => ({
+      _fecha: String(d.fecha).slice(0, 10),
+      _user: String(d.usuario_completo_email).toLowerCase().trim(),
+      _completado: String(d.completado).toUpperCase() === 'TRUE'
+    }))
+    .filter(d =>
+      d._fecha >= fechaMin && d._fecha <= fechaCorte &&
+      d._user === email && d._completado
+    );
+
+  function normTimestamp(name) {
+    return sheetData(name)
+      .map(x => ({
+        _fecha: x.timestamp
+          ? Utilities.formatDate(new Date(x.timestamp), tz, 'yyyy-MM-dd')
+          : '',
+        _user: String(x.usuario_email).toLowerCase().trim()
+      }))
+      .filter(x => x._fecha >= fechaMin && x._fecha <= fechaCorte && x._user === email);
+  }
+  const histA = normTimestamp(SHEETS.PILAR_A_HIST);
+  const movsC = normTimestamp(SHEETS.PILAR_C_MOV);
+
+  const denomA = itemsADiarios.length;
+  const denomB = itemsBDiarios.length + etapasB.length;
+  const denomC = itemsCDiarios.length;
+  const denomTotal = denomA + denomB + denomC;
+
+  const serie = fechas.map(fecha => {
+    const mA = marcasA.filter(m => m._per === fecha);
+    const mB = marcasB.filter(m => m._per === fecha);
+    const mC = marcasC.filter(m => m._per === fecha);
+    const eB = diarioB.filter(d => d._fecha === fecha);
+    const hA = histA.filter(h => h._fecha === fecha);
+    const moC = movsC.filter(m => m._fecha === fecha);
+
+    const numA = mA.length;
+    const numB = mB.length + eB.length;
+    const numC = mC.length;
+    // Etapa B cerrada siempre cuenta como cumplida (la fila aparece solo
+    // si la persona la cerró). Items siguen el valor binario 1/0.
+    const cumA = mA.filter(x => x._val === 1).length;
+    const cumB = mB.filter(x => x._val === 1).length + eB.length;
+    const cumC = mC.filter(x => x._val === 1).length;
+
+    const num = numA + numB + numC;
+    const cum = cumA + cumB + cumC;
+    const pctCob = denomTotal > 0 ? Math.round((num * 100) / denomTotal) : null;
+    const pctCum = num > 0 ? Math.round((cum * 100) / num) : null;
+
+    return {
+      fecha,
+      cobertura_pct: pctCob,
+      cumplimiento_pct: pctCum,
+      numerador: num,
+      denominador: denomTotal,
+      cumplidas: cum,
+      extras: hA.length + moC.length
+    };
+  });
+
+  // Resumen de la ventana — útil para los KPIs arriba de la gráfica.
+  const conActividad = serie.filter(s => s.cobertura_pct !== null && s.cobertura_pct > 0);
+  const conCumpl = serie.filter(s => s.cumplimiento_pct !== null);
+  const promCob = conActividad.length > 0
+    ? Math.round(conActividad.reduce((s, x) => s + x.cobertura_pct, 0) / conActividad.length)
+    : null;
+  const promCum = conCumpl.length > 0
+    ? Math.round(conCumpl.reduce((s, x) => s + x.cumplimiento_pct, 0) / conCumpl.length)
+    : null;
+  const mejorDia = conActividad.length > 0
+    ? conActividad.reduce((best, x) => x.cobertura_pct > best.cobertura_pct ? x : best)
+    : null;
+
+  return {
+    persona: {
+      email: String(persona.email).toLowerCase().trim(),
+      nombre: persona.nombre,
+      rol: persona.rol
+    },
+    fecha_corte: fechaCorte,
+    dias: dias,
+    serie: serie,
+    resumen: {
+      dias_con_actividad: conActividad.length,
+      pct_cobertura_prom: promCob,
+      pct_cumplimiento_prom: promCum,
+      mejor_dia: mejorDia ? { fecha: mejorDia.fecha, pct: mejorDia.cobertura_pct } : null
+    }
   };
 }
 

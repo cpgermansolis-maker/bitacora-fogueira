@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bitácora de Supervisión · Fogueira</title>
-<meta name="description" content="Tablero de supervisión de los tres pilares operativos de Fogueira — Grupo Toda · Plaza Oaxaca">
+<meta name="description" content="Sistema de supervisión de los tres pilares operativos de Fogueira — Grupo Toda · Plaza Oaxaca">
 
 <!-- Tipografía: Fraunces (display) + DM Sans (body). Combinación poco usada y con personalidad editorial. -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -297,7 +297,7 @@ body.has-modo-banner .nav { top: calc(70px + 40px); }
 .btn-ghost:hover { background: var(--bg-paper); color: var(--ink); }
 
 /* =========================================================
-   DASHBOARD
+   HERO — encabezado reutilizable (Mi Día, Usuarios, etc.)
    ========================================================= */
 .dash-hero {
   background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-paper) 100%);
@@ -313,118 +313,6 @@ body.has-modo-banner .nav { top: calc(70px + 40px); }
 }
 .dash-hero-text .meta span::before { content: '·'; margin-right: 1rem; color: var(--gold); }
 .dash-hero-text .meta span:first-child::before { content: ''; margin: 0; }
-.dash-date {
-  font-family: var(--font-display); font-weight: 500;
-  font-size: 1.5rem; color: var(--ink); text-align: right;
-}
-.dash-date small { display: block; font-size: 0.72rem; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.12em; font-family: var(--font-body); }
-
-.pillar-grid {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.25rem; margin-bottom: 2rem;
-}
-.pillar-card {
-  background: var(--bg-elevated); border-radius: 4px;
-  padding: 1.5rem 1.5rem 1.25rem;
-  box-shadow: var(--shadow-sm); border: 1px solid var(--border);
-  cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
-  position: relative; overflow: hidden;
-}
-.pillar-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
-.pillar-card::after {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
-  background: var(--ink-light);
-}
-.pillar-card.s-verde::after    { background: var(--green); }
-.pillar-card.s-amarillo::after { background: var(--amber); }
-.pillar-card.s-naranja::after  { background: var(--orange); }
-.pillar-card.s-rojo::after     { background: var(--red); }
-
-.pillar-card .label {
-  font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.18em;
-  color: var(--ink-muted); margin-bottom: 0.4rem; font-weight: 600;
-}
-.pillar-card h2 { font-size: 1.3rem; margin-bottom: 1rem; line-height: 1.2; }
-.pillar-card .big-number {
-  font-family: var(--font-display); font-weight: 600;
-  font-size: 3rem; line-height: 1; color: var(--ink); margin-bottom: 0.5rem;
-}
-.pillar-card .big-number .pct-sign { font-size: 1.5rem; color: var(--ink-soft); margin-left: 0.15rem; }
-.pillar-card .stat {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 0.5rem 0; font-size: 0.85rem;
-  border-top: 1px dashed var(--border); margin-top: 0.4rem;
-}
-.pillar-card .stat:first-of-type { border-top: 1px solid var(--border); margin-top: 1rem; padding-top: 0.7rem; }
-.pillar-card .stat-label { color: var(--ink-soft); }
-.pillar-card .stat-value { font-weight: 600; }
-.pillar-card .stat-value.warn { color: var(--red); }
-
-.semaforo {
-  display: inline-flex; align-items: center; gap: 0.4rem;
-  font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
-  padding: 0.3rem 0.7rem; border-radius: 999px;
-}
-.semaforo .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-.semaforo.s-verde    { background: var(--green-bg);  color: var(--green); }
-.semaforo.s-verde .dot    { background: var(--green); }
-.semaforo.s-amarillo { background: var(--amber-bg);  color: var(--amber); }
-.semaforo.s-amarillo .dot { background: var(--amber); }
-.semaforo.s-naranja  { background: var(--orange-bg); color: var(--orange); }
-.semaforo.s-naranja .dot  { background: var(--orange); }
-.semaforo.s-rojo     { background: var(--red-bg);    color: var(--red); }
-.semaforo.s-rojo .dot     { background: var(--red); }
-
-/* =========================================================
-   COMENTARIOS / BITÁCORA
-   ========================================================= */
-.comments-section {
-  background: var(--bg-elevated); border: 1px solid var(--border);
-  border-radius: 4px; padding: 1.5rem; box-shadow: var(--shadow-sm);
-}
-.comments-section h2 {
-  display: flex; align-items: center; gap: 0.7rem;
-  margin-bottom: 1.25rem; padding-bottom: 0.85rem;
-  border-bottom: 1px solid var(--border);
-  font-size: 1.3rem;
-}
-.comments-section h2 .accent {
-  width: 4px; height: 1.4rem; background: var(--gold); border-radius: 2px;
-}
-.comment-list { display: flex; flex-direction: column; gap: 0.85rem; max-height: 400px; overflow-y: auto; }
-.comment {
-  display: flex; gap: 0.85rem; padding: 0.85rem;
-  border-radius: 4px; background: var(--bg-paper);
-  border-left: 3px solid var(--gold-line);
-}
-.comment.tipo-alerta     { border-left-color: var(--red); }
-.comment.tipo-validacion { border-left-color: var(--green); }
-.comment.tipo-pregunta   { border-left-color: var(--orange); }
-.comment-avatar {
-  width: 36px; height: 36px; border-radius: 50%;
-  background: var(--gold-soft); color: var(--gold-deep);
-  display: grid; place-items: center; font-weight: 600;
-  flex-shrink: 0; font-size: 0.85rem;
-}
-.comment-body { flex: 1; min-width: 0; }
-.comment-head { display: flex; gap: 0.6rem; align-items: baseline; flex-wrap: wrap; margin-bottom: 0.2rem; }
-.comment-author { font-weight: 600; font-size: 0.88rem; }
-.comment-time { color: var(--ink-muted); font-size: 0.75rem; }
-.comment-tag {
-  font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em;
-  padding: 0.1rem 0.45rem; border-radius: 3px; font-weight: 600;
-  background: var(--gold-soft); color: var(--gold-deep);
-}
-.comment-text { font-size: 0.92rem; color: var(--ink); white-space: pre-wrap; word-wrap: break-word; }
-
-.comment-form {
-  margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid var(--border);
-  display: flex; flex-direction: column; gap: 0.6rem;
-}
-.comment-form-row { display: flex; gap: 0.6rem; flex-wrap: wrap; }
-.comment-form select { max-width: 180px; }
-.comment-form textarea { resize: vertical; min-height: 70px; }
-.comment-form-buttons { display: flex; justify-content: flex-end; gap: 0.5rem; }
 
 /* =========================================================
    PILAR A — Soft Restaurant
@@ -536,6 +424,55 @@ body.has-modo-banner .nav { top: calc(70px + 40px); }
 .line-chart .ax         { font-size: 11px; fill: var(--ink-muted); font-family: inherit; }
 .line-chart .ax.meta    { fill: var(--green); }
 .line-chart .lbl-last   { font-size: 11px; font-weight: 600; fill: var(--ink); }
+.line-chart .line-2     { fill: none; stroke: var(--green); stroke-width: 2; stroke-dasharray: 0; }
+.line-chart .dot-2      { fill: var(--green); }
+.line-chart .lbl-last-2 { font-size: 11px; font-weight: 600; fill: var(--green); }
+/* Leyenda compacta arriba del SVG */
+.chart-legend {
+  display: flex; gap: 1.25rem; margin-bottom: 0.4rem;
+  font-size: 0.78rem; color: var(--ink-soft);
+}
+.chart-legend .lg-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 0.4rem; vertical-align: middle; }
+.chart-legend .lg-dot.s1 { background: var(--gold-deep); }
+.chart-legend .lg-dot.s2 { background: var(--green); }
+
+/* Tabla diaria de la sub-vista "Tendencia 7d" en Mi Día. */
+.trend-table {
+  width: 100%; border-collapse: collapse;
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: 4px; overflow: hidden; font-size: 0.88rem;
+}
+.trend-table thead { background: var(--bg-paper); border-bottom: 2px solid var(--border-strong); }
+.trend-table th {
+  text-align: left; padding: 0.55rem 0.75rem;
+  font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--ink-soft); font-weight: 600;
+}
+.trend-table th.num, .trend-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.trend-table td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); }
+.trend-table tbody tr:last-child td { border-bottom: none; }
+.trend-table tbody tr:hover { background: var(--bg-paper); }
+
+/* Selector de periodo del dashboard de evolución (Pilar A). */
+.period-bar {
+  display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;
+  margin: 0 0 1rem 0;
+}
+.period-bar .period-label {
+  font-size: 0.78rem; color: var(--ink-soft); margin-right: 0.4rem;
+  text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600;
+}
+.period-bar .period-btn {
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  color: var(--ink-soft); padding: 0.4rem 0.85rem;
+  border-radius: 999px; font-size: 0.82rem; font-family: inherit;
+  cursor: pointer; transition: all 0.15s;
+}
+.period-bar .period-btn:hover { border-color: var(--gold-line); color: var(--ink); }
+.period-bar .period-btn.active {
+  background: var(--gold-deep); border-color: var(--gold-deep);
+  color: white; font-weight: 600;
+}
 
 .evol-grid {
   display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
@@ -1260,8 +1197,6 @@ body.has-modo-banner .nav { top: calc(70px + 40px); }
   .nav { top: 60px; }
   .main { padding: 1rem 0.85rem 3rem; }
   .dash-hero { padding: 1.25rem 1.25rem; }
-  .dash-date { text-align: left; font-size: 1.2rem; }
-  .pillar-card { padding: 1.25rem 1.25rem 1rem; }
   .summary-big { padding: 1.5rem 1rem; }
   .login-card { padding: 1.75rem 1.5rem; }
 }
@@ -1486,7 +1421,7 @@ body.has-modo-banner .nav { top: calc(70px + 40px); }
   <section class="view active" id="view-login">
     <div class="login-shell">
       <div class="login-card">
-        <h1 class="login-title">Acceso al tablero</h1>
+        <h1 class="login-title">Acceso al sistema</h1>
         <p class="login-sub">Ingresa con el correo Google que esté registrado en la pestaña <em>Usuarios</em> del Sheet.</p>
         <form onsubmit="event.preventDefault(); App.login();">
           <div style="margin-bottom:1rem;">
@@ -1560,19 +1495,26 @@ const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbzD4CrG1aidpykl1VRm
 const State = {
   user: null,
   config: {},
-  dashboard: null,
   pilarA: null,
   pilarAChecklist: null,
   pilarASubview: 'estado',
+  pilarAEvolucion: null,
+  pilarAEvoVentana: 30,
   pilarAGuiada: null,
   pilarB: null,
   pilarBChecklist: null,
   pilarBChecklistDetalle: null,
   pilarBGuiada: null,
+  pilarBSubview: 'estado',
+  pilarBEvolucion: null,
   pilarC: null,
   pilarCChecklist: null,
   pilarCChecklistDetalle: null,
   pilarCGuiada: null,
+  pilarCSubview: 'estado',
+  pilarCEvolucion: null,
+  miDiaSubview: 'hoy',
+  miDiaTendencia: null,
   // Mi Día — cobertura individual del trabajo del día
   miDia: null,
   miDiaPersonas: null,
@@ -1631,9 +1573,6 @@ function semaforoFromPct(pct) {
   if (pct >= 30) return 'naranja';
   return 'rojo';
 }
-function semaforoLabel(s) {
-  return { verde: 'En meta', amarillo: 'Atención', naranja: 'Brecha', rojo: 'Crítico' }[s] || s;
-}
 function formatDate(iso) {
   if (!iso) return '';
   const d = new Date(iso);
@@ -1684,6 +1623,94 @@ function svgLineaEvolucion(serie, meta) {
   </svg>`;
 }
 
+// SVG multi-serie genérico — usado por Pilar B (cobertura+cumplimiento)
+// y Pilar C (throughput+ciclo). Cada serie puede tener su propio yMax
+// (por eso C usa eje primario para "cerradas" y secundario para "días").
+//
+//   series:[{ key, label, points:[{xLabel, y}], yMax, axis:'L'|'R', ... }]
+//   xTicks: número de etiquetas X a mostrar (3 por defecto)
+function svgLineaMultiserie(series, opts) {
+  opts = opts || {};
+  if (!series || series.length === 0) return '';
+  const validSeries = series.filter(s => s.points && s.points.length >= 2);
+  if (validSeries.length === 0) return '';
+  const W = 720, H = 220, PAD_L = 38, PAD_R = 42, PAD_T = 14, PAD_B = 28;
+  const innerW = W - PAD_L - PAD_R, innerH = H - PAD_T - PAD_B;
+  const n = validSeries[0].points.length;
+  const x = (i) => PAD_L + (n === 1 ? innerW / 2 : (i * innerW) / (n - 1));
+
+  // Etiquetas X: primer, intermedio (si hay >=4) y último.
+  const labelIdx = n <= 3 ? [0, n-1] : [0, Math.floor((n-1)/2), n-1];
+  const xLabels = labelIdx.map(i =>
+    `<text x="${x(i).toFixed(1)}" y="${H - 8}" text-anchor="middle" class="ax">${escapeHtml(validSeries[0].points[i].xLabel)}</text>`
+  ).join('');
+
+  // Cada serie tiene su escala Y propia. Si dos comparten yMax y axis,
+  // se ven a la par; si no, una usa eje izquierdo y la otra el derecho.
+  const renderSerie = (s, idx) => {
+    const yMax = s.yMax || 100;
+    const yMin = s.yMin || 0;
+    const y = (v) => PAD_T + innerH - (Math.max(yMin, Math.min(yMax, v)) - yMin) / (yMax - yMin) * innerH;
+    const isSecond = idx === 1;
+    const lineCls = isSecond ? 'line-2' : 'line';
+    const dotCls  = isSecond ? 'dot-2' : 'dot';
+    const lblCls  = isSecond ? 'lbl-last-2' : 'lbl-last';
+    const validPts = s.points.filter(p => p.y !== null && p.y !== undefined);
+    if (validPts.length < 2) return '';
+    // Path multi-segmento: cualquier punto null rompe la línea y arranca uno nuevo.
+    let cleanPath = '';
+    let lastValid = false;
+    s.points.forEach((p, i) => {
+      if (p.y === null || p.y === undefined) {
+        lastValid = false;
+      } else {
+        cleanPath += (lastValid ? ' L' : ' M') + x(i).toFixed(1) + ',' + y(p.y).toFixed(1);
+        lastValid = true;
+      }
+    });
+    cleanPath = cleanPath.trim();
+    const dots = s.points.map((p, i) => p.y === null || p.y === undefined
+      ? ''
+      : `<circle cx="${x(i).toFixed(1)}" cy="${y(p.y).toFixed(1)}" r="3" class="${dotCls}"/>`
+    ).join('');
+    const last = validPts[validPts.length - 1];
+    const lastIdx = s.points.lastIndexOf(last);
+    const lastVal = (s.fmtY ? s.fmtY(last.y) : last.y);
+    const lastDot = `<circle cx="${x(lastIdx).toFixed(1)}" cy="${y(last.y).toFixed(1)}" r="5" class="${dotCls}"/>` +
+                    `<text x="${x(lastIdx).toFixed(1)}" y="${(y(last.y)-10).toFixed(1)}" text-anchor="end" class="${lblCls}">${lastVal}</text>`;
+    return `<path d="${cleanPath}" class="${lineCls}"/>${dots}${lastDot}`;
+  };
+
+  // Eje Y izquierdo (de la serie 1) y Y derecho (si hay 2da con axis='R').
+  const s1 = validSeries[0];
+  const yMax1 = s1.yMax || 100;
+  const ticksL = [yMax1, Math.round(yMax1 / 2), 0]
+    .map(v => `<text x="${PAD_L - 6}" y="${(PAD_T + innerH - (v / yMax1) * innerH + 4).toFixed(1)}" text-anchor="end" class="ax">${v}</text>`)
+    .join('');
+  const yGrid = [yMax1, Math.round(yMax1 / 2), 0]
+    .map(v => `<line x1="${PAD_L}" x2="${W-PAD_R}" y1="${(PAD_T + innerH - (v / yMax1) * innerH).toFixed(1)}" y2="${(PAD_T + innerH - (v / yMax1) * innerH).toFixed(1)}" class="grid"/>`)
+    .join('');
+
+  let ticksR = '';
+  if (validSeries[1] && validSeries[1].axis === 'R') {
+    const s2 = validSeries[1];
+    const yMax2 = s2.yMax || 100;
+    ticksR = [yMax2, Math.round(yMax2 / 2), 0]
+      .map(v => `<text x="${W - PAD_R + 6}" y="${(PAD_T + innerH - (v / yMax2) * innerH + 4).toFixed(1)}" text-anchor="start" class="ax">${v}</text>`)
+      .join('');
+  }
+
+  const lines = validSeries.map((s, i) => renderSerie(s, i)).join('');
+
+  return `<svg viewBox="0 0 ${W} ${H}" class="line-chart" preserveAspectRatio="xMidYMid meet">
+    ${yGrid}
+    ${lines}
+    ${ticksL}
+    ${ticksR}
+    ${xLabels}
+  </svg>`;
+}
+
 function todayInputValue() {
   // Fecha local del navegador en formato YYYY-MM-DD.
   // No usar toISOString(): convierte a UTC y en zonas al oeste de Greenwich
@@ -1701,10 +1728,6 @@ function toast(msg, isError) {
   document.body.appendChild(t);
   setTimeout(() => t.remove(), 3500);
 }
-function initial(name) {
-  return (name || '?').trim().charAt(0).toUpperCase();
-}
-
 /* =========================================================
    APP — controlador principal
    ========================================================= */
@@ -1829,98 +1852,6 @@ const App = {
     this['render_' + view.replace('-', '_')]();
   },
 
-  /* =========== DASHBOARD =========== */
-  async render_dashboard() {
-    const c = el('dashboard-content');
-    try {
-      const data = await apiCall('getDashboard', {});
-      State.dashboard = data;
-      // Refrescar config (Sheet es la fuente de verdad — modo_responsable, etc.)
-      if (data.config) {
-        State.config = data.config;
-        try { localStorage.setItem('fogueira_config', JSON.stringify(State.config)); } catch(e) {}
-        this.applyModoBanner();
-      }
-      const { pilarA, pilarB, pilarC, comentarios, fecha } = data;
-      const today = new Date(fecha + 'T00:00:00').toLocaleDateString('es-MX',
-        { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
-      c.innerHTML = `
-        <div class="dash-hero">
-          <div class="dash-hero-text">
-            <h1>Buen día, ${escapeHtml(State.user.nombre.split(' ')[0])}.</h1>
-            <div class="meta">
-              <span>${escapeHtml(State.config.nombre_restaurante || 'Fogueira')}</span>
-              <span>Plaza ${escapeHtml(State.config.plaza || 'Oaxaca')}</span>
-              <span>${escapeHtml(State.user.rol)}</span>
-            </div>
-          </div>
-          <div class="dash-date">
-            ${today.split(',')[1] || today}
-            <small>${today.split(',')[0]}</small>
-          </div>
-        </div>
-
-        <div class="pillar-grid">
-          ${pillarCardHTML('A', 'Soft Restaurant 12', pilarA, 'pilar-a',
-            `${pilarA.focosRojos} módulos en zona roja`,
-            `Brecha al óptimo: ${pilarA.brecha} pts`)}
-          ${pillarCardHTML('B', 'Conciliación del día', pilarB, 'pilar-b',
-            `${pilarB.completadasHoy} de ${pilarB.totalEtapas} etapas cerradas`,
-            pilarB.banderasRojas > 0 ? `${pilarB.banderasRojas} banderas rojas` : 'Sin banderas rojas')}
-          ${pillarCardHTML('C', 'Flujo de Inventarios', pilarC, 'pilar-c',
-            `${pilarC.enCurso} requisiciones en curso`,
-            pilarC.bloqueadas > 0 ? `${pilarC.bloqueadas} bloqueadas` : 'Sin bloqueos')}
-        </div>
-
-        <div class="comments-section">
-          <h2><span class="accent"></span>Bitácora de comunicación</h2>
-          <div class="comment-list" id="comment-list">
-            ${comentariosListHTML(comentarios)}
-          </div>
-          <div class="comment-form">
-            <div class="comment-form-row">
-              <select id="cmt-tipo">
-                <option value="reporte">Reporte</option>
-                <option value="pregunta">Pregunta</option>
-                <option value="alerta">Alerta</option>
-                <option value="validacion">Validación</option>
-              </select>
-              <select id="cmt-pilar">
-                <option value="general">General</option>
-                <option value="A">Pilar A</option>
-                <option value="B">Pilar B</option>
-                <option value="C">Pilar C</option>
-              </select>
-            </div>
-            <textarea id="cmt-msg" placeholder="Escribe un comentario, reporte o pregunta..."></textarea>
-            <div class="comment-form-buttons">
-              <button class="btn-primary" style="width:auto; margin:0;" onclick="App.addComment()">Publicar</button>
-            </div>
-          </div>
-        </div>
-      `;
-      // Click en tarjetas
-      c.querySelectorAll('.pillar-card').forEach(card => {
-        card.addEventListener('click', () => this.go(card.dataset.target));
-      });
-    } catch (err) {
-      c.innerHTML = `<div class="empty-state"><div class="big-icon">!</div><p>${escapeHtml(err.message)}</p></div>`;
-    }
-  },
-
-  async addComment() {
-    const tipo = el('cmt-tipo').value;
-    const pilar = el('cmt-pilar').value;
-    const mensaje = el('cmt-msg').value.trim();
-    if (!mensaje) return;
-    try {
-      await apiCall('addComentario', { tipo, pilar, mensaje });
-      el('cmt-msg').value = '';
-      toast('Comentario publicado');
-      this.render_dashboard();
-    } catch (err) { toast(err.message, true); }
-  },
-
   /* =========== MI DÍA — cobertura individual =========== */
   // El auditor/gerente ven un selector de persona y de fecha; cualquier otro
   // rol ve solo su propio día (auto-seleccionado). El objetivo es responder:
@@ -1959,6 +1890,15 @@ const App = {
       return;
     }
     State.miDia = data;
+
+    // Refrescar config en memoria (modo_responsable / auxiliar_nombre).
+    // Mi Día es la home y se llama varias veces al día — mantenemos el banner
+    // sincronizado con el Sheet sin requerir logout.
+    if (data.config) {
+      State.config = data.config;
+      try { localStorage.setItem('fogueira_config', JSON.stringify(State.config)); } catch(e) {}
+      this.applyModoBanner();
+    }
 
     const cov = data.cobertura;
     const A = data.por_pilar.A;
@@ -2064,6 +2004,27 @@ const App = {
         </div>
       </div>
 
+      <div class="subtabs">
+        <button class="subtab ${State.miDiaSubview === 'hoy'       ? 'active' : ''}" onclick="App.miDia_setView('hoy')">Detalle del día</button>
+        <button class="subtab ${State.miDiaSubview === 'tendencia' ? 'active' : ''}" onclick="App.miDia_setView('tendencia')">Tendencia 7 días</button>
+      </div>
+      <div id="mi-dia-subcontent"><div class="empty-state"><div class="spinner"></div></div></div>
+    `;
+
+    if (State.miDiaSubview === 'tendencia') {
+      await this._miDia_renderTendencia();
+    } else {
+      this._miDia_renderHoy();
+    }
+  },
+
+  // Sub-vista "Detalle del día" — los dos paneles (faltantes + línea
+  // de tiempo) que ya existían como vista única. Los datos del día
+  // ya están en State.miDia (los cargó render_mi_dia).
+  _miDia_renderHoy() {
+    const data = State.miDia;
+    if (!data) return;
+    el('mi-dia-subcontent').innerHTML = `
       <div class="dia-grid-2">
         <div class="dia-list">
           <h2>Lo que aún le falta hoy <span class="count">${data.faltantes.length}</span></h2>
@@ -2102,6 +2063,128 @@ const App = {
         </div>
       </div>
     `;
+  },
+
+  // Sub-vista "Tendencia 7 días" — gráfica con cobertura y cumplimiento
+  // diarios de la persona seleccionada, anclada a la fecha de corte.
+  // Es independiente del día actual: si el usuario cambia la fecha del
+  // selector, la ventana se desliza y termina en esa fecha.
+  async _miDia_renderTendencia() {
+    const sub = el('mi-dia-subcontent');
+    try {
+      const td = await apiCall('getTendenciaPersona', {
+        email: State.miDiaEmail,
+        fecha_corte: State.miDiaFecha,
+        dias: 7
+      });
+      State.miDiaTendencia = td;
+      const r = td.resumen;
+
+      // Etiqueta X corta: día de la semana en mayúsculas (L M M J V S D).
+      const dowEs = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
+      const series = [
+        {
+          key: 'cobertura',
+          label: 'Cobertura',
+          yMax: 100,
+          axis: 'L',
+          fmtY: (v) => v + '%',
+          points: td.serie.map(s => ({
+            xLabel: dowEs[new Date(s.fecha + 'T12:00:00').getDay()] +
+                    ' ' + s.fecha.slice(8, 10),
+            y: s.cobertura_pct
+          }))
+        },
+        {
+          key: 'cumplimiento',
+          label: 'Cumplimiento',
+          yMax: 100,
+          axis: 'L',
+          fmtY: (v) => v + '%',
+          points: td.serie.map(s => ({
+            xLabel: dowEs[new Date(s.fecha + 'T12:00:00').getDay()] +
+                    ' ' + s.fecha.slice(8, 10),
+            y: s.cumplimiento_pct
+          }))
+        }
+      ];
+      const seriePuntosCob = series[0].points.filter(p => p.y !== null).length;
+
+      // Tabla compacta — mismo dato que la gráfica pero numérico, útil
+      // para llevar al gerente sin tener que copiar la imagen.
+      const tablaHTML = `
+        <table class="trend-table">
+          <thead>
+            <tr>
+              <th>Día</th>
+              <th>Fecha</th>
+              <th class="num">Cobertura</th>
+              <th class="num">Cumplimiento</th>
+              <th class="num">Reportadas</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${td.serie.map(s => {
+              const dow = dowEs[new Date(s.fecha + 'T12:00:00').getDay()];
+              return `
+                <tr>
+                  <td><strong>${dow}</strong></td>
+                  <td>${escapeHtml(formatDate(s.fecha) || s.fecha)}</td>
+                  <td class="num">${s.cobertura_pct === null ? '—' : s.cobertura_pct + '%'}</td>
+                  <td class="num">${s.cumplimiento_pct === null ? '—' : s.cumplimiento_pct + '%'}</td>
+                  <td class="num">${s.numerador} de ${s.denominador}</td>
+                </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      `;
+
+      sub.innerHTML = `
+        <div class="evol-hero">
+          <div class="evol-stat">
+            <div class="lbl">Cobertura promedio</div>
+            <div class="val">${r.pct_cobertura_prom === null ? '—' : r.pct_cobertura_prom}<small>%</small></div>
+            <div class="hint">${r.dias_con_actividad} de ${td.dias} días con actividad</div>
+          </div>
+          <div class="evol-stat">
+            <div class="lbl">Cumplimiento promedio</div>
+            <div class="val">${r.pct_cumplimiento_prom === null ? '—' : r.pct_cumplimiento_prom}<small>%</small></div>
+            <div class="hint">De lo reportado, qué tanto cumplió</div>
+          </div>
+          <div class="evol-stat">
+            <div class="lbl">Mejor día</div>
+            <div class="val-text">${r.mejor_dia
+              ? escapeHtml(formatDate(r.mejor_dia.fecha) || r.mejor_dia.fecha) + ' · ' + r.mejor_dia.pct + '% cobertura'
+              : '—'}</div>
+          </div>
+        </div>
+
+        <h2 style="margin-bottom:0.5rem;">${escapeHtml(td.persona.nombre.split(' ')[0])} — últimos ${td.dias} días</h2>
+        <div class="chart-legend">
+          <span><span class="lg-dot s1"></span>Cobertura del día</span>
+          <span><span class="lg-dot s2"></span>Cumplimiento del día</span>
+        </div>
+        <div class="evol-chart">
+          ${seriePuntosCob < 2
+            ? `<div class="empty-state-soft">
+                 ${seriePuntosCob === 0
+                   ? 'Sin actividad registrada en los últimos ' + td.dias + ' días.'
+                   : 'Solo un día con datos — la línea aparece cuando hay 2 o más.'}
+               </div>`
+            : svgLineaMultiserie(series)}
+        </div>
+
+        <h2 style="margin-bottom:0.5rem;">Tabla diaria</h2>
+        ${tablaHTML}
+      `;
+    } catch (err) {
+      sub.innerHTML = `<div class="empty-state"><div class="big-icon">!</div><p>${escapeHtml(err.message)}</p></div>`;
+    }
+  },
+
+  miDia_setView(view) {
+    State.miDiaSubview = view;
+    this.render_mi_dia();
   },
 
   miDia_setPersona(email) {
@@ -2224,33 +2307,42 @@ const App = {
 
   // Sub-vista "Evolución" — dashboard de tendencia del 62%.
   // Reconstruye la línea de tiempo del promedio a partir del histórico.
-  // Si no hay cambios registrados, muestra estado plano + invitación a usar
-  // el botón "Actualizar" en cada módulo (es lo que alimenta este dashboard).
+  // El selector de periodo (30/90/180/365 días) recorta tanto la serie
+  // como el cálculo de top movers, estancados y velocidad.
   async _pilarA_renderEvolucion() {
     const sub = el('pilar-a-subcontent');
+    const ventana = State.pilarAEvoVentana || 30;
+    sub.innerHTML = `<div class="empty-state"><div class="spinner"></div></div>`;
     try {
-      const ev = await apiCall('getPilarAEvolucion', {});
+      const ev = await apiCall('getPilarAEvolucion', { dias: ventana });
+      State.pilarAEvolucion = ev;
       const meta = ev.meta;
       const actual = ev.promedio_actual;
       const v = ev.velocidad;
-      const tendencia = v.pts_ultimos_30d;
+      const tendencia = v.pts_ventana;
       const tendenciaLabel = tendencia > 0 ? `+${tendencia} pts`
                           : tendencia < 0 ? `${tendencia} pts`
                           : 'sin cambio';
       const tendenciaClass = tendencia > 0 ? 'pos' : tendencia < 0 ? 'neg' : 'flat';
+      const ventanaLabel = ventana === 365 ? 'último año'
+                         : ventana === 180 ? 'últimos 6 meses'
+                         : 'últimos ' + ventana + ' días';
+      const ventanaCorto = ventana === 365 ? 'año'
+                         : ventana === 180 ? '6 meses'
+                         : ventana + ' días';
       const proyeccionTxt = ev.proyeccion
         ? `A este ritmo, llegamos al ${meta}% el <strong>${formatDate(ev.proyeccion.fecha)}</strong> (${ev.proyeccion.dias} días)`
         : (actual >= meta
             ? `Ya alcanzamos la meta del ${meta}%.`
             : (tendencia <= 0
-                ? `Sin avance en los últimos 30 días — la proyección a ${meta}% no es estimable.`
+                ? `Sin avance en los ${ventanaLabel} — la proyección a ${meta}% no es estimable.`
                 : `Faltan ${meta - actual} pts para la meta.`));
 
       const lineaSVG = svgLineaEvolucion(ev.serie, meta);
       const seriePuntos = ev.serie.length;
 
       const topMoversHTML = ev.top_movers.length === 0
-        ? '<div class="empty-state-soft">Ningún módulo subió en los últimos 30 días.</div>'
+        ? `<div class="empty-state-soft">Ningún módulo subió en los ${ventanaLabel}.</div>`
         : ev.top_movers.map(m => `
             <div class="mover-row">
               <span class="mover-num">${m.numero}</span>
@@ -2275,6 +2367,16 @@ const App = {
             </div>
           `).join('');
 
+      const periodos = [
+        { d: 30,  lbl: '30 días' },
+        { d: 90,  lbl: '90 días' },
+        { d: 180, lbl: '6 meses' },
+        { d: 365, lbl: 'Año' }
+      ];
+      const periodoBtnsHTML = periodos.map(p =>
+        `<button class="period-btn ${p.d === ventana ? 'active' : ''}" onclick="App.pilarA_setVentana(${p.d})">${p.lbl}</button>`
+      ).join('');
+
       sub.innerHTML = `
         <div class="evol-hero">
           <div class="evol-stat">
@@ -2283,7 +2385,7 @@ const App = {
             <div class="hint">Meta: ${meta}%</div>
           </div>
           <div class="evol-stat">
-            <div class="lbl">Últimos 30 días</div>
+            <div class="lbl">${escapeHtml(ventanaLabel.charAt(0).toUpperCase() + ventanaLabel.slice(1))}</div>
             <div class="val ${tendenciaClass}">${tendenciaLabel}</div>
             <div class="hint">${v.pts_por_semana} pts/sem · ${v.pts_por_mes} pts/mes</div>
           </div>
@@ -2293,7 +2395,12 @@ const App = {
           </div>
         </div>
 
-        <h2 style="margin-bottom:0.5rem;">Evolución del % de capacidad</h2>
+        <div class="period-bar">
+          <span class="period-label">Periodo:</span>
+          ${periodoBtnsHTML}
+        </div>
+
+        <h2 style="margin-bottom:0.5rem;">Evolución del % de capacidad <small style="color:var(--ink-soft);font-weight:400;">· ${escapeHtml(ventanaLabel)}</small></h2>
         <div class="evol-chart">
           ${seriePuntos < 2
             ? `<div class="empty-state-soft">
@@ -2307,11 +2414,11 @@ const App = {
 
         <div class="evol-grid">
           <div class="evol-list">
-            <h2>Top movers <small>últimos 30 días</small></h2>
+            <h2>Top movers <small>${escapeHtml(ventanaLabel)}</small></h2>
             ${topMoversHTML}
           </div>
           <div class="evol-list">
-            <h2>Estancados <small>30+ días sin actualizar</small></h2>
+            <h2>Estancados <small>${escapeHtml(ventanaCorto)}+ sin actualizar</small></h2>
             ${estancadosHTML}
           </div>
         </div>
@@ -2319,6 +2426,11 @@ const App = {
     } catch (err) {
       sub.innerHTML = `<div class="empty-state"><div class="big-icon">!</div><p>${escapeHtml(err.message)}</p></div>`;
     }
+  },
+
+  pilarA_setVentana(dias) {
+    State.pilarAEvoVentana = dias;
+    this._pilarA_renderEvolucion();
   },
 
   // Vista guiada: el check list es la pantalla principal del Pilar A.
@@ -2598,7 +2710,8 @@ const App = {
 
   async render_pilar_b_auditor(fecha) {
     const c = el('pilar-b-content');
-    fecha = fecha || todayInputValue();
+    fecha = fecha || State.pilarBFecha || todayInputValue();
+    State.pilarBFecha = fecha;
     try {
       const [data, ckResumen] = await Promise.all([
         apiCall('getPilarB', { fecha }),
@@ -2606,48 +2719,179 @@ const App = {
       ]);
       State.pilarB = data;
       State.pilarBChecklist = ckResumen;
-      const completadas = data.estado.filter(e => e.registro && String(e.registro.completado).toUpperCase() === 'TRUE').length;
-      const banderas = data.estado.filter(e => e.registro && String(e.registro.bandera_roja).toUpperCase() === 'TRUE').length;
+      const subview = State.pilarBSubview || 'estado';
+
+      // Header + sub-tabs internas. Mismo patrón que Pilar A: una sola
+      // llamada al backend para el estado del día y una sub-vista de
+      // tendencia que pide su propio endpoint cuando el usuario la abre.
       c.innerHTML = `
         <div class="section-head">
           <h1><span class="badge">Pilar B</span> Conciliación Fogueira — Triangulación HOST · POS · Arqueo</h1>
           <div class="meta">
-            <input type="date" value="${fecha}" onchange="App.render_pilar_b_auditor(this.value)" style="max-width:180px;">
+            ${subview === 'estado' ? `<input type="date" value="${fecha}" onchange="App.pilarB_setFecha(this.value)" style="max-width:180px;">` : ''}
+          </div>
+        </div>
+        <div class="subtabs">
+          <button class="subtab ${subview === 'estado'    ? 'active' : ''}" onclick="App.pilarB_setView('estado')">Estado del día</button>
+          <button class="subtab ${subview === 'evolucion' ? 'active' : ''}" onclick="App.pilarB_setView('evolucion')">Evolución</button>
+        </div>
+        <div id="pilar-b-subcontent"><div class="empty-state"><div class="spinner"></div></div></div>
+      `;
+
+      if (subview === 'estado')         this._pilarB_renderEstado(fecha);
+      else if (subview === 'evolucion') await this._pilarB_renderEvolucion();
+    } catch (err) {
+      c.innerHTML = `<div class="empty-state"><div class="big-icon">!</div><p>${escapeHtml(err.message)}</p></div>`;
+    }
+  },
+
+  pilarB_setView(view) {
+    State.pilarBSubview = view;
+    this.render_pilar_b_auditor();
+  },
+
+  pilarB_setFecha(fecha) {
+    State.pilarBFecha = fecha;
+    this.render_pilar_b_auditor(fecha);
+  },
+
+  // Sub-vista "Estado del día" — el contenido original (8 etapas + KPIs).
+  _pilarB_renderEstado(fecha) {
+    const data = State.pilarB;
+    const ckResumen = State.pilarBChecklist || { porEtapa: {} };
+    const completadas = data.estado.filter(e => e.registro && String(e.registro.completado).toUpperCase() === 'TRUE').length;
+    const banderas    = data.estado.filter(e => e.registro && String(e.registro.bandera_roja).toUpperCase() === 'TRUE').length;
+    el('pilar-b-subcontent').innerHTML = `
+      <div class="summary-row">
+        <div class="summary-big">
+          <div class="number-huge">${completadas}<span style="font-size:0.5em; color:var(--ink-soft);">/${data.estado.length}</span></div>
+          <div class="label-huge">Etapas cerradas en el día</div>
+          <div class="gap-text">${banderas > 0 ? '⚑ ' + banderas + ' banderas rojas' : 'Sin banderas rojas'}</div>
+        </div>
+        <div class="summary-side">
+          <div class="summary-stat s-verde">
+            <span class="label-stat">Cumplimiento</span>
+            <span class="value-stat">${Math.round((completadas/data.estado.length)*100)}%</span>
+          </div>
+          <div class="summary-stat ${banderas > 0 ? 's-rojo' : 's-verde'}">
+            <span class="label-stat">Banderas rojas</span>
+            <span class="value-stat">${banderas}</span>
+          </div>
+          <div class="summary-stat">
+            <span class="label-stat">Fecha</span>
+            <span class="value-stat" style="font-size:1rem;">${formatDate(fecha)}</span>
+          </div>
+          <div class="summary-stat">
+            <span class="label-stat">Aprobado por</span>
+            <span class="value-stat" style="font-size:0.85rem; font-family:var(--font-body);">Lic. Mónica Solís Z.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="etapas-flow">
+        ${data.estado.map(e => etapaCardHTML(e, ckResumen.porEtapa && ckResumen.porEtapa[e.id])).join('')}
+      </div>
+    `;
+  },
+
+  // Sub-vista "Evolución" — dos series diarias: cobertura + cumplimiento
+  // de los últimos 30 días, derivadas de PILAR_B_DIARIO + checklist B.
+  async _pilarB_renderEvolucion() {
+    const sub = el('pilar-b-subcontent');
+    try {
+      const ev = await apiCall('getPilarBEvolucion', {});
+      State.pilarBEvolucion = ev;
+      const r = ev.resumen;
+      const fmtPct = (p) => p === null ? '—' : (p + '%');
+
+      // Construir las series para el gráfico — 30 puntos diarios.
+      // Cobertura va a la izquierda (gold), cumplimiento a la derecha (green).
+      const series = [
+        {
+          key: 'cobertura',
+          label: 'Cobertura del día',
+          yMax: 100,
+          axis: 'L',
+          fmtY: (v) => v + '%',
+          points: ev.serie.map(s => ({ xLabel: s.fecha, y: s.cobertura_pct }))
+        },
+        {
+          key: 'cumplimiento',
+          label: 'Cumplimiento del día',
+          yMax: 100,
+          axis: 'L',
+          fmtY: (v) => v + '%',
+          points: ev.serie.map(s => ({ xLabel: s.fecha, y: s.cumplimiento_pct }))
+        }
+      ];
+      // Etiquetas X en formato corto (dd MMM) — pasamos por formatDate.
+      series.forEach(s => s.points.forEach(p => { p.xLabel = formatDate(p.xLabel) || p.xLabel; }));
+
+      const seriePuntosCobertura = series[0].points.filter(p => p.y !== null).length;
+
+      const etapasHTML = ev.etapas_problematicas.length === 0
+        ? '<div class="empty-state-soft">Ninguna etapa con problemas en los últimos 30 días.</div>'
+        : ev.etapas_problematicas.map(et => `
+            <div class="mover-row">
+              <span class="mover-num">${et.numero}</span>
+              <div class="mover-body">
+                <strong>${escapeHtml(et.nombre)}</strong>
+                <small>${et.banderas} banderas · ${et.dias_no_cerrada} días sin cerrar de ${ev.ventana_dias}</small>
+              </div>
+              <span class="mover-delta neg">${et.banderas > 0 ? '⚑' : '⏸'}</span>
+            </div>
+          `).join('');
+
+      sub.innerHTML = `
+        <div class="evol-hero">
+          <div class="evol-stat">
+            <div class="lbl">Cobertura promedio</div>
+            <div class="val">${r.pct_cobertura_prom === null ? '—' : r.pct_cobertura_prom}<small>%</small></div>
+            <div class="hint">Últimos ${ev.ventana_dias} días · ${r.dias_con_actividad} días con actividad</div>
+          </div>
+          <div class="evol-stat">
+            <div class="lbl">Cumplimiento promedio</div>
+            <div class="val">${r.pct_cumplimiento_prom === null ? '—' : r.pct_cumplimiento_prom}<small>%</small></div>
+            <div class="hint">${r.dias_completos} días con cobertura al 100%</div>
+          </div>
+          <div class="evol-stat">
+            <div class="lbl">Banderas rojas</div>
+            <div class="val ${r.banderas_total > 0 ? 'neg' : 'pos'}">${r.banderas_total}</div>
+            <div class="hint">Acumulado en los ${ev.ventana_dias} días</div>
           </div>
         </div>
 
-        <div class="summary-row">
-          <div class="summary-big">
-            <div class="number-huge">${completadas}<span style="font-size:0.5em; color:var(--ink-soft);">/${data.estado.length}</span></div>
-            <div class="label-huge">Etapas cerradas en el día</div>
-            <div class="gap-text">${banderas > 0 ? '⚑ ' + banderas + ' banderas rojas' : 'Sin banderas rojas'}</div>
-          </div>
-          <div class="summary-side">
-            <div class="summary-stat s-verde">
-              <span class="label-stat">Cumplimiento</span>
-              <span class="value-stat">${Math.round((completadas/data.estado.length)*100)}%</span>
-            </div>
-            <div class="summary-stat ${banderas > 0 ? 's-rojo' : 's-verde'}">
-              <span class="label-stat">Banderas rojas</span>
-              <span class="value-stat">${banderas}</span>
-            </div>
-            <div class="summary-stat">
-              <span class="label-stat">Fecha</span>
-              <span class="value-stat" style="font-size:1rem;">${formatDate(fecha)}</span>
-            </div>
-            <div class="summary-stat">
-              <span class="label-stat">Aprobado por</span>
-              <span class="value-stat" style="font-size:0.85rem; font-family:var(--font-body);">Lic. Mónica Solís Z.</span>
-            </div>
-          </div>
+        <h2 style="margin-bottom:0.5rem;">Cobertura y cumplimiento — últimos ${ev.ventana_dias} días</h2>
+        <div class="chart-legend">
+          <span><span class="lg-dot s1"></span>Cobertura del día</span>
+          <span><span class="lg-dot s2"></span>Cumplimiento del día</span>
+        </div>
+        <div class="evol-chart">
+          ${seriePuntosCobertura < 2
+            ? `<div class="empty-state-soft">
+                 ${seriePuntosCobertura === 0
+                   ? 'Aún no hay actividad registrada en los últimos 30 días.'
+                   : 'Solo hay un día con datos — la línea aparece cuando hay 2 o más.'}
+                 <br><small>Cada vez que una etapa del Pilar B se marca, este gráfico gana un punto en su día.</small>
+               </div>`
+            : svgLineaMultiserie(series)}
         </div>
 
-        <div class="etapas-flow">
-          ${data.estado.map(e => etapaCardHTML(e, ckResumen.porEtapa && ckResumen.porEtapa[e.id])).join('')}
+        <div class="evol-grid">
+          <div class="evol-list">
+            <h2>Etapas problemáticas <small>últimos ${ev.ventana_dias} días</small></h2>
+            ${etapasHTML}
+          </div>
+          <div class="evol-list">
+            <h2>Resumen <small>de la ventana</small></h2>
+            <div class="mover-row"><div class="mover-body"><strong>Días con actividad</strong><small>${r.dias_con_actividad} de ${ev.ventana_dias}</small></div></div>
+            <div class="mover-row"><div class="mover-body"><strong>Días al 100% cobertura</strong><small>${r.dias_completos}</small></div></div>
+            <div class="mover-row"><div class="mover-body"><strong>Etapas vigiladas</strong><small>${ev.total_etapas} · ${ev.total_items_diarios} items diarios</small></div></div>
+          </div>
         </div>
       `;
     } catch (err) {
-      c.innerHTML = `<div class="empty-state"><div class="big-icon">!</div><p>${escapeHtml(err.message)}</p></div>`;
+      sub.innerHTML = `<div class="empty-state"><div class="big-icon">!</div><p>${escapeHtml(err.message)}</p></div>`;
     }
   },
 
@@ -2967,56 +3211,198 @@ const App = {
       ]);
       State.pilarC = data;
       State.pilarCChecklist = ckResumen;
-      const enCurso = data.reqs.filter(r => r.estatus_general === 'en_curso');
-      const completadas = data.reqs.filter(r => r.estatus_general === 'completado');
-      const bloqueadas = data.reqs.filter(r => r.estatus_general === 'bloqueado' || String(r.bloqueado).toUpperCase()==='TRUE');
+      const subview = State.pilarCSubview || 'estado';
 
       c.innerHTML = `
         <div class="section-head">
           <h1><span class="badge">Pilar C</span> Flujo de Inventarios</h1>
           <div class="meta">${data.reqs.length} requisiciones · ${data.etapas.length} etapas con segregación de funciones</div>
         </div>
+        <div class="subtabs">
+          <button class="subtab ${subview === 'estado'    ? 'active' : ''}" onclick="App.pilarC_setView('estado')">Estado actual</button>
+          <button class="subtab ${subview === 'evolucion' ? 'active' : ''}" onclick="App.pilarC_setView('evolucion')">Evolución</button>
+        </div>
+        <div id="pilar-c-subcontent"><div class="empty-state"><div class="spinner"></div></div></div>
+      `;
 
-        <div class="summary-row">
-          <div class="summary-big">
-            <div class="number-huge">${enCurso.length}</div>
-            <div class="label-huge">Requisiciones activas</div>
-            <div class="gap-text">${completadas.length} completadas · ${bloqueadas.length} bloqueadas</div>
+      if (subview === 'estado')         this._pilarC_renderEstado();
+      else if (subview === 'evolucion') await this._pilarC_renderEvolucion();
+    } catch (err) {
+      c.innerHTML = `<div class="empty-state"><div class="big-icon">!</div><p>${escapeHtml(err.message)}</p></div>`;
+    }
+  },
+
+  pilarC_setView(view) {
+    State.pilarCSubview = view;
+    this.render_pilar_c_auditor();
+  },
+
+  _pilarC_renderEstado() {
+    const data = State.pilarC;
+    const ckResumen = State.pilarCChecklist || { porEtapa: {} };
+    const enCurso     = data.reqs.filter(r => r.estatus_general === 'en_curso');
+    const completadas = data.reqs.filter(r => r.estatus_general === 'completado');
+    const bloqueadas  = data.reqs.filter(r => r.estatus_general === 'bloqueado' || String(r.bloqueado).toUpperCase()==='TRUE');
+
+    el('pilar-c-subcontent').innerHTML = `
+      <div class="summary-row">
+        <div class="summary-big">
+          <div class="number-huge">${enCurso.length}</div>
+          <div class="label-huge">Requisiciones activas</div>
+          <div class="gap-text">${completadas.length} completadas · ${bloqueadas.length} bloqueadas</div>
+        </div>
+        <div class="summary-side">
+          <div class="summary-stat ${bloqueadas.length > 0 ? 's-rojo' : 's-verde'}">
+            <span class="label-stat">Bloqueadas</span><span class="value-stat">${bloqueadas.length}</span>
           </div>
-          <div class="summary-side">
-            <div class="summary-stat ${bloqueadas.length > 0 ? 's-rojo' : 's-verde'}">
-              <span class="label-stat">Bloqueadas</span><span class="value-stat">${bloqueadas.length}</span>
+          <div class="summary-stat s-amarillo">
+            <span class="label-stat">En curso</span><span class="value-stat">${enCurso.length}</span>
+          </div>
+          <div class="summary-stat s-verde">
+            <span class="label-stat">Completadas</span><span class="value-stat">${completadas.length}</span>
+          </div>
+          <div class="summary-stat">
+            <span class="label-stat">Total histórico</span><span class="value-stat">${data.reqs.length}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="req-toolbar">
+        <button class="btn-primary" style="width:auto; margin:0;" onclick="App.openReqModal()">+ Nueva requisición</button>
+      </div>
+
+      <h2 style="margin-bottom:1rem;">Tablero por etapa</h2>
+      <div class="kanban-row">
+        ${data.etapas.map(et => kanbanColHTML(et, enCurso, ckResumen.porEtapa && ckResumen.porEtapa[et.id])).join('')}
+      </div>
+
+      <h2 style="margin-bottom:1rem;">Requisiciones detalladas</h2>
+      <div class="reqs-list">
+        ${data.reqs.length === 0
+          ? '<div class="empty-state"><p>No hay requisiciones registradas todavía.</p></div>'
+          : data.reqs.slice(0, 20).map(r => reqItemHTML(r, data.etapas)).join('')}
+      </div>
+    `;
+  },
+
+  // Sub-vista "Evolución" — throughput y tiempo de ciclo en las
+  // últimas 8 semanas. Eje izquierdo = reqs cerradas (escala dinámica),
+  // eje derecho = días promedio (escala dinámica). Los cuellos del
+  // momento van debajo de la gráfica (etapa x reqs activas x días promedio).
+  async _pilarC_renderEvolucion() {
+    const sub = el('pilar-c-subcontent');
+    try {
+      const ev = await apiCall('getPilarCEvolucion', {});
+      State.pilarCEvolucion = ev;
+      const r = ev.resumen;
+
+      // Escalas dinámicas con piso mínimo para no pegar todo al techo.
+      const maxCerradas = Math.max(2, ...ev.serie.map(s => s.cerradas));
+      const yMaxThroughput = Math.ceil(maxCerradas / 2) * 2; // par siguiente
+      const ciclos = ev.serie.map(s => s.ciclo_prom_dias).filter(d => d !== null);
+      const maxCiclo = ciclos.length > 0 ? Math.max(...ciclos) : 14;
+      const yMaxCiclo = Math.max(7, Math.ceil(maxCiclo / 7) * 7); // múltiplo de 7
+
+      const series = [
+        {
+          key: 'throughput',
+          label: 'Reqs cerradas / semana',
+          yMax: yMaxThroughput,
+          axis: 'L',
+          fmtY: (v) => String(v),
+          points: ev.serie.map(s => ({ xLabel: s.semana, y: s.cerradas }))
+        },
+        {
+          key: 'ciclo',
+          label: 'Tiempo de ciclo (días)',
+          yMax: yMaxCiclo,
+          axis: 'R',
+          fmtY: (v) => v + 'd',
+          points: ev.serie.map(s => ({ xLabel: s.semana, y: s.ciclo_prom_dias }))
+        }
+      ];
+      // Etiqueta X compacta: "W19" en lugar de "2026-W19".
+      series.forEach(s => s.points.forEach(p => {
+        const m = String(p.xLabel).match(/W(\d+)/);
+        if (m) p.xLabel = 'W' + m[1];
+      }));
+
+      const seriePuntosThroughput = series[0].points.filter(p => p.y > 0).length;
+
+      const cuellosHTML = ev.cuellos.length === 0
+        ? '<div class="empty-state-soft">Ninguna requisición activa: sin cuellos de botella.</div>'
+        : ev.cuellos.map(c => `
+            <div class="mover-row">
+              <span class="mover-num">${escapeHtml(c.id)}</span>
+              <div class="mover-body">
+                <strong>${escapeHtml(c.nombre)}</strong>
+                <small>${c.reqs_activas} req${c.reqs_activas === 1 ? '' : 's'} · ${c.dias_promedio}d promedio · máx ${c.dias_max}d</small>
+              </div>
+              <span class="mover-delta ${c.dias_promedio > 5 ? 'neg' : 'flat'}">${c.dias_promedio}d</span>
             </div>
-            <div class="summary-stat s-amarillo">
-              <span class="label-stat">En curso</span><span class="value-stat">${enCurso.length}</span>
+          `).join('');
+
+      const bloqueadasHTML = ev.bloqueadas.length === 0
+        ? '<div class="empty-state-soft">No hay requisiciones bloqueadas.</div>'
+        : ev.bloqueadas.map(b => `
+            <div class="mover-row">
+              <span class="mover-num">${escapeHtml(b.etapa_actual)}</span>
+              <div class="mover-body">
+                <strong>${escapeHtml(b.folio || b.id)}</strong>
+                <small>${escapeHtml(b.area_solicitante || '—')} · ${b.dias_bloqueada}d ${b.motivo_bloqueo ? '· ' + escapeHtml(b.motivo_bloqueo) : ''}</small>
+              </div>
+              <span class="mover-delta neg">⛔</span>
             </div>
-            <div class="summary-stat s-verde">
-              <span class="label-stat">Completadas</span><span class="value-stat">${completadas.length}</span>
-            </div>
-            <div class="summary-stat">
-              <span class="label-stat">Total histórico</span><span class="value-stat">${data.reqs.length}</span>
-            </div>
+          `).join('');
+
+      sub.innerHTML = `
+        <div class="evol-hero">
+          <div class="evol-stat">
+            <div class="lbl">Reqs activas ahora</div>
+            <div class="val">${r.reqs_activas}</div>
+            <div class="hint">${r.reqs_completadas_total} completadas históricas</div>
+          </div>
+          <div class="evol-stat">
+            <div class="lbl">Bloqueadas</div>
+            <div class="val ${r.reqs_bloqueadas > 0 ? 'neg' : 'pos'}">${r.reqs_bloqueadas}</div>
+            <div class="hint">${r.reqs_bloqueadas === 0 ? 'Flujo limpio' : 'Requieren atención inmediata'}</div>
+          </div>
+          <div class="evol-stat">
+            <div class="lbl">Ciclo promedio</div>
+            <div class="val">${r.ciclo_promedio_30d === null ? '—' : r.ciclo_promedio_30d}<small>${r.ciclo_promedio_30d === null ? '' : 'd'}</small></div>
+            <div class="hint">Últimos 30 días · ${r.cerradas_30d} cerradas</div>
           </div>
         </div>
 
-        <div class="req-toolbar">
-          <button class="btn-primary" style="width:auto; margin:0;" onclick="App.openReqModal()">+ Nueva requisición</button>
+        <h2 style="margin-bottom:0.5rem;">Throughput y ciclo — últimas ${ev.ventana_semanas} semanas</h2>
+        <div class="chart-legend">
+          <span><span class="lg-dot s1"></span>Reqs cerradas / semana (eje izq.)</span>
+          <span><span class="lg-dot s2"></span>Tiempo de ciclo en días (eje der.)</span>
+        </div>
+        <div class="evol-chart">
+          ${seriePuntosThroughput < 2
+            ? `<div class="empty-state-soft">
+                 ${seriePuntosThroughput === 0
+                   ? 'Aún no hay requisiciones cerradas en las últimas ' + ev.ventana_semanas + ' semanas.'
+                   : 'Solo una semana con cierres — la línea aparece cuando hay 2 o más.'}
+                 <br><small>Cada vez que una requisición se completa, este gráfico gana un punto en su semana.</small>
+               </div>`
+            : svgLineaMultiserie(series)}
         </div>
 
-        <h2 style="margin-bottom:1rem;">Tablero por etapa</h2>
-        <div class="kanban-row">
-          ${data.etapas.map(et => kanbanColHTML(et, enCurso, ckResumen.porEtapa && ckResumen.porEtapa[et.id])).join('')}
-        </div>
-
-        <h2 style="margin-bottom:1rem;">Requisiciones detalladas</h2>
-        <div class="reqs-list">
-          ${data.reqs.length === 0
-            ? '<div class="empty-state"><p>No hay requisiciones registradas todavía.</p></div>'
-            : data.reqs.slice(0, 20).map(r => reqItemHTML(r, data.etapas)).join('')}
+        <div class="evol-grid">
+          <div class="evol-list">
+            <h2>Cuellos de botella <small>etapas con reqs estancadas</small></h2>
+            ${cuellosHTML}
+          </div>
+          <div class="evol-list">
+            <h2>Bloqueadas <small>${ev.bloqueadas.length} en total</small></h2>
+            ${bloqueadasHTML}
+          </div>
         </div>
       `;
     } catch (err) {
-      c.innerHTML = `<div class="empty-state"><div class="big-icon">!</div><p>${escapeHtml(err.message)}</p></div>`;
+      sub.innerHTML = `<div class="empty-state"><div class="big-icon">!</div><p>${escapeHtml(err.message)}</p></div>`;
     }
   },
 
@@ -3768,7 +4154,7 @@ const MANUAL = {
         cuerpo: `
           <p>El menú superior tiene 5 pestañas. Estas son las que vas a usar:</p>
           <ul>
-            <li><strong>Tablero</strong> — el resumen del día. Verde, amarillo, naranja o rojo en cada pilar.</li>
+            <li><strong>Mi Día</strong> — tu home. Mide qué tanto cubriste hoy del trabajo esperado y cuánto de lo reportado realmente cumplió.</li>
             <li><strong>Pilar A · Soft Restaurant</strong> — los 12 módulos del sistema y su % de avance.</li>
             <li><strong>Pilar B · Conciliación</strong> — las 8 etapas del cierre del día (lo que más usarás).</li>
             <li><strong>Pilar C · Inventarios</strong> — flujo de requisiciones de insumos.</li>
@@ -3783,7 +4169,7 @@ const MANUAL = {
           <ol>
             <li><strong>Validar calidad</strong> de cada etapa: entras a Pilar B, abres la etapa y marcas si la captura está completa o si hay observación.</li>
             <li><strong>Etapa 7 — Conciliación final:</strong> cruza HOST + POS + Arqueo. Si hay diferencia, levanta bandera roja con observación.</li>
-            <li><strong>Etapa 8 — Reporte a Dirección:</strong> sube el tablero del día y registra los 2 depósitos (venta + comisiones).</li>
+            <li><strong>Etapa 8 — Reporte a Dirección:</strong> sube el resumen del día y registra los 2 depósitos (venta + comisiones).</li>
           </ol>
           <div class="nota"><strong>Calidad ≠ que se haya hecho.</strong> Una etapa puede estar marcada como "completada" pero mal capturada. Ese es justo el control que tú aplicas.</div>
         `
@@ -3800,12 +4186,12 @@ const MANUAL = {
         `
       },
       {
-        titulo: 'Banderas rojas y comentarios',
+        titulo: 'Banderas rojas y observaciones',
         cuerpo: `
           <p>Cuando algo no cuadra o tienes una duda urgente:</p>
           <ul>
-            <li>En la etapa específica del Pilar B → marca <strong>"bandera roja"</strong> y escribe la observación. El auditor lo ve en su dashboard.</li>
-            <li>En el dashboard hay un panel de <strong>comentarios</strong>. Úsalo como bitácora de tu día — todo queda registrado con tu nombre y la hora.</li>
+            <li>En la etapa específica del Pilar B → marca <strong>"bandera roja"</strong> y escribe la observación. El auditor la ve en el histórico de la etapa.</li>
+            <li>Cada captura que haces queda registrada con tu nombre y la hora — esa es tu bitácora del día. El campo de <em>observaciones</em> de cada etapa o ítem es donde dejas el contexto.</li>
           </ul>
         `
       }
@@ -3821,7 +4207,7 @@ const MANUAL = {
         cuerpo: `
           <p>El menú superior tiene estas pestañas:</p>
           <ul>
-            <li><strong>Tablero</strong> — el resumen del día. Verde = bien, amarillo = atención, naranja/rojo = revisar.</li>
+            <li><strong>Mi Día</strong> — tu home. Cobertura y cumplimiento del día por persona; puedes seleccionar a cualquier integrante del equipo.</li>
             <li><strong>Pilar A · Soft Restaurant</strong> — % de implementación del sistema.</li>
             <li><strong>Pilar B · Conciliación</strong> — las 8 etapas del cierre diario. <em>Aquí es donde tú firmas.</em></li>
             <li><strong>Pilar C · Inventarios</strong> — requisiciones de insumos en curso.</li>
@@ -3845,20 +4231,20 @@ const MANUAL = {
       {
         titulo: 'Cómo dar seguimiento al equipo',
         cuerpo: `
-          <p>Desde el <strong>Tablero</strong> ves en un vistazo:</p>
+          <p>Desde <strong>Mi Día</strong> seleccionas a cualquier persona del equipo y ves:</p>
           <ul>
-            <li>Cuántas etapas del Pilar B se han completado hoy y cuántas faltan.</li>
-            <li>Cuántas <strong>banderas rojas</strong> levantó la auxiliar.</li>
-            <li>Cuántas requisiciones del Pilar C están en curso o bloqueadas.</li>
-            <li>Avance global de Soft Restaurant (Pilar A).</li>
+            <li>Su <strong>cobertura del día</strong> (qué tanto del trabajo esperado reportó) y su <strong>cumplimiento</strong> (de lo reportado, qué tanto cerró bien).</li>
+            <li>El detalle por pilar — A, B y C — con marcadas vs. cumplidas.</li>
+            <li>La línea de tiempo de la jornada con cada captura registrada.</li>
+            <li>El listado de <strong>faltantes</strong> aún ejecutables hoy.</li>
           </ul>
-          <div class="nota"><strong>Tip:</strong> el tablero se actualiza solo cada 30 segundos. No necesitas refrescar.</div>
+          <div class="nota"><strong>Tip:</strong> Mi Día se recalcula en cada visita — basta entrar de nuevo o cambiar de fecha para ver datos frescos.</div>
         `
       },
       {
-        titulo: 'Comentarios y comunicación',
+        titulo: 'Observaciones y comunicación',
         cuerpo: `
-          <p>En el dashboard hay un panel de comentarios. Úsalo para:</p>
+          <p>Cada etapa del Pilar B y cada ítem de los pilares tiene un campo de <strong>observaciones</strong>. Úsalo para:</p>
           <ul>
             <li>Pedir aclaraciones a la auxiliar sobre una etapa específica.</li>
             <li>Dejar instrucciones al equipo del siguiente turno.</li>
@@ -3879,7 +4265,7 @@ const MANUAL = {
         cuerpo: `
           <p>Tienes acceso de <strong>solo lectura inteligente</strong> a todo el sistema:</p>
           <ul>
-            <li><strong>Tablero</strong> — semáforos del día.</li>
+            <li><strong>Mi Día</strong> — cobertura y cumplimiento del día por persona; puedes seleccionar a cualquier integrante.</li>
             <li><strong>Pilar A / B / C</strong> — el detalle de cada flujo.</li>
             <li><strong>Reporte</strong> — análisis histórico por rango de fechas. <em>Aquí pasarás más tiempo.</em></li>
           </ul>
@@ -3889,10 +4275,10 @@ const MANUAL = {
         titulo: 'Tu chamba diaria',
         cuerpo: `
           <ol>
-            <li>Cada mañana abre el <strong>Tablero</strong> y revisa los semáforos del día anterior.</li>
+            <li>Cada mañana abre <strong>Mi Día</strong>, selecciona la fecha del día anterior y revisa la cobertura/cumplimiento de la auxiliar.</li>
             <li>Entra al <strong>Pilar B</strong> y verifica que las 8 etapas hayan cerrado, y que las que cerraron tengan calidad validada por la auxiliar y por el auditor.</li>
             <li>En <strong>Pilar C</strong> ve si hay requisiciones bloqueadas o detenidas (>48 hrs en una etapa).</li>
-            <li>Si detectas algo, deja un <strong>comentario</strong> en el dashboard tipo "validación" o "alerta".</li>
+            <li>Si detectas algo, deja una <strong>observación</strong> en la etapa o tarea correspondiente — queda registrada con tu nombre y la hora.</li>
           </ol>
         `
       },
@@ -3930,7 +4316,7 @@ const MANUAL = {
         titulo: 'Rutina recomendada',
         cuerpo: `
           <ol>
-            <li><strong>Diaria (5 min):</strong> revisa Tablero → confirma que el Pilar B cerró sin banderas rojas pendientes → si algo está rojo, deja comentario.</li>
+            <li><strong>Diaria (5 min):</strong> abre <strong>Mi Día</strong> con la auxiliar seleccionada → confirma que cobertura y cumplimiento estén en verde → revisa que el Pilar B no tenga banderas rojas pendientes.</li>
             <li><strong>Semanal (20 min):</strong> entra a Pilar A, revisa cada módulo con avance &lt; 50% y agrega/actualiza tareas en el Plan de Acción con responsable y fecha objetivo.</li>
             <li><strong>Mensual (1 hr):</strong> Reporte → genera el rango del mes → exporta los datos para tu reporte ejecutivo a Grupo Toda.</li>
           </ol>
@@ -3939,7 +4325,7 @@ const MANUAL = {
       {
         titulo: 'Administración técnica',
         cuerpo: `
-          <p>Recursos directos (no expuestos en el dashboard):</p>
+          <p>Recursos directos (no expuestos en la app):</p>
           <ul>
             <li><strong>Sheet</strong> — todos los datos vivos.</li>
             <li><strong>Drive</strong> — evidencias subidas (fotos, PDFs).</li>
@@ -4187,14 +4573,14 @@ const MANUAL = {
   // Para roles registrados pero sin manual específico
   _fallback: {
     titulo: 'Bienvenida a la Bitácora',
-    intro: 'aquí tienes acceso al dashboard de supervisión.',
+    intro: 'aquí tienes acceso al sistema de supervisión.',
     secciones: [
       {
         titulo: 'Qué puedes hacer',
         cuerpo: `
           <p>Navega entre las pestañas del menú superior:</p>
           <ul>
-            <li><strong>Tablero</strong> — resumen del día.</li>
+            <li><strong>Mi Día</strong> — cobertura y cumplimiento del día.</li>
             <li><strong>Pilar A / B / C</strong> — detalle por área.</li>
             <li><strong>Reporte</strong> — análisis histórico.</li>
           </ul>
@@ -4217,13 +4603,13 @@ const TOUR = {
   ],
   gerente: [
     'Tu firma del día es la <strong>Etapa 6 del Pilar B</strong>. Sin tu autorización, la auxiliar no puede cerrar las etapas finales.',
-    'En el <strong>Tablero</strong> ves de un vistazo cuántas etapas se cerraron y si hay banderas rojas.',
-    'Usa los <strong>comentarios</strong> del dashboard para dejar instrucciones al equipo del siguiente turno.'
+    'En <strong>Mi Día</strong> selecciona a la auxiliar y ves cobertura y cumplimiento de la jornada — incluye banderas rojas y faltantes.',
+    'Usa el campo de <strong>observaciones</strong> en cada etapa para dejar instrucciones al equipo del siguiente turno; queda con tu nombre y la hora.'
   ],
   controlador: [
     'Tu pestaña estrella es <strong>Reporte</strong>. Ahí defines rangos de fecha y revisas tendencias.',
-    'En el <strong>Tablero</strong> revisa diariamente los semáforos de los 3 pilares.',
-    'Cuando detectes algo, deja un <strong>comentario</strong> tipo "validación" o "alerta" en el dashboard.'
+    'En <strong>Mi Día</strong> revisa diariamente la cobertura/cumplimiento de la auxiliar (y de cualquier persona que selecciones).',
+    'Cuando detectes algo, deja una <strong>observación</strong> en la etapa o tarea correspondiente — queda registrada con tu nombre y la hora.'
   ],
   auditor: [
     'Tienes una pestaña extra solo para ti: <strong>Usuarios</strong>. Desde ahí das de alta, baja y editas a todos.',
@@ -4267,7 +4653,7 @@ const TOUR = {
   ],
   _fallback: [
     'Navega entre las pestañas del menú superior para conocer las distintas vistas.',
-    'El <strong>Tablero</strong> es el resumen de todo el día.',
+    '<strong>Mi Día</strong> es la home: muestra tu cobertura y cumplimiento del día.',
     'Si necesitas más detalle, en cualquier momento abre el manual con el botón <strong>?</strong> arriba a la derecha.'
   ]
 };
@@ -4277,7 +4663,7 @@ MANUAL._comun = `
   <section style="border-top:1px dashed var(--border); padding-top:1.4rem;">
     <h3><span class="num">★</span>Cosas que aplican para todos</h3>
     <ul>
-      <li>El tablero se refresca automáticamente cada 30 segundos. No tienes que recargar.</li>
+      <li>Mi Día se recalcula en cada visita: basta entrar de nuevo o cambiar la fecha para ver datos frescos.</li>
       <li>Si quieres ver datos de otra fecha, usa el selector en cada Pilar o en Reporte.</li>
       <li>Tu sesión queda guardada en este navegador. Si entras desde otro equipo, vuelve a iniciar sesión.</li>
       <li>Cualquier cambio que hagas queda registrado con tu nombre, fecha y hora — esa es tu evidencia y también tu trazabilidad.</li>
@@ -4287,7 +4673,7 @@ MANUAL._comun = `
       <thead><tr><th>Síntoma</th><th>Qué hacer</th></tr></thead>
       <tbody>
         <tr><td>"Email no autorizado"</td><td>Verifica que entraste con el mismo correo Google que está registrado. En el navegador, abre incógnito si tienes varias cuentas.</td></tr>
-        <tr><td>El tablero no carga</td><td>Recarga la página con <code>Ctrl+F5</code>. Si persiste, avisa al auditor.</td></tr>
+        <tr><td>Mi Día no carga</td><td>Recarga la página con <code>Ctrl+F5</code>. Si persiste, avisa al auditor.</td></tr>
         <tr><td>No puedo subir evidencia</td><td>Confirma que el archivo es menor a 25 MB y formato común (JPG, PNG, PDF).</td></tr>
         <tr><td>Capturé algo mal</td><td>Las capturas se pueden corregir; vuelve a abrir la etapa o el módulo y guarda con el dato corregido. El histórico conserva ambos valores.</td></tr>
       </tbody>
@@ -4326,39 +4712,6 @@ function usuarioRowHTML(u) {
       </td>
     </tr>
   `;
-}
-
-function pillarCardHTML(letra, titulo, p, target, line1, line2) {
-  return `
-    <div class="pillar-card ${p.semaforo ? 's-' + p.semaforo : ''}" data-target="${target}">
-      <div class="label">Pilar ${letra}</div>
-      <h2>${escapeHtml(titulo)}</h2>
-      <div class="big-number">${p.porcentaje !== undefined ? p.porcentaje : (p.enCurso || 0)}<span class="pct-sign">${p.porcentaje !== undefined ? '%' : ''}</span></div>
-      <div class="semaforo s-${p.semaforo || 'verde'}"><span class="dot"></span>${semaforoLabel(p.semaforo || 'verde')}</div>
-      <div class="stat"><span class="stat-label">${escapeHtml(line1)}</span></div>
-      <div class="stat"><span class="stat-label">${escapeHtml(line2)}</span></div>
-    </div>
-  `;
-}
-
-function comentariosListHTML(coms) {
-  if (!coms || coms.length === 0) {
-    return '<div class="empty-state" style="padding:1.5rem 1rem;"><p>Aún no hay comentarios. Sé el primero en reportar algo.</p></div>';
-  }
-  return coms.map(c => `
-    <div class="comment tipo-${escapeHtml(c.tipo || 'reporte')}">
-      <div class="comment-avatar">${escapeHtml(initial(c.usuario_email))}</div>
-      <div class="comment-body">
-        <div class="comment-head">
-          <span class="comment-author">${escapeHtml(c.usuario_email || '')}</span>
-          <span class="comment-tag">${escapeHtml(c.tipo || '')}</span>
-          <span class="comment-tag" style="background:var(--bg-paper); color:var(--ink-soft);">Pilar ${escapeHtml(c.pilar || 'gen')}</span>
-          <span class="comment-time">${formatDateTime(c.timestamp)}</span>
-        </div>
-        <div class="comment-text">${escapeHtml(c.mensaje || '')}</div>
-      </div>
-    </div>
-  `).join('');
 }
 
 function modulRowHTML(m, ck) {

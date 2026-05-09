@@ -71,12 +71,12 @@ function doPost(e) {
       logBitacora(userEmail, action, JSON.stringify(payload).substring(0, 500));
 
       switch (action) {
-        case 'getDashboard':       response = getDashboard(user); break;
         case 'getMonitoring':      response = getMonitoring(user); break;
         case 'getDiaPersona':      response = getDiaPersona(user, payload); break;
+        case 'getTendenciaPersona':response = getTendenciaPersona(user, payload); break;
         case 'getPersonasDia':     response = getPersonasDia(user); break;
         case 'getPilarA':          response = getPilarA(user); break;
-        case 'getPilarAEvolucion': response = getPilarAEvolucion(user); break;
+        case 'getPilarAEvolucion': response = getPilarAEvolucion(user, payload); break;
         case 'updateModulo':       response = updateModulo(user, payload); break;
         case 'addPlanAccion':      response = addPlanAccion(user, payload); break;
         case 'updatePlanAccion':   response = updatePlanAccion(user, payload); break;
@@ -84,19 +84,19 @@ function doPost(e) {
         case 'marcarChecklistA':   response = marcarChecklistA(user, payload); break;
         case 'getChecklistResumenA': response = getChecklistResumenA(user); break;
         case 'getPilarB':          response = getPilarB(user, payload); break;
+        case 'getPilarBEvolucion': response = getPilarBEvolucion(user); break;
         case 'marcarEtapaB':       response = marcarEtapaB(user, payload); break;
         case 'validarEtapaB':      response = validarEtapaB(user, payload); break;
         case 'getChecklistB':      response = getChecklistB(user, payload); break;
         case 'marcarChecklistB':   response = marcarChecklistB(user, payload); break;
         case 'getChecklistResumenB': response = getChecklistResumenB(user); break;
         case 'getPilarC':          response = getPilarC(user); break;
+        case 'getPilarCEvolucion': response = getPilarCEvolucion(user); break;
         case 'crearRequisicion':   response = crearRequisicion(user, payload); break;
         case 'avanzarRequisicion': response = avanzarRequisicion(user, payload); break;
         case 'getChecklistC':      response = getChecklistC(user, payload); break;
         case 'marcarChecklistC':   response = marcarChecklistC(user, payload); break;
         case 'getChecklistResumenC': response = getChecklistResumenC(user); break;
-        case 'getComentarios':     response = getComentarios(user, payload); break;
-        case 'addComentario':      response = addComentario(user, payload); break;
         case 'getReporte':         response = getReporte(user, payload); break;
         case 'subirEvidencia':     response = subirEvidencia(user, payload); break;
         case 'getUsuarios':        response = getUsuarios(user); break;
@@ -404,82 +404,6 @@ function configMap() {
 }
 
 // =============================================================
-// DASHBOARD
-// =============================================================
-function getDashboard(user) {
-  // Pilar A: promedio ponderado de % de los 12 módulos
-  const modulos = sheetData(SHEETS.PILAR_A_MODULOS);
-  const promedioA = modulos.length > 0
-    ? Math.round(modulos.reduce((s, m) => s + Number(m.porcentaje_actual || 0), 0) / modulos.length)
-    : 0;
-  const meta = Number(configMap().meta_softrestaurant || 100);
-  const focosRojos = modulos.filter(m => Number(m.porcentaje_actual) < 50).length;
-
-  // Pilar B: % de etapas completadas hoy
-  const hoy = todayStr();
-  const etapasB = sheetData(SHEETS.PILAR_B_ETAPAS);
-  const diarioHoy = sheetData(SHEETS.PILAR_B_DIARIO).filter(d =>
-    String(d.fecha).indexOf(hoy) === 0
-  );
-  const completadasHoy = diarioHoy.filter(d =>
-    String(d.completado).toUpperCase() === 'TRUE'
-  ).length;
-  const totalEtapasB = etapasB.length;
-  const pctB = totalEtapasB > 0 ? Math.round((completadasHoy / totalEtapasB) * 100) : 0;
-  const banderasRojas = diarioHoy.filter(d =>
-    String(d.bandera_roja).toUpperCase() === 'TRUE'
-  ).length;
-
-  // Pilar C: % de requisiciones activas y cuellos de botella
-  const reqs = sheetData(SHEETS.PILAR_C_REQS);
-  const enCurso = reqs.filter(r => String(r.estatus_general) === 'en_curso').length;
-  const bloqueadas = reqs.filter(r => String(r.bloqueado).toUpperCase() === 'TRUE').length;
-  const completadasC = reqs.filter(r => String(r.estatus_general) === 'completado').length;
-  const totalC = reqs.length;
-  const pctC = totalC > 0 ? Math.round((completadasC / totalC) * 100) : 100;
-
-  // Comentarios recientes (últimos 10)
-  const comentarios = sheetData(SHEETS.COMENTARIOS)
-    .sort((a, b) => String(b.timestamp).localeCompare(String(a.timestamp)))
-    .slice(0, 10);
-
-  return {
-    pilarA: {
-      porcentaje: promedioA,
-      meta: meta,
-      brecha: meta - promedioA,
-      focosRojos: focosRojos,
-      semaforo: semaforo(promedioA)
-    },
-    pilarB: {
-      porcentaje: pctB,
-      completadasHoy: completadasHoy,
-      totalEtapas: totalEtapasB,
-      banderasRojas: banderasRojas,
-      semaforo: semaforo(pctB)
-    },
-    pilarC: {
-      porcentaje: pctC,
-      enCurso: enCurso,
-      bloqueadas: bloqueadas,
-      total: totalC,
-      semaforo: bloqueadas > 0 ? 'rojo' : (enCurso > 5 ? 'amarillo' : 'verde')
-    },
-    comentarios: comentarios,
-    fecha: hoy,
-    usuario: user,
-    config: configMap()
-  };
-}
-
-function semaforo(pct) {
-  if (pct >= 80) return 'verde';
-  if (pct >= 50) return 'amarillo';
-  if (pct >= 30) return 'naranja';
-  return 'rojo';
-}
-
-// =============================================================
 // PILAR A — Soft Restaurant 12
 // =============================================================
 function getPilarA(user) {
@@ -498,7 +422,13 @@ function getPilarA(user) {
 // Si el histórico está vacío, devuelve un solo punto (el estado actual)
 // y velocidad cero — los gráficos saldrán planos hasta que se registren
 // actualizaciones reales de % vía updateModulo.
-function getPilarAEvolucion(user) {
+function getPilarAEvolucion(user, payload) {
+  payload = payload || {};
+  // Ventana parametrizable: 30 / 90 / 180 / 365 (default 30).
+  const VENTANA_VALIDAS = [30, 90, 180, 365];
+  let ventana = Number(payload.dias || 30);
+  if (VENTANA_VALIDAS.indexOf(ventana) < 0) ventana = 30;
+
   const modulos = sheetData(SHEETS.PILAR_A_MODULOS);
   const hist = sheetData(SHEETS.PILAR_A_HIST)
     .filter(h => h.timestamp)
@@ -541,19 +471,35 @@ function getPilarAEvolucion(user) {
       serieByFecha[f] = Math.round(prom);
     });
   }
-  const serie = Object.keys(serieByFecha).sort().map(f => ({
+  const serieCompleta = Object.keys(serieByFecha).sort().map(f => ({
     fecha: f, promedio: serieByFecha[f]
   }));
 
-  // Velocidad: cuántos pts ganados en los últimos 30 días.
+  // Recortar la serie a la ventana elegida. Mantenemos el último punto
+  // anterior al inicio de la ventana como "ancla" — sin él la línea
+  // arrancaría desde el primer cambio dentro de la ventana, no desde el
+  // valor real al inicio del periodo.
   const hoy = new Date();
-  const fecha30 = fmt(new Date(hoy.getTime() - 30 * 86400000));
-  let promedio30dAtras = serie[0] ? serie[0].promedio : promedioActual;
-  for (let i = serie.length - 1; i >= 0; i--) {
-    if (serie[i].fecha <= fecha30) { promedio30dAtras = serie[i].promedio; break; }
+  const fechaVentana = fmt(new Date(hoy.getTime() - ventana * 86400000));
+  let serie = serieCompleta.filter(p => p.fecha >= fechaVentana);
+  if (serie.length === 0 || (serie[0].fecha > fechaVentana && serieCompleta.length > 0)) {
+    // Buscar el ancla: último punto antes (o igual) a fechaVentana.
+    let ancla = null;
+    for (let i = serieCompleta.length - 1; i >= 0; i--) {
+      if (serieCompleta[i].fecha <= fechaVentana) { ancla = serieCompleta[i]; break; }
+    }
+    if (ancla) serie = [{ fecha: fechaVentana, promedio: ancla.promedio }].concat(serie);
   }
-  const ptsUltimos30d = promedioActual - promedio30dAtras;
-  const ptsPorDia = ptsUltimos30d / 30;
+  // Si no había NADA antes ni dentro, devolvemos al menos el estado actual
+  // como un punto al final — el chart mostrará un solo punto.
+  if (serie.length === 0) {
+    serie = [{ fecha: fmt(hoy), promedio: promedioActual }];
+  }
+
+  // Velocidad en la ventana elegida.
+  let promedioVentanaAtras = serie[0].promedio;
+  const ptsUltimos = promedioActual - promedioVentanaAtras;
+  const ptsPorDia = ptsUltimos / ventana;
 
   // Proyección a meta: solo tiene sentido si hay velocidad positiva
   // y aún no llegamos. Si no, devolvemos null y el frontend muestra otra cosa.
@@ -566,8 +512,8 @@ function getPilarAEvolucion(user) {
     };
   }
 
-  // Top movers: módulos con más pts ganados en los últimos 30 días.
-  // pct_inicio = % vigente al cierre del día fecha30.
+  // Top movers: módulos con más pts ganados en la ventana.
+  // pct_inicio = % vigente al cierre del día fechaVentana.
   const movers = modulos.map(m => {
     const eventosModulo = hist.filter(h => h.modulo_id === m.id);
     let pctIni;
@@ -577,7 +523,7 @@ function getPilarAEvolucion(user) {
       let ultimoAntes = null;
       for (let i = eventosModulo.length - 1; i >= 0; i--) {
         const fEv = fmt(new Date(eventosModulo[i].timestamp));
-        if (fEv <= fecha30) { ultimoAntes = eventosModulo[i]; break; }
+        if (fEv <= fechaVentana) { ultimoAntes = eventosModulo[i]; break; }
       }
       pctIni = ultimoAntes
         ? Number(ultimoAntes.porcentaje_nuevo)
@@ -594,12 +540,12 @@ function getPilarAEvolucion(user) {
     .sort((a, b) => b.delta - a.delta)
     .slice(0, 5);
 
-  // Estancados: módulos sin actualización en 30+ días, ordenados por % asc
-  // (los más rezagados primero — son los que más conviene atacar).
+  // Estancados: módulos sin actualización en la ventana, ordenados por
+  // % asc (los más rezagados primero — son los que más conviene atacar).
   const estancados = modulos
     .filter(m => {
       const fa = String(m.fecha_actualizacion || '');
-      return !fa || fa < fecha30;
+      return !fa || fa < fechaVentana;
     })
     .map(m => ({
       id: m.id, numero: Number(m.numero), nombre: m.modulo,
@@ -612,9 +558,10 @@ function getPilarAEvolucion(user) {
   return {
     promedio_actual: promedioActual,
     meta: meta,
+    ventana_dias: ventana,
     serie: serie,
     velocidad: {
-      pts_ultimos_30d: ptsUltimos30d,
+      pts_ventana: ptsUltimos,
       pts_por_semana: Math.round(ptsPorDia * 7 * 10) / 10,
       pts_por_mes: Math.round(ptsPorDia * 30 * 10) / 10
     },
@@ -1216,6 +1163,142 @@ function validarEtapaB(user, payload) {
 }
 
 // =============================================================
+// PILAR B · Evolución (últimos 30 días)
+// --------------------------------------------------------------
+// Dos series diarias paralelas: cobertura ("¿se reportó?") y
+// cumplimiento ("de lo reportado, ¿cumplió?"). Mismo modelo que
+// Mi Día pero agregado al pilar entero (todas las personas).
+//
+//   cobertura denom    = total_etapas + items_D_activos
+//   cobertura num      = etapas con registro ese día + items D marcados
+//   cumplimiento denom = numerador de cobertura
+//   cumplimiento num   = etapas completadas + items con valor=1
+//
+// Banderas se reportan en serie auxiliar (no afectan la cobertura).
+// =============================================================
+function getPilarBEvolucion(user) {
+  const VENTANA = 30;
+  const tz = ss().getSpreadsheetTimeZone() || 'America/Mexico_City';
+  const fmt = (d) => Utilities.formatDate(d, tz, 'yyyy-MM-dd');
+  const hoy = new Date();
+  const fechaCorte = fmt(hoy);
+
+  // Generar las 30 fechas en orden ascendente — relleno aunque no haya datos.
+  const fechas30 = [];
+  for (let i = VENTANA - 1; i >= 0; i--) {
+    fechas30.push(fmt(new Date(hoy.getTime() - i * 86400000)));
+  }
+  const fechaMin = fechas30[0];
+
+  const etapas = sheetData(SHEETS.PILAR_B_ETAPAS)
+    .sort((a, b) => Number(a.numero) - Number(b.numero));
+  const totalEtapas = etapas.length;
+
+  const diario = sheetData(SHEETS.PILAR_B_DIARIO).filter(d => {
+    const f = String(d.fecha).slice(0, 10);
+    return f >= fechaMin && f <= fechaCorte;
+  });
+
+  const itemsD = sheetData(SHEETS.PILAR_B_CK_ITEMS)
+    .filter(it => String(it.activo).toUpperCase() === 'TRUE' && it.frecuencia === 'D');
+  const totalItemsD = itemsD.length;
+
+  const marcasD = sheetData(SHEETS.PILAR_B_CK_MARCAS)
+    .map(m => ({
+      _per: periodoCanonico(m.periodo, 'D'),
+      _val: Number(m.valor),
+      item_id: m.item_id
+    }))
+    .filter(m => m._per >= fechaMin && m._per <= fechaCorte);
+
+  // Serie diaria
+  const serie = fechas30.map(fecha => {
+    const regsDia = diario.filter(d => String(d.fecha).slice(0, 10) === fecha);
+    const etapasReg = regsDia.length;
+    const etapasOK  = regsDia.filter(d => String(d.completado).toUpperCase() === 'TRUE').length;
+    const banderas  = regsDia.filter(d => String(d.bandera_roja).toUpperCase() === 'TRUE').length;
+
+    const mDia = marcasD.filter(m => m._per === fecha);
+    const itemsMarc = mDia.length;
+    const itemsCump = mDia.filter(m => m._val === 1).length;
+
+    const denomCob = totalEtapas + totalItemsD;
+    const numCob   = etapasReg + itemsMarc;
+    const cobPct   = denomCob > 0 ? Math.round((numCob * 100) / denomCob) : null;
+
+    const denomCum = etapasReg + itemsMarc;
+    const numCum   = etapasOK + itemsCump;
+    const cumPct   = denomCum > 0 ? Math.round((numCum * 100) / denomCum) : null;
+
+    return {
+      fecha,
+      cobertura_pct: cobPct,
+      cumplimiento_pct: cumPct,
+      banderas
+    };
+  });
+
+  // Resumen agregado de la ventana
+  const conActividad = serie.filter(s => s.cobertura_pct !== null && s.cobertura_pct > 0);
+  const completos    = serie.filter(s => s.cobertura_pct === 100).length;
+  const conCumpl     = serie.filter(s => s.cumplimiento_pct !== null);
+  const promCob = conActividad.length > 0
+    ? Math.round(conActividad.reduce((s, x) => s + x.cobertura_pct, 0) / conActividad.length)
+    : null;
+  const promCum = conCumpl.length > 0
+    ? Math.round(conCumpl.reduce((s, x) => s + x.cumplimiento_pct, 0) / conCumpl.length)
+    : null;
+  const banderasTotal = serie.reduce((s, x) => s + x.banderas, 0);
+
+  // Etapas problemáticas: agregadas de la ventana (banderas pesan más
+  // que días sin cerrar, porque ya marca un problema explícito).
+  const porEtapa = {};
+  etapas.forEach(et => {
+    porEtapa[et.id] = {
+      id: et.id,
+      numero: Number(et.numero),
+      nombre: et.nombre,
+      banderas: 0,
+      dias_cerrada: 0,
+      dias_con_registro: 0
+    };
+  });
+  diario.forEach(d => {
+    const et = porEtapa[d.etapa_id];
+    if (!et) return;
+    et.dias_con_registro++;
+    if (String(d.completado).toUpperCase() === 'TRUE') et.dias_cerrada++;
+    if (String(d.bandera_roja).toUpperCase() === 'TRUE') et.banderas++;
+  });
+  const etapasProblematicas = Object.keys(porEtapa)
+    .map(k => {
+      const et = porEtapa[k];
+      et.dias_no_cerrada = VENTANA - et.dias_cerrada;
+      et.score = et.banderas * 3 + et.dias_no_cerrada * 0.15;
+      return et;
+    })
+    .filter(et => et.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3);
+
+  return {
+    fecha_corte: fechaCorte,
+    ventana_dias: VENTANA,
+    total_etapas: totalEtapas,
+    total_items_diarios: totalItemsD,
+    serie: serie,
+    resumen: {
+      dias_con_actividad: conActividad.length,
+      dias_completos: completos,
+      pct_cobertura_prom: promCob,
+      pct_cumplimiento_prom: promCum,
+      banderas_total: banderasTotal
+    },
+    etapas_problematicas: etapasProblematicas
+  };
+}
+
+// =============================================================
 // PILAR C — Inventarios
 // =============================================================
 function getPilarC(user) {
@@ -1288,26 +1371,176 @@ function avanzarRequisicion(user, payload) {
 }
 
 // =============================================================
-// COMENTARIOS
+// PILAR C · Evolución (últimas 8 semanas)
+// --------------------------------------------------------------
+// Dos series semanales paralelas:
+//   - Throughput: requisiciones cerradas en la semana
+//   - Tiempo de ciclo: días promedio (creación → completado) de las
+//     reqs cerradas en esa semana
+//
+// La fecha_completado de una req no se guarda explícita: usamos el
+// timestamp del último movimiento como aproximación. Es exacta en la
+// práctica porque la transición a "completado" siempre genera un MOV.
+//
+// Cuellos de botella: por etapa, días promedio que las reqs activas
+// llevan parqueadas (= ahora - timestamp del último mov). Score
+// pondera reqs * días para detectar tanto etapa congestionada como
+// etapa donde una sola req se atasca.
 // =============================================================
-function getComentarios(user, payload) {
-  let coms = sheetData(SHEETS.COMENTARIOS);
-  if (payload.pilar) coms = coms.filter(c => c.pilar === payload.pilar);
-  if (payload.objeto_id) coms = coms.filter(c => c.objeto_id === payload.objeto_id);
-  return coms.sort((a, b) => String(b.timestamp).localeCompare(String(a.timestamp)));
-}
+function getPilarCEvolucion(user) {
+  const VENTANA_SEM = 8;
+  const tz = ss().getSpreadsheetTimeZone() || 'America/Mexico_City';
+  const fmtFecha = (d) => Utilities.formatDate(d, tz, 'yyyy-MM-dd');
+  const hoy = new Date();
+  const fechaCorte = fmtFecha(hoy);
 
-function addComentario(user, payload) {
-  appendRow(SHEETS.COMENTARIOS, {
-    timestamp: nowISO(),
-    usuario_email: user.email,
-    tipo: payload.tipo || 'reporte',
-    pilar: payload.pilar || 'general',
-    objeto_id: payload.objeto_id || '',
-    mensaje: payload.mensaje,
-    leido: 'FALSE'
+  function isoWeek(date) {
+    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const dayNum = (d.getUTCDay() + 6) % 7;
+    d.setUTCDate(d.getUTCDate() - dayNum + 3);
+    const firstThursday = new Date(Date.UTC(d.getUTCFullYear(), 0, 4));
+    const week = 1 + Math.round(((d - firstThursday) / 86400000 - 3 + ((firstThursday.getUTCDay() + 6) % 7)) / 7);
+    return d.getUTCFullYear() + '-W' + ('0' + week).slice(-2);
+  }
+
+  // Anclamos en el lunes de la semana actual y retrocedemos N-1 lunes.
+  const lunesEsta = new Date(hoy);
+  const offsetMon = (lunesEsta.getDay() + 6) % 7; // 0 = lunes local
+  lunesEsta.setHours(0, 0, 0, 0);
+  lunesEsta.setDate(lunesEsta.getDate() - offsetMon);
+
+  const semanas = [];
+  for (let i = VENTANA_SEM - 1; i >= 0; i--) {
+    const start = new Date(lunesEsta.getTime() - i * 7 * 86400000);
+    const end = new Date(start.getTime() + 6 * 86400000);
+    semanas.push({
+      week: isoWeek(start),
+      start: fmtFecha(start),
+      end: fmtFecha(end)
+    });
+  }
+
+  const reqs = sheetData(SHEETS.PILAR_C_REQS);
+  const movs = sheetData(SHEETS.PILAR_C_MOV);
+  const etapas = sheetData(SHEETS.PILAR_C_ETAPAS)
+    .sort((a, b) => Number(a.numero) - Number(b.numero));
+
+  // Mapa requisicion_id → timestamp del último MOV (proxy de fecha_completado).
+  const lastMovByReq = {};
+  movs.forEach(m => {
+    const ts = String(m.timestamp);
+    if (!lastMovByReq[m.requisicion_id] || ts > lastMovByReq[m.requisicion_id]) {
+      lastMovByReq[m.requisicion_id] = ts;
+    }
   });
-  return { ok: true };
+
+  // Reqs completadas con metadata para cálculo de ciclo.
+  const reqsCompletadas = reqs
+    .filter(r => String(r.estatus_general) === 'completado')
+    .map(r => {
+      const ts = lastMovByReq[r.id] || r.fecha_solicitud;
+      const fechaCompl = String(ts).slice(0, 10);
+      const fechaSol = String(r.fecha_solicitud).slice(0, 10);
+      const dias = fechaSol && fechaCompl
+        ? Math.max(0, (new Date(fechaCompl).getTime() - new Date(fechaSol).getTime()) / 86400000)
+        : null;
+      return {
+        id: r.id,
+        folio: r.folio,
+        fecha_completado: fechaCompl,
+        fecha_solicitud: fechaSol,
+        dias_ciclo: dias
+      };
+    });
+
+  // Serie semanal — throughput y ciclo promedio.
+  const serie = semanas.map(w => {
+    const cerradas = reqsCompletadas.filter(r =>
+      r.fecha_completado >= w.start && r.fecha_completado <= w.end
+    );
+    const ciclos = cerradas.map(r => r.dias_ciclo).filter(d => d !== null && d >= 0);
+    const cicloProm = ciclos.length > 0
+      ? Math.round((ciclos.reduce((s, x) => s + x, 0) / ciclos.length) * 10) / 10
+      : null;
+    return {
+      semana: w.week,
+      rango_inicio: w.start,
+      rango_fin: w.end,
+      cerradas: cerradas.length,
+      ciclo_prom_dias: cicloProm
+    };
+  });
+
+  // Estado actual + cuellos.
+  const reqsActivas = reqs.filter(r => String(r.estatus_general) === 'en_curso');
+  const reqsBloqueadas = reqs.filter(r =>
+    String(r.estatus_general) === 'bloqueado' ||
+    String(r.bloqueado).toUpperCase() === 'TRUE'
+  );
+
+  const ahoraMs = hoy.getTime();
+  const cuellos = etapas.map(et => {
+    const enEsta = reqsActivas.filter(r => r.etapa_actual === et.id);
+    const dias = enEsta.map(r => {
+      const ts = lastMovByReq[r.id] || r.fecha_solicitud;
+      return ts ? Math.max(0, (ahoraMs - new Date(ts).getTime()) / 86400000) : 0;
+    });
+    const prom = dias.length > 0
+      ? Math.round((dias.reduce((s, x) => s + x, 0) / dias.length) * 10) / 10
+      : 0;
+    const masVieja = dias.length > 0 ? Math.round(Math.max.apply(null, dias) * 10) / 10 : 0;
+    return {
+      id: et.id,
+      numero: Number(et.numero),
+      nombre: et.nombre,
+      reqs_activas: enEsta.length,
+      dias_promedio: prom,
+      dias_max: masVieja,
+      score: enEsta.length * Math.max(prom, 1)
+    };
+  });
+  const cuellosTop = cuellos
+    .filter(c => c.reqs_activas > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 5);
+
+  // Ciclo total promedio últimos 30 días — KPI complementario al gráfico.
+  const fecha30 = fmtFecha(new Date(hoy.getTime() - 30 * 86400000));
+  const ciclos30d = reqsCompletadas
+    .filter(r => r.fecha_completado >= fecha30 && r.dias_ciclo !== null)
+    .map(r => r.dias_ciclo);
+  const cicloProm30d = ciclos30d.length > 0
+    ? Math.round((ciclos30d.reduce((s, x) => s + x, 0) / ciclos30d.length) * 10) / 10
+    : null;
+
+  // Bloqueadas con detalle (para listar al final del dashboard).
+  const bloqueadasDetalle = reqsBloqueadas.map(r => {
+    const ts = lastMovByReq[r.id] || r.fecha_solicitud;
+    const dias = ts ? Math.round((ahoraMs - new Date(ts).getTime()) / 86400000) : 0;
+    return {
+      id: r.id,
+      folio: r.folio,
+      etapa_actual: r.etapa_actual,
+      area_solicitante: r.area_solicitante,
+      motivo_bloqueo: r.motivo_bloqueo || '',
+      dias_bloqueada: dias
+    };
+  }).sort((a, b) => b.dias_bloqueada - a.dias_bloqueada);
+
+  return {
+    fecha_corte: fechaCorte,
+    ventana_semanas: VENTANA_SEM,
+    serie: serie,
+    resumen: {
+      reqs_activas: reqsActivas.length,
+      reqs_bloqueadas: reqsBloqueadas.length,
+      reqs_completadas_total: reqsCompletadas.length,
+      cerradas_30d: ciclos30d.length,
+      ciclo_promedio_30d: cicloProm30d
+    },
+    cuellos: cuellosTop,
+    bloqueadas: bloqueadasDetalle
+  };
 }
 
 // =============================================================
