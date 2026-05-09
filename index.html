@@ -1245,10 +1245,31 @@ body.has-modo-banner .nav { top: calc(70px + 40px); }
 .dia-pillar .breakdown { font-size: 0.85rem; color: var(--ink-soft); }
 .dia-pillar .breakdown span { display: block; padding: 0.2rem 0; }
 .dia-pillar .breakdown strong { color: var(--ink); font-weight: 600; }
+.dia-pillar .pillar-cumpl {
+  margin-top: 0.85rem; padding: 0.6rem 0.75rem;
+  background: var(--gold-soft); border-left: 2px solid var(--gold);
+  border-radius: 2px;
+  font-size: 0.85rem; color: var(--ink);
+}
+.dia-pillar .pillar-cumpl strong { color: var(--ink); font-weight: 600; }
+.dia-pillar .pillar-cumpl small {
+  display: block; margin-top: 0.2rem;
+  font-size: 0.75rem; color: var(--ink-muted); font-style: italic;
+}
 .dia-pillar .extra {
   margin-top: 0.85rem; padding-top: 0.7rem;
   border-top: 1px dashed var(--border);
   font-size: 0.78rem; color: var(--ink-muted);
+}
+.dia-cover .cumpl {
+  margin-top: 0.7rem; padding-top: 0.6rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.85rem; color: var(--ink);
+}
+.dia-cover .cumpl strong { font-weight: 600; }
+.dia-cover .cumpl small {
+  display: block; margin-top: 0.2rem;
+  font-size: 0.72rem; color: var(--ink-muted); font-style: italic;
 }
 
 .dia-grid-2 {
@@ -1856,6 +1877,12 @@ const App = {
           <div class="lbl">Cobertura del día</div>
           <div class="pct">${cov.pct === null ? '—' : cov.pct}<span class="sign">${cov.pct === null ? '' : '%'}</span></div>
           <div class="ratio">${cov.numerador} de ${cov.denominador} acciones esperadas</div>
+          ${cov.numerador > 0 ? `
+            <div class="cumpl">
+              <strong>${cov.cumplidas}</strong> cumplidas · <strong>${cov.numerador - cov.cumplidas}</strong> sin cumplir
+              <small>(${cov.pct_cumplimiento}% de cumplimiento de lo revisado)</small>
+            </div>
+          ` : ''}
         </div>
       </div>
 
@@ -1864,10 +1891,13 @@ const App = {
           <div class="lbl">Pilar A</div>
           <h3>Soft Restaurant 12</h3>
           <div class="ratio-line">${A.numerador}<span class="sep">/</span><span class="total">${A.denominador}</span></div>
-          <div class="ratio-pct">${fmtPct(A.pct)} de items diarios marcados</div>
-          <div class="breakdown">
-            <span><strong>${A.numerador}</strong> ítems del check list</span>
-          </div>
+          <div class="ratio-pct">${fmtPct(A.pct)} de items diarios revisados</div>
+          ${A.numerador > 0 ? `
+            <div class="pillar-cumpl">
+              <strong>${A.cumplidas}</strong> cumplidas · <strong>${A.numerador - A.cumplidas}</strong> sin cumplir
+              <small>${A.pct_cumplimiento}% de cumplimiento</small>
+            </div>
+          ` : ''}
           <div class="extra">+ ${A.extra_actualizaciones} actualización${A.extra_actualizaciones === 1 ? '' : 'es'} de % en módulos</div>
         </div>
 
@@ -1875,21 +1905,30 @@ const App = {
           <div class="lbl">Pilar B</div>
           <h3>Conciliación</h3>
           <div class="ratio-line">${B.numerador}<span class="sep">/</span><span class="total">${B.denominador}</span></div>
-          <div class="ratio-pct">${fmtPct(B.pct)} entre check list y etapas</div>
+          <div class="ratio-pct">${fmtPct(B.pct)} entre check list y etapas revisado</div>
           <div class="breakdown">
             <span><strong>${B.items_marcados}</strong>/${B.total_items_dia} ítems del check list</span>
             <span><strong>${B.etapas_cerradas}</strong>/${B.total_etapas} etapas del día cerradas</span>
           </div>
+          ${B.numerador > 0 ? `
+            <div class="pillar-cumpl">
+              <strong>${B.cumplidas}</strong> cumplidas · <strong>${B.numerador - B.cumplidas}</strong> sin cumplir
+              <small>${B.pct_cumplimiento}% de cumplimiento (etapas cerradas cuentan como cumplidas)</small>
+            </div>
+          ` : ''}
         </div>
 
         <div class="dia-pillar ${semClass(semaforoFromPct(C.pct))}">
           <div class="lbl">Pilar C</div>
           <h3>Inventarios</h3>
           <div class="ratio-line">${C.numerador}<span class="sep">/</span><span class="total">${C.denominador}</span></div>
-          <div class="ratio-pct">${fmtPct(C.pct)} de items diarios marcados</div>
-          <div class="breakdown">
-            <span><strong>${C.numerador}</strong> ítems del check list</span>
-          </div>
+          <div class="ratio-pct">${fmtPct(C.pct)} de items diarios revisados</div>
+          ${C.numerador > 0 ? `
+            <div class="pillar-cumpl">
+              <strong>${C.cumplidas}</strong> cumplidas · <strong>${C.numerador - C.cumplidas}</strong> sin cumplir
+              <small>${C.pct_cumplimiento}% de cumplimiento</small>
+            </div>
+          ` : ''}
           <div class="extra">+ ${C.extra_movimientos} movimiento${C.extra_movimientos === 1 ? '' : 's'} de requisición</div>
         </div>
       </div>

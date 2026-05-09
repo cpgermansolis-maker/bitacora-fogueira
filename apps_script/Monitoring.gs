@@ -419,6 +419,10 @@ function getDiaPersona(user, payload) {
   const denomA = itemsADiarios.length;
   const numA = marcasAPersonaHoy.length;
   const pctA = denomA > 0 ? Math.round((numA * 100) / denomA) : null;
+  // Cumplidas = marcas con valor=1 (revisó Y cumplió). El resto (valor=0) son
+  // items revisados pero no cumplidos: cuentan para cobertura, no para calidad.
+  const cumplidasA = marcasAPersonaHoy.filter(m => Number(m.valor) === 1).length;
+  const pctCumplA = numA > 0 ? Math.round((cumplidasA * 100) / numA) : null;
 
   // ---------- B · Conciliación ----------
   const itemsB = sheetData(SHEETS.PILAR_B_CK_ITEMS)
@@ -461,6 +465,11 @@ function getDiaPersona(user, payload) {
   const denomB = itemsBDiarios.length + etapasB.length;
   const numB = marcasBPersonaHoy.length + etapasBPersonaHoy.length;
   const pctB = denomB > 0 ? Math.round((numB * 100) / denomB) : null;
+  // Cumplidas: items con valor=1 + etapas cerradas (la etapa solo aparece si
+  // se cerró, así que toda etapa registrada es por definición cumplida).
+  const cumplidasItemsB = marcasBPersonaHoy.filter(m => Number(m.valor) === 1).length;
+  const cumplidasB = cumplidasItemsB + etapasBPersonaHoy.length;
+  const pctCumplB = numB > 0 ? Math.round((cumplidasB * 100) / numB) : null;
 
   // ---------- C · Inventarios ----------
   const itemsC = sheetData(SHEETS.PILAR_C_CK_ITEMS)
@@ -489,11 +498,15 @@ function getDiaPersona(user, payload) {
   const denomC = itemsCDiarios.length;
   const numC = marcasCPersonaHoy.length;
   const pctC = denomC > 0 ? Math.round((numC * 100) / denomC) : null;
+  const cumplidasC = marcasCPersonaHoy.filter(m => Number(m.valor) === 1).length;
+  const pctCumplC = numC > 0 ? Math.round((cumplidasC * 100) / numC) : null;
 
-  // ---------- Cobertura total ----------
+  // ---------- Cobertura total y cumplimiento total ----------
   const denomTotal = denomA + denomB + denomC;
   const numTotal = numA + numB + numC;
   const pctTotal = denomTotal > 0 ? Math.round((numTotal * 100) / denomTotal) : null;
+  const cumplidasTotal = cumplidasA + cumplidasB + cumplidasC;
+  const pctCumplTotal = numTotal > 0 ? Math.round((cumplidasTotal * 100) / numTotal) : null;
 
   // ---------- Línea de tiempo (todo lo que sí hizo) ----------
   const lineaTiempo = [];
@@ -573,6 +586,8 @@ function getDiaPersona(user, payload) {
       numerador: numTotal,
       denominador: denomTotal,
       pct: pctTotal,
+      cumplidas: cumplidasTotal,
+      pct_cumplimiento: pctCumplTotal,
       semaforo: pctTotal === null ? 'amarillo' : (
         pctTotal >= 80 ? 'verde' :
         pctTotal >= 50 ? 'amarillo' :
@@ -581,12 +596,16 @@ function getDiaPersona(user, payload) {
     },
     por_pilar: {
       A: { numerador: numA, denominador: denomA, pct: pctA,
+           cumplidas: cumplidasA, pct_cumplimiento: pctCumplA,
            extra_actualizaciones: histA.length },
       B: { numerador: numB, denominador: denomB, pct: pctB,
+           cumplidas: cumplidasB, pct_cumplimiento: pctCumplB,
            items_marcados: marcasBPersonaHoy.length,
+           items_cumplidos: cumplidasItemsB,
            etapas_cerradas: etapasBPersonaHoy.length,
            total_items_dia: itemsBDiarios.length, total_etapas: etapasB.length },
       C: { numerador: numC, denominador: denomC, pct: pctC,
+           cumplidas: cumplidasC, pct_cumplimiento: pctCumplC,
            extra_movimientos: movsCPersonaHoy.length }
     },
     faltantes,
