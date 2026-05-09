@@ -484,6 +484,98 @@ body.has-modo-banner .nav { top: calc(70px + 40px); }
 .summary-stat.s-amarillo .value-stat { color: var(--amber); }
 .summary-stat.s-verde .value-stat { color: var(--green); }
 
+/* Sub-tabs internas (Estado | Evolución | Plan dentro de Pilar A). */
+.subtabs {
+  display: flex; gap: 0.5rem; margin-bottom: 1.75rem;
+  border-bottom: 1px solid var(--border);
+}
+.subtab {
+  background: transparent; border: none; cursor: pointer;
+  padding: 0.65rem 1.1rem; font-size: 0.92rem;
+  color: var(--ink-soft); font-family: inherit;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.15s, border-color 0.15s;
+}
+.subtab:hover { color: var(--ink); }
+.subtab.active { color: var(--gold-deep); border-bottom-color: var(--gold); font-weight: 600; }
+
+/* Dashboard de evolución del Pilar A. */
+.evol-hero {
+  display: grid; grid-template-columns: 1fr 1fr 2fr; gap: 1rem;
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: 4px; padding: 1.25rem 1.5rem; margin-bottom: 2rem;
+}
+@media (max-width: 800px) { .evol-hero { grid-template-columns: 1fr; } }
+.evol-stat .lbl {
+  font-size: 0.72rem; color: var(--ink-soft);
+  text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 0.4rem;
+}
+.evol-stat .val {
+  font-family: var(--font-display); font-size: 2.2rem; font-weight: 600;
+  line-height: 1; color: var(--ink);
+}
+.evol-stat .val small { font-size: 1rem; color: var(--ink-soft); margin-left: 0.1rem; }
+.evol-stat .val.pos  { color: var(--green); }
+.evol-stat .val.neg  { color: var(--red); }
+.evol-stat .val.flat { color: var(--ink-soft); }
+.evol-stat .val-text { font-size: 0.95rem; line-height: 1.4; color: var(--ink); }
+.evol-stat .hint { font-size: 0.78rem; color: var(--ink-muted); margin-top: 0.35rem; }
+
+.evol-chart {
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: 4px; padding: 1rem; margin-bottom: 2rem;
+}
+.line-chart { width: 100%; height: auto; display: block; }
+.line-chart .grid       { stroke: var(--border); stroke-width: 1; }
+.line-chart .area       { fill: var(--gold-soft); opacity: 0.35; }
+.line-chart .line       { fill: none; stroke: var(--gold-deep); stroke-width: 2; }
+.line-chart .dot        { fill: var(--gold-deep); }
+.line-chart .dot-last   { fill: var(--ink); }
+.line-chart .meta-line  { stroke: var(--green); stroke-width: 1; stroke-dasharray: 4 3; }
+.line-chart .ax         { font-size: 11px; fill: var(--ink-muted); font-family: inherit; }
+.line-chart .ax.meta    { fill: var(--green); }
+.line-chart .lbl-last   { font-size: 11px; font-weight: 600; fill: var(--ink); }
+
+.evol-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+@media (max-width: 900px) { .evol-grid { grid-template-columns: 1fr; } }
+.evol-list {
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: 4px; padding: 1.25rem 1.5rem;
+}
+.evol-list h2 {
+  font-size: 1.05rem; margin-bottom: 1rem;
+  padding-bottom: 0.6rem; border-bottom: 1px solid var(--border);
+  display: flex; align-items: baseline; gap: 0.5rem;
+}
+.evol-list h2 small { font-weight: 400; font-size: 0.78rem; color: var(--ink-muted); }
+.mover-row {
+  display: grid; grid-template-columns: 28px 1fr auto; gap: 0.8rem;
+  align-items: center; padding: 0.65rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.mover-row:last-child { border-bottom: none; }
+.mover-num {
+  font-family: var(--font-display); font-size: 0.95rem; color: var(--ink-soft);
+  text-align: right;
+}
+.mover-body strong { display: block; font-size: 0.92rem; color: var(--ink); }
+.mover-body small  { display: block; font-size: 0.78rem; color: var(--ink-muted); margin-top: 0.15rem; }
+.mover-delta {
+  font-family: var(--font-display); font-size: 0.95rem; font-weight: 600;
+}
+.mover-delta.pos  { color: var(--green); }
+.mover-delta.neg  { color: var(--red); }
+.mover-delta.flat { color: var(--ink-muted); font-size: 0.82rem; font-weight: 400; }
+
+.empty-state-soft {
+  padding: 1.5rem; text-align: center;
+  font-size: 0.9rem; color: var(--ink-muted); line-height: 1.5;
+}
+
 .modulos-table {
   background: var(--bg-elevated); border: 1px solid var(--border);
   border-radius: 4px; overflow: hidden; margin-bottom: 2rem;
@@ -1471,6 +1563,7 @@ const State = {
   dashboard: null,
   pilarA: null,
   pilarAChecklist: null,
+  pilarASubview: 'estado',
   pilarAGuiada: null,
   pilarB: null,
   pilarBChecklist: null,
@@ -1553,6 +1646,44 @@ function formatDateTime(iso) {
   if (isNaN(d.getTime())) return iso;
   return d.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
 }
+// SVG inline de línea de tiempo del % global de Pilar A.
+// Recibe serie [{fecha:'YYYY-MM-DD', promedio:N}] ordenada y la meta.
+// Sin libs externas: viewBox + path. Eje X = fechas (espaciadas
+// uniformemente), eje Y = 0..100. Línea punteada horizontal en la meta.
+function svgLineaEvolucion(serie, meta) {
+  if (!serie || serie.length < 2) return '';
+  const W = 720, H = 220, PAD_L = 38, PAD_R = 16, PAD_T = 14, PAD_B = 28;
+  const innerW = W - PAD_L - PAD_R, innerH = H - PAD_T - PAD_B;
+  const n = serie.length;
+  const x = (i) => PAD_L + (n === 1 ? innerW / 2 : (i * innerW) / (n - 1));
+  const y = (v) => PAD_T + innerH - (Math.max(0, Math.min(100, v)) / 100) * innerH;
+  const pathD = serie.map((p, i) => (i === 0 ? 'M' : 'L') + x(i).toFixed(1) + ',' + y(p.promedio).toFixed(1)).join(' ');
+  const areaD = pathD + ' L' + x(n-1).toFixed(1) + ',' + y(0).toFixed(1) + ' L' + x(0).toFixed(1) + ',' + y(0).toFixed(1) + ' Z';
+  // Etiquetas X: primer y último punto, más uno intermedio si hay >= 4 puntos.
+  const labelIdx = n <= 3 ? [0, n-1] : [0, Math.floor((n-1)/2), n-1];
+  const xLabels = labelIdx.map(i => `<text x="${x(i).toFixed(1)}" y="${H - 8}" text-anchor="middle" class="ax">${formatDate(serie[i].fecha)}</text>`).join('');
+  // Etiquetas Y: 0, 50, 100.
+  const yLabels = [0, 50, 100].map(v => `<text x="${PAD_L - 6}" y="${(y(v)+4).toFixed(1)}" text-anchor="end" class="ax">${v}</text>`).join('');
+  const yGrid = [0, 50, 100].map(v => `<line x1="${PAD_L}" x2="${W-PAD_R}" y1="${y(v)}" y2="${y(v)}" class="grid"/>`).join('');
+  const metaLine = `<line x1="${PAD_L}" x2="${W-PAD_R}" y1="${y(meta)}" y2="${y(meta)}" class="meta-line"/>` +
+                   `<text x="${W-PAD_R}" y="${(y(meta)-4).toFixed(1)}" text-anchor="end" class="ax meta">meta ${meta}%</text>`;
+  const dots = serie.map((p, i) => `<circle cx="${x(i).toFixed(1)}" cy="${y(p.promedio).toFixed(1)}" r="3" class="dot"/>`).join('');
+  // Último punto resaltado con su valor.
+  const last = serie[n-1];
+  const lastDot = `<circle cx="${x(n-1).toFixed(1)}" cy="${y(last.promedio).toFixed(1)}" r="5" class="dot-last"/>` +
+                  `<text x="${x(n-1).toFixed(1)}" y="${(y(last.promedio)-10).toFixed(1)}" text-anchor="end" class="lbl-last">${last.promedio}%</text>`;
+  return `<svg viewBox="0 0 ${W} ${H}" class="line-chart" preserveAspectRatio="xMidYMid meet">
+    ${yGrid}
+    <path d="${areaD}" class="area"/>
+    <path d="${pathD}" class="line"/>
+    ${dots}
+    ${metaLine}
+    ${yLabels}
+    ${xLabels}
+    ${lastDot}
+  </svg>`;
+}
+
 function todayInputValue() {
   // Fecha local del navegador en formato YYYY-MM-DD.
   // No usar toISOString(): convierte a UTC y en zonas al oeste de Greenwich
@@ -2003,58 +2134,190 @@ const App = {
       ]);
       State.pilarA = data;
       State.pilarAChecklist = ckResumen;
-      const modulos = data.modulos;
-      const total = modulos.length;
-      const sumPct = modulos.reduce((s,m) => s + Number(m.porcentaje_actual||0), 0);
-      const promedio = total ? Math.round(sumPct/total) : 0;
-      const meta = Number(State.config.meta_softrestaurant || 100);
-      const enRojo = modulos.filter(m => Number(m.porcentaje_actual) < 30).length;
-      const enNaranja = modulos.filter(m => Number(m.porcentaje_actual) >= 30 && Number(m.porcentaje_actual) < 50).length;
-      const enAmarillo = modulos.filter(m => Number(m.porcentaje_actual) >= 50 && Number(m.porcentaje_actual) < 80).length;
-      const enVerde = modulos.filter(m => Number(m.porcentaje_actual) >= 80).length;
+      const total = data.modulos.length;
+      const subview = State.pilarASubview || 'estado';
 
+      // Header + sub-tabs internas. El contenido de cada sub-vista vive en
+      // #pilar-a-subcontent y se redibuja al cambiar de pestaña sin volver
+      // a llamar a getPilarA (los datos están cacheados en State.pilarA).
       c.innerHTML = `
         <div class="section-head">
           <h1><span class="badge">Pilar A</span> Madurez de Soft Restaurant 12</h1>
           <div class="meta">${total} módulos · Corte ${escapeHtml(formatDate(State.config.fecha_corte_softrestaurant) || '—')}</div>
         </div>
+        <div class="subtabs">
+          <button class="subtab ${subview === 'estado'    ? 'active' : ''}" onclick="App.pilarA_setView('estado')">Estado</button>
+          <button class="subtab ${subview === 'evolucion' ? 'active' : ''}" onclick="App.pilarA_setView('evolucion')">Evolución</button>
+          <button class="subtab ${subview === 'plan'      ? 'active' : ''}" onclick="App.pilarA_setView('plan')">Plan de acción</button>
+        </div>
+        <div id="pilar-a-subcontent"><div class="empty-state"><div class="spinner"></div></div></div>
+      `;
 
-        <div class="summary-row">
-          <div class="summary-big">
-            <div class="number-huge">${promedio}<span style="font-size:0.5em; color:var(--ink-soft);">%</span></div>
-            <div class="label-huge">Capacidad de uso actual</div>
-            <div class="gap-text">Brecha de oportunidad: <strong>${meta - promedio} pts</strong> para alcanzar el uso óptimo</div>
+      if (subview === 'estado')         this._pilarA_renderEstado();
+      else if (subview === 'evolucion') await this._pilarA_renderEvolucion();
+      else if (subview === 'plan')      this._pilarA_renderPlan();
+    } catch (err) {
+      c.innerHTML = `<div class="empty-state"><div class="big-icon">!</div><p>${escapeHtml(err.message)}</p></div>`;
+    }
+  },
+
+  pilarA_setView(view) {
+    State.pilarASubview = view;
+    this.render_pilar_a_auditor();
+  },
+
+  // Sub-vista "Estado" — el contenido original (capacidad actual + lista de módulos).
+  _pilarA_renderEstado() {
+    const data = State.pilarA;
+    const ckResumen = State.pilarAChecklist || { porModulo: {} };
+    const modulos = data.modulos;
+    const total = modulos.length;
+    const sumPct = modulos.reduce((s,m) => s + Number(m.porcentaje_actual||0), 0);
+    const promedio = total ? Math.round(sumPct/total) : 0;
+    const meta = Number(State.config.meta_softrestaurant || 100);
+    const enRojo     = modulos.filter(m => Number(m.porcentaje_actual) < 30).length;
+    const enNaranja  = modulos.filter(m => Number(m.porcentaje_actual) >= 30 && Number(m.porcentaje_actual) < 50).length;
+    const enAmarillo = modulos.filter(m => Number(m.porcentaje_actual) >= 50 && Number(m.porcentaje_actual) < 80).length;
+    const enVerde    = modulos.filter(m => Number(m.porcentaje_actual) >= 80).length;
+
+    el('pilar-a-subcontent').innerHTML = `
+      <div class="summary-row">
+        <div class="summary-big">
+          <div class="number-huge">${promedio}<span style="font-size:0.5em; color:var(--ink-soft);">%</span></div>
+          <div class="label-huge">Capacidad de uso actual</div>
+          <div class="gap-text">Brecha de oportunidad: <strong>${meta - promedio} pts</strong> para alcanzar el uso óptimo</div>
+        </div>
+        <div class="summary-side">
+          <div class="summary-stat s-verde">
+            <span class="label-stat">Maduros (≥80%)</span><span class="value-stat">${enVerde}</span>
           </div>
-          <div class="summary-side">
-            <div class="summary-stat s-verde">
-              <span class="label-stat">Maduros (≥80%)</span><span class="value-stat">${enVerde}</span>
+          <div class="summary-stat s-amarillo">
+            <span class="label-stat">En desarrollo (50–79%)</span><span class="value-stat">${enAmarillo}</span>
+          </div>
+          <div class="summary-stat s-naranja">
+            <span class="label-stat">Iniciales (30–49%)</span><span class="value-stat">${enNaranja}</span>
+          </div>
+          <div class="summary-stat s-rojo">
+            <span class="label-stat">Sin uso (&lt;30%)</span><span class="value-stat">${enRojo}</span>
+          </div>
+        </div>
+      </div>
+
+      <h2 style="margin-bottom:1rem;">Capacidad utilizada por módulo</h2>
+      <div class="modulos-table">
+        ${modulos.map(m => modulRowHTML(m, ckResumen.porModulo && ckResumen.porModulo[m.id])).join('')}
+      </div>
+    `;
+  },
+
+  // Sub-vista "Plan de acción" — sólo las tareas del plan.
+  _pilarA_renderPlan() {
+    const data = State.pilarA;
+    el('pilar-a-subcontent').innerHTML = `
+      <div class="modulos-table">
+        ${data.plan.length === 0
+          ? '<div class="empty-state"><p>Aún no hay tareas en el plan de acción.</p></div>'
+          : data.plan.map(p => planRowHTML(p, data.modulos)).join('')}
+      </div>
+    `;
+  },
+
+  // Sub-vista "Evolución" — dashboard de tendencia del 62%.
+  // Reconstruye la línea de tiempo del promedio a partir del histórico.
+  // Si no hay cambios registrados, muestra estado plano + invitación a usar
+  // el botón "Actualizar" en cada módulo (es lo que alimenta este dashboard).
+  async _pilarA_renderEvolucion() {
+    const sub = el('pilar-a-subcontent');
+    try {
+      const ev = await apiCall('getPilarAEvolucion', {});
+      const meta = ev.meta;
+      const actual = ev.promedio_actual;
+      const v = ev.velocidad;
+      const tendencia = v.pts_ultimos_30d;
+      const tendenciaLabel = tendencia > 0 ? `+${tendencia} pts`
+                          : tendencia < 0 ? `${tendencia} pts`
+                          : 'sin cambio';
+      const tendenciaClass = tendencia > 0 ? 'pos' : tendencia < 0 ? 'neg' : 'flat';
+      const proyeccionTxt = ev.proyeccion
+        ? `A este ritmo, llegamos al ${meta}% el <strong>${formatDate(ev.proyeccion.fecha)}</strong> (${ev.proyeccion.dias} días)`
+        : (actual >= meta
+            ? `Ya alcanzamos la meta del ${meta}%.`
+            : (tendencia <= 0
+                ? `Sin avance en los últimos 30 días — la proyección a ${meta}% no es estimable.`
+                : `Faltan ${meta - actual} pts para la meta.`));
+
+      const lineaSVG = svgLineaEvolucion(ev.serie, meta);
+      const seriePuntos = ev.serie.length;
+
+      const topMoversHTML = ev.top_movers.length === 0
+        ? '<div class="empty-state-soft">Ningún módulo subió en los últimos 30 días.</div>'
+        : ev.top_movers.map(m => `
+            <div class="mover-row">
+              <span class="mover-num">${m.numero}</span>
+              <div class="mover-body">
+                <strong>${escapeHtml(m.nombre)}</strong>
+                <small>${m.pct_inicio}% → ${m.pct_actual}%</small>
+              </div>
+              <span class="mover-delta pos">+${m.delta} pts</span>
             </div>
-            <div class="summary-stat s-amarillo">
-              <span class="label-stat">En desarrollo (50–79%)</span><span class="value-stat">${enAmarillo}</span>
+          `).join('');
+
+      const estancadosHTML = ev.estancados.length === 0
+        ? '<div class="empty-state-soft">Todos los módulos tienen actividad reciente.</div>'
+        : ev.estancados.map(m => `
+            <div class="mover-row">
+              <span class="mover-num">${m.numero}</span>
+              <div class="mover-body">
+                <strong>${escapeHtml(m.nombre)}</strong>
+                <small>${m.pct}% · última actualización ${escapeHtml(formatDate(m.fecha_actualizacion) || m.fecha_actualizacion)}</small>
+              </div>
+              <span class="mover-delta flat">⏸ estancado</span>
             </div>
-            <div class="summary-stat s-naranja">
-              <span class="label-stat">Iniciales (30–49%)</span><span class="value-stat">${enNaranja}</span>
-            </div>
-            <div class="summary-stat s-rojo">
-              <span class="label-stat">Sin uso (&lt;30%)</span><span class="value-stat">${enRojo}</span>
-            </div>
+          `).join('');
+
+      sub.innerHTML = `
+        <div class="evol-hero">
+          <div class="evol-stat">
+            <div class="lbl">Capacidad actual</div>
+            <div class="val">${actual}<small>%</small></div>
+            <div class="hint">Meta: ${meta}%</div>
+          </div>
+          <div class="evol-stat">
+            <div class="lbl">Últimos 30 días</div>
+            <div class="val ${tendenciaClass}">${tendenciaLabel}</div>
+            <div class="hint">${v.pts_por_semana} pts/sem · ${v.pts_por_mes} pts/mes</div>
+          </div>
+          <div class="evol-stat wide">
+            <div class="lbl">Proyección</div>
+            <div class="val-text">${proyeccionTxt}</div>
           </div>
         </div>
 
-        <h2 style="margin-bottom:1rem;">Capacidad utilizada por módulo</h2>
-        <div class="modulos-table">
-          ${modulos.map(m => modulRowHTML(m, ckResumen.porModulo && ckResumen.porModulo[m.id])).join('')}
+        <h2 style="margin-bottom:0.5rem;">Evolución del % de capacidad</h2>
+        <div class="evol-chart">
+          ${seriePuntos < 2
+            ? `<div class="empty-state-soft">
+                 ${seriePuntos === 0
+                   ? 'Aún no hay registros en el histórico.'
+                   : 'Solo hay un punto registrado — no se puede dibujar una línea todavía.'}
+                 <br><small>Cada vez que aprietas <strong>Actualizar</strong> en un módulo, este gráfico gana un punto.</small>
+               </div>`
+            : lineaSVG}
         </div>
 
-        <h2 style="margin-bottom:1rem;">Plan de acción</h2>
-        <div class="modulos-table">
-          ${data.plan.length === 0
-            ? '<div class="empty-state"><p>Aún no hay tareas en el plan de acción.</p></div>'
-            : data.plan.map(p => planRowHTML(p, modulos)).join('')}
+        <div class="evol-grid">
+          <div class="evol-list">
+            <h2>Top movers <small>últimos 30 días</small></h2>
+            ${topMoversHTML}
+          </div>
+          <div class="evol-list">
+            <h2>Estancados <small>30+ días sin actualizar</small></h2>
+            ${estancadosHTML}
+          </div>
         </div>
       `;
     } catch (err) {
-      c.innerHTML = `<div class="empty-state"><div class="big-icon">!</div><p>${escapeHtml(err.message)}</p></div>`;
+      sub.innerHTML = `<div class="empty-state"><div class="big-icon">!</div><p>${escapeHtml(err.message)}</p></div>`;
     }
   },
 

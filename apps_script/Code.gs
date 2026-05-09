@@ -76,6 +76,7 @@ function doPost(e) {
         case 'getDiaPersona':      response = getDiaPersona(user, payload); break;
         case 'getPersonasDia':     response = getPersonasDia(user); break;
         case 'getPilarA':          response = getPilarA(user); break;
+        case 'getPilarAEvolucion': response = getPilarAEvolucion(user); break;
         case 'updateModulo':       response = updateModulo(user, payload); break;
         case 'addPlanAccion':      response = addPlanAccion(user, payload); break;
         case 'updatePlanAccion':   response = updatePlanAccion(user, payload); break;
@@ -489,6 +490,139 @@ function getPilarA(user) {
     .sort((a, b) => String(b.timestamp).localeCompare(String(a.timestamp)))
     .slice(0, 50);
   return { modulos, plan, historico };
+}
+
+// Dashboard de evolución del Pilar A: reconstruye el promedio de capacidad
+// utilizada en el tiempo a partir de PilarA_Historico, calcula velocidad
+// (pts/30d), proyección a meta y detecta top movers / estancados.
+// Si el histórico está vacío, devuelve un solo punto (el estado actual)
+// y velocidad cero — los gráficos saldrán planos hasta que se registren
+// actualizaciones reales de % vía updateModulo.
+function getPilarAEvolucion(user) {
+  const modulos = sheetData(SHEETS.PILAR_A_MODULOS);
+  const hist = sheetData(SHEETS.PILAR_A_HIST)
+    .filter(h => h.timestamp)
+    .sort((a, b) => String(a.timestamp).localeCompare(String(b.timestamp)));
+  const meta = Number(configMap().meta_softrestaurant || 100);
+  const total = modulos.length;
+  const tz = ss().getSpreadsheetTimeZone() || 'America/Mexico_City';
+  const fmt = (d) => Utilities.formatDate(d, tz, 'yyyy-MM-dd');
+
+  // Promedio del estado actual (igual que la vista Estado).
+  const promedioActual = total > 0
+    ? Math.round(modulos.reduce((s, m) => s + Number(m.porcentaje_actual || 0), 0) / total)
+    : 0;
+
+  // Estado inicial por módulo: si hay histórico, el porcentaje_anterior del
+  // primer evento de ese módulo. Si no, el porcentaje_actual (no se ha movido).
+  const estadoInicial = {};
+  modulos.forEach(m => {
+    const eventosModulo = hist.filter(h => h.modulo_id === m.id);
+    estadoInicial[m.id] = eventosModulo.length > 0
+      ? Number(eventosModulo[0].porcentaje_anterior)
+      : Number(m.porcentaje_actual);
+  });
+
+  // Reconstruir serie temporal del promedio aplicando cada evento en orden.
+  // Si dos eventos caen el mismo día, conservamos el último valor del día.
+  const serieByFecha = {};
+  if (hist.length === 0) {
+    serieByFecha[todayStr()] = promedioActual;
+  } else {
+    const t0 = fmt(new Date(hist[0].timestamp));
+    const prom0 = Object.keys(estadoInicial).reduce((s, k) => s + estadoInicial[k], 0) / total;
+    serieByFecha[t0] = Math.round(prom0);
+
+    const estado = Object.assign({}, estadoInicial);
+    hist.forEach(h => {
+      estado[h.modulo_id] = Number(h.porcentaje_nuevo);
+      const f = fmt(new Date(h.timestamp));
+      const prom = Object.keys(estado).reduce((s, k) => s + estado[k], 0) / total;
+      serieByFecha[f] = Math.round(prom);
+    });
+  }
+  const serie = Object.keys(serieByFecha).sort().map(f => ({
+    fecha: f, promedio: serieByFecha[f]
+  }));
+
+  // Velocidad: cuántos pts ganados en los últimos 30 días.
+  const hoy = new Date();
+  const fecha30 = fmt(new Date(hoy.getTime() - 30 * 86400000));
+  let promedio30dAtras = serie[0] ? serie[0].promedio : promedioActual;
+  for (let i = serie.length - 1; i >= 0; i--) {
+    if (serie[i].fecha <= fecha30) { promedio30dAtras = serie[i].promedio; break; }
+  }
+  const ptsUltimos30d = promedioActual - promedio30dAtras;
+  const ptsPorDia = ptsUltimos30d / 30;
+
+  // Proyección a meta: solo tiene sentido si hay velocidad positiva
+  // y aún no llegamos. Si no, devolvemos null y el frontend muestra otra cosa.
+  let proyeccion = null;
+  if (ptsPorDia > 0 && promedioActual < meta) {
+    const diasRestantes = Math.ceil((meta - promedioActual) / ptsPorDia);
+    proyeccion = {
+      dias: diasRestantes,
+      fecha: fmt(new Date(hoy.getTime() + diasRestantes * 86400000))
+    };
+  }
+
+  // Top movers: módulos con más pts ganados en los últimos 30 días.
+  // pct_inicio = % vigente al cierre del día fecha30.
+  const movers = modulos.map(m => {
+    const eventosModulo = hist.filter(h => h.modulo_id === m.id);
+    let pctIni;
+    if (eventosModulo.length === 0) {
+      pctIni = Number(m.porcentaje_actual);
+    } else {
+      let ultimoAntes = null;
+      for (let i = eventosModulo.length - 1; i >= 0; i--) {
+        const fEv = fmt(new Date(eventosModulo[i].timestamp));
+        if (fEv <= fecha30) { ultimoAntes = eventosModulo[i]; break; }
+      }
+      pctIni = ultimoAntes
+        ? Number(ultimoAntes.porcentaje_nuevo)
+        : Number(eventosModulo[0].porcentaje_anterior);
+    }
+    return {
+      id: m.id, numero: Number(m.numero), nombre: m.modulo,
+      pct_inicio: pctIni, pct_actual: Number(m.porcentaje_actual),
+      delta: Number(m.porcentaje_actual) - pctIni
+    };
+  });
+  const topMovers = movers
+    .filter(x => x.delta > 0)
+    .sort((a, b) => b.delta - a.delta)
+    .slice(0, 5);
+
+  // Estancados: módulos sin actualización en 30+ días, ordenados por % asc
+  // (los más rezagados primero — son los que más conviene atacar).
+  const estancados = modulos
+    .filter(m => {
+      const fa = String(m.fecha_actualizacion || '');
+      return !fa || fa < fecha30;
+    })
+    .map(m => ({
+      id: m.id, numero: Number(m.numero), nombre: m.modulo,
+      pct: Number(m.porcentaje_actual),
+      fecha_actualizacion: String(m.fecha_actualizacion || '—')
+    }))
+    .sort((a, b) => a.pct - b.pct)
+    .slice(0, 8);
+
+  return {
+    promedio_actual: promedioActual,
+    meta: meta,
+    serie: serie,
+    velocidad: {
+      pts_ultimos_30d: ptsUltimos30d,
+      pts_por_semana: Math.round(ptsPorDia * 7 * 10) / 10,
+      pts_por_mes: Math.round(ptsPorDia * 30 * 10) / 10
+    },
+    proyeccion: proyeccion,
+    top_movers: topMovers,
+    estancados: estancados,
+    fecha_corte: fmt(hoy)
+  };
 }
 
 function updateModulo(user, payload) {
