@@ -384,6 +384,21 @@ function configMap() {
   const rows = sheetData(SHEETS.CONFIG);
   const map = {};
   rows.forEach(r => { map[r.clave] = r.valor; });
+  // Auto-derivar auxiliar_nombre del catálogo de Usuarios cuando hay exactamente
+  // una persona activa con rol=auxiliar. Esto evita que el banner "auxiliar
+  // única responsable" se quede pegado al nombre viejo si la persona cambia.
+  // Si hay 0 o más de 1 auxiliares activos, se conserva el valor de Config.
+  try {
+    const auxiliares = sheetData(SHEETS.USUARIOS).filter(u =>
+      String(u.rol).toLowerCase() === 'auxiliar' &&
+      String(u.activo).toUpperCase() === 'TRUE'
+    );
+    if (auxiliares.length === 1 && auxiliares[0].nombre) {
+      map.auxiliar_nombre = String(auxiliares[0].nombre);
+    }
+  } catch (e) {
+    // Si falla la lectura de Usuarios, conservamos el valor seed de Config.
+  }
   return map;
 }
 

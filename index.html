@@ -1539,8 +1539,14 @@ function formatDateTime(iso) {
   return d.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
 }
 function todayInputValue() {
+  // Fecha local del navegador en formato YYYY-MM-DD.
+  // No usar toISOString(): convierte a UTC y en zonas al oeste de Greenwich
+  // (México UTC-6) devuelve "mañana" después de las 18:00 hora local.
   const d = new Date();
-  return d.toISOString().split('T')[0];
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
 }
 function toast(msg, isError) {
   const t = document.createElement('div');
