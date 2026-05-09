@@ -1347,8 +1347,7 @@ body.has-modo-banner .nav { top: calc(70px + 40px); }
      ============================================================ -->
 <nav class="nav" id="nav-bar" style="display:none;">
   <div class="nav-inner">
-    <button class="nav-tab active" data-view="dashboard">Tablero</button>
-    <button class="nav-tab" data-view="mi-dia" data-roles="auditor,gerente,auxiliar,administracion" style="display:none;">Mi Día</button>
+    <button class="nav-tab active" data-view="mi-dia">Mi Día</button>
     <button class="nav-tab" data-view="pilar-a">Pilar A · Soft Restaurant</button>
     <button class="nav-tab" data-view="pilar-b">Pilar B · Conciliación</button>
     <button class="nav-tab" data-view="pilar-c">Pilar C · Inventarios</button>
@@ -1388,12 +1387,7 @@ body.has-modo-banner .nav { top: calc(70px + 40px); }
     </div>
   </section>
 
-  <!-- DASHBOARD -->
-  <section class="view" id="view-dashboard">
-    <div id="dashboard-content"><div class="empty-state"><div class="spinner"></div><p style="margin-top:1rem;">Cargando tablero...</p></div></div>
-  </section>
-
-  <!-- MI DÍA — cobertura del trabajo de una persona en un día -->
+  <!-- MI DÍA — cobertura del trabajo de una persona en un día (vista home) -->
   <section class="view" id="view-mi-dia">
     <div id="mi-dia-content"><div class="empty-state"><div class="spinner"></div></div></div>
   </section>
@@ -1621,12 +1615,10 @@ const App = {
     });
     try { State.config = JSON.parse(localStorage.getItem('fogueira_config') || '{}'); } catch(e){}
     this.applyModoBanner();
-    // Vista por defecto según rol: la auxiliar (y administracion) abren en
-    // "Mi Día" para ver enseguida lo que hicieron y lo que les falta hoy.
-    // Los demás roles siguen entrando al Tablero general.
-    const rol = State.user.rol;
-    const homeView = (rol === 'auxiliar' || rol === 'administracion') ? 'mi-dia' : 'dashboard';
-    this.go(homeView);
+    // Mi Día es la única vista home: mide la eficiencia de la persona del día.
+    // El antiguo "Tablero" mostraba estado de pilares (no actividad), confundía
+    // más de lo que ayudaba y se eliminó en favor de Mi Día.
+    this.go('mi-dia');
     // Tour de bienvenida — solo la primera vez que cada usuario entra.
     this.maybeShowTour();
   },
