@@ -573,6 +573,32 @@ body.has-modo-banner .nav { top: calc(70px + 40px); }
 .modulo-disciplina-pill.s-rojo     { background: var(--red-bg);    color: var(--red);    border-color: var(--red); }
 .modulo-disciplina-meta { color: var(--ink-soft); }
 
+/* ----- Pilar A · Sparkline por módulo (Estado, vista auditor) ----- */
+.sparkline-row {
+  margin-top: 0.4rem;
+  display: flex; align-items: center; gap: 0.55rem;
+  font-size: 0.72rem; color: var(--ink-soft);
+}
+.sparkline-label {
+  font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
+  font-size: 0.65rem; color: var(--ink-muted);
+}
+.sparkline {
+  width: 120px; height: 28px; flex-shrink: 0;
+}
+.sparkline path { fill: none; stroke-width: 1.6; }
+.sparkline circle { stroke: none; }
+.sparkline-s-verde    path, .sparkline-s-verde    circle { stroke: var(--green);  fill: var(--green); }
+.sparkline-s-amarillo path, .sparkline-s-amarillo circle { stroke: var(--amber);  fill: var(--amber); }
+.sparkline-s-naranja  path, .sparkline-s-naranja  circle { stroke: var(--orange); fill: var(--orange); }
+.sparkline-s-rojo     path, .sparkline-s-rojo     circle { stroke: var(--red);    fill: var(--red); }
+.sparkline-delta {
+  font-weight: 600; letter-spacing: 0.01em;
+}
+.sparkline-delta.pos  { color: var(--green); }
+.sparkline-delta.neg  { color: var(--red); }
+.sparkline-delta.flat { color: var(--ink-muted); }
+
 .ck-group { margin-bottom: 1.4rem; }
 .ck-group-head {
   display: flex; align-items: baseline; justify-content: space-between;
@@ -1623,6 +1649,33 @@ function svgLineaEvolucion(serie, meta) {
   </svg>`;
 }
 
+// Sparkline mini para cada módulo del Pilar A — muestra los últimos 30 días
+// dentro de la fila, sin ejes ni labels.
+//   serie: [{ fecha, pct }] del backend (mínimo 2 puntos, ancla + cierre).
+// Color de la línea según el semáforo del valor actual. La X se distribuye
+// por orden de punto (no por fecha) — los huecos entre eventos no importan
+// porque solo queremos transmitir "subió / bajó / plano" de un vistazo.
+function svgSparkline(serie, pctActual) {
+  if (!serie || serie.length < 2) {
+    // Sin datos suficientes: dibujamos una línea plana al valor actual.
+    serie = [{ pct: pctActual }, { pct: pctActual }];
+  }
+  const W = 120, H = 28, PAD = 2;
+  const innerW = W - PAD * 2, innerH = H - PAD * 2;
+  const n = serie.length;
+  // Escala Y: usamos 0–100 fijo para que módulos con pcts altos no se vean
+  // "más planos" que los de pcts bajos. La sparkline lee absoluto, no relativo.
+  const x = (i) => PAD + (i * innerW) / (n - 1);
+  const y = (v) => PAD + innerH - (Math.max(0, Math.min(100, v)) / 100) * innerH;
+  const pathD = serie.map((p, i) => (i === 0 ? 'M' : 'L') + x(i).toFixed(1) + ',' + y(p.pct).toFixed(1)).join(' ');
+  const last = serie[n - 1];
+  const sclass = semaforoClass(pctActual);
+  return `<svg viewBox="0 0 ${W} ${H}" class="sparkline sparkline-${sclass}" preserveAspectRatio="none">
+    <path d="${pathD}"/>
+    <circle cx="${x(n - 1).toFixed(1)}" cy="${y(last.pct).toFixed(1)}" r="2.2"/>
+  </svg>`;
+}
+
 // SVG multi-serie genérico — usado por Pilar B (cobertura+cumplimiento)
 // y Pilar C (throughput+ciclo). Cada serie puede tener su propio yMax
 // (por eso C usa eje primario para "cerradas" y secundario para "días").
@@ -2288,7 +2341,11 @@ const App = {
 
       <h2 style="margin-bottom:1rem;">Capacidad utilizada por módulo</h2>
       <div class="modulos-table">
-        ${modulos.map(m => modulRowHTML(m, ckResumen.porModulo && ckResumen.porModulo[m.id])).join('')}
+        ${modulos.map(m => modulRowHTML(
+            m,
+            ckResumen.porModulo && ckResumen.porModulo[m.id],
+            data.series30d && data.series30d[m.id]
+          )).join('')}
       </div>
     `;
   },
@@ -2691,8 +2748,9 @@ const App = {
       if (!c || !State.pilarA) return;
       const tbl = c.querySelector('.modulos-table');
       if (!tbl) return;
+      const s30 = State.pilarA.series30d || {};
       tbl.innerHTML = State.pilarA.modulos
-        .map(m => modulRowHTML(m, ckResumen.porModulo && ckResumen.porModulo[m.id]))
+        .map(m => modulRowHTML(m, ckResumen.porModulo && ckResumen.porModulo[m.id], s30[m.id]))
         .join('');
     } catch (e) { /* silencioso */ }
   },
@@ -4714,7 +4772,7 @@ function usuarioRowHTML(u) {
   `;
 }
 
-function modulRowHTML(m, ck) {
+function modulRowHTML(m, ck, sparkSerie) {
   const pct = Number(m.porcentaje_actual);
   const sclass = semaforoClass(pct);
   // ck = { total, marcados, cumplidos, pendientes, pct_disciplina } | undefined
@@ -4730,12 +4788,28 @@ function modulRowHTML(m, ck) {
     </div>`;
     ckButton = `<button class="btn-ghost" title="Check list operativo del módulo" onclick="App.openChecklistModal('${escapeHtml(m.id)}')">📋 Check list</button>`;
   }
+
+  // Sparkline 30d + delta. Si no llega serie (backend viejo), no se dibuja nada.
+  let sparkLine = '';
+  if (sparkSerie && sparkSerie.length >= 2) {
+    const pctIni = Number(sparkSerie[0].pct);
+    const delta = pct - pctIni;
+    const deltaCls = delta > 0 ? 'pos' : delta < 0 ? 'neg' : 'flat';
+    const deltaTxt = delta > 0 ? `+${delta} pts` : delta < 0 ? `${delta} pts` : 'sin cambio';
+    sparkLine = `<div class="sparkline-row">
+      <span class="sparkline-label">30d</span>
+      ${svgSparkline(sparkSerie, pct)}
+      <span class="sparkline-delta ${deltaCls}">${deltaTxt}</span>
+    </div>`;
+  }
+
   return `
     <div class="modulo-row">
       <div class="modulo-numero">${escapeHtml(String(m.numero))}</div>
       <div class="modulo-info">
         <div class="name">${escapeHtml(m.modulo)}</div>
         <div class="modulo-bar-wrap"><div class="modulo-bar ${sclass}" style="width:${pct}%"></div></div>
+        ${sparkLine}
         ${ckLine}
       </div>
       <div class="modulo-pct ${sclass}">${pct}%</div>

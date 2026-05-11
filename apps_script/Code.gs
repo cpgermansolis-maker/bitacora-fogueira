@@ -410,10 +410,69 @@ function getPilarA(user) {
   const modulos = sheetData(SHEETS.PILAR_A_MODULOS)
     .sort((a, b) => Number(a.numero) - Number(b.numero));
   const plan = sheetData(SHEETS.PILAR_A_PLAN);
-  const historico = sheetData(SHEETS.PILAR_A_HIST)
-    .sort((a, b) => String(b.timestamp).localeCompare(String(a.timestamp)))
-    .slice(0, 50);
-  return { modulos, plan, historico };
+  const historicoFull = sheetData(SHEETS.PILAR_A_HIST)
+    .filter(h => h.timestamp)
+    .sort((a, b) => String(a.timestamp).localeCompare(String(b.timestamp)));
+  // Histórico recortado para la vista (no se usa hoy, pero se conserva por compat).
+  const historico = historicoFull.slice().reverse().slice(0, 50);
+
+  // Sparklines: serie diaria por módulo en los últimos 30 días.
+  // Sólo necesitamos los puntos donde el % cambia + un ancla al inicio
+  // de la ventana + un cierre con el valor de hoy. Si no hubo cambios,
+  // queda una línea plana (dos puntos al mismo valor).
+  const tz = ss().getSpreadsheetTimeZone() || 'America/Mexico_City';
+  const fmt = (d) => Utilities.formatDate(d, tz, 'yyyy-MM-dd');
+  const hoy = new Date();
+  const VENTANA_DIAS = 30;
+  const fechaVentana = fmt(new Date(hoy.getTime() - VENTANA_DIAS * 86400000));
+  const fechaHoy = fmt(hoy);
+
+  const series30d = {};
+  modulos.forEach(m => {
+    const eventos = historicoFull.filter(h => h.modulo_id === m.id);
+    // Valor vigente al cierre de fechaVentana (ancla):
+    //   - último evento <= fechaVentana → su porcentaje_nuevo
+    //   - sin evento previo → porcentaje_anterior del primer evento
+    //   - sin eventos en absoluto → porcentaje_actual
+    let pctAncla;
+    if (eventos.length === 0) {
+      pctAncla = Number(m.porcentaje_actual);
+    } else {
+      let ultimoAntes = null;
+      for (let i = eventos.length - 1; i >= 0; i--) {
+        if (fmt(new Date(eventos[i].timestamp)) <= fechaVentana) {
+          ultimoAntes = eventos[i]; break;
+        }
+      }
+      pctAncla = ultimoAntes
+        ? Number(ultimoAntes.porcentaje_nuevo)
+        : Number(eventos[0].porcentaje_anterior);
+    }
+
+    const puntos = [{ fecha: fechaVentana, pct: Math.round(pctAncla) }];
+    // Eventos dentro de la ventana: un punto por evento (último gana si dos caen el mismo día).
+    const dentro = eventos.filter(e => {
+      const f = fmt(new Date(e.timestamp));
+      return f > fechaVentana && f <= fechaHoy;
+    });
+    const porDia = {};
+    dentro.forEach(e => {
+      const f = fmt(new Date(e.timestamp));
+      porDia[f] = Number(e.porcentaje_nuevo);
+    });
+    Object.keys(porDia).sort().forEach(f => {
+      puntos.push({ fecha: f, pct: Math.round(porDia[f]) });
+    });
+    // Cierre con el valor actual (asegura que la línea llega hasta hoy).
+    const pctHoy = Math.round(Number(m.porcentaje_actual));
+    const ultimo = puntos[puntos.length - 1];
+    if (ultimo.fecha !== fechaHoy || ultimo.pct !== pctHoy) {
+      puntos.push({ fecha: fechaHoy, pct: pctHoy });
+    }
+    series30d[m.id] = puntos;
+  });
+
+  return { modulos, plan, historico, series30d, ventana_sparkline: VENTANA_DIAS };
 }
 
 // Dashboard de evolución del Pilar A: reconstruye el promedio de capacidad
