@@ -713,6 +713,28 @@ body.has-modo-banner .nav { top: calc(70px + 40px); }
 }
 .guiada-meta { color: var(--ink-soft); }
 .guiada-meta-pending { font-style: italic; }
+/* Botón inline de observación bajo cada ítem guiado.
+   Con nota: pill marcada y texto en cursiva. Sin nota: pill sutil "+ añadir nota". */
+.guiada-obs {
+  margin-top: 0.4rem;
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  background: var(--bg-elevated); border: 1px dashed var(--border-strong);
+  border-radius: 999px; padding: 0.25rem 0.7rem;
+  font-size: 0.78rem; color: var(--ink-soft);
+  cursor: pointer; max-width: 100%; text-align: left;
+  transition: background 0.15s, border-color 0.15s;
+}
+.guiada-obs:hover { background: var(--bg-paper); border-color: var(--gold-line); }
+.guiada-obs.has-obs {
+  background: var(--amber-bg); border-style: solid; border-color: var(--amber);
+  color: var(--ink); font-style: italic;
+}
+.guiada-obs.no-obs { color: var(--ink-muted); }
+.guiada-obs-icon { font-weight: 700; font-style: normal; }
+.guiada-obs-text {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  max-width: 60ch;
+}
 .guiada-toggle { display: flex; gap: 0.4rem; }
 .guiada-btn {
   width: 48px; height: 48px;
@@ -2571,16 +2593,41 @@ const App = {
     `;
   },
 
-  // Marcar/desmarcar desde la vista guiada (refresca sin parpadeo).
+  // Marcar/desmarcar desde la vista guiada. ✓ va directo (happy path, sin fricción).
+  // ✗ abre el modal de nota para capturar el "por qué" — alimenta el informe de
+  // hallazgos. Si la guiada se llama con valor=0 desde el botón "editar nota", el
+  // modal precarga la observación existente.
   async marcarGuiada(item_id, valor) {
+    if (valor === 0) {
+      const it = (State.pilarAGuiada && State.pilarAGuiada.items || []).find(x => x.id === item_id);
+      return this.openNotaHallazgoModal({
+        item_id, pilar: 'A', valor: 0,
+        descripcion: it ? it.descripcion : '',
+        obsActual: (it && it.marca && it.marca.observaciones) || ''
+      });
+    }
     try {
-      const res = await apiCall('marcarChecklistA', { item_id, valor });
-      // Optimista: refrescar los datos completos para mantener consistencia.
+      await apiCall('marcarChecklistA', { item_id, valor });
       const data = await apiCall('getChecklistA', {});
       State.pilarAGuiada = data;
       this._renderGuiadaBody();
-      toast(valor === 1 ? 'Cumplido ✓' : 'No cumplido');
+      toast('Cumplido ✓');
     } catch (err) { toast(err.message, true); }
+  },
+
+  // Editar la nota de un ítem ya marcado (con cualquier valor). Reabre el mismo
+  // modal preservando el valor actual — no convierte ✓ en ✗ ni viceversa.
+  editarNotaGuiada(item_id, pilar) {
+    const stateKey = pilar === 'A' ? 'pilarAGuiada' : pilar === 'B' ? 'pilarBGuiada' : 'pilarCGuiada';
+    const data = State[stateKey];
+    if (!data) return;
+    const it = (data.items || []).find(x => x.id === item_id);
+    if (!it || !it.marca) return;
+    this.openNotaHallazgoModal({
+      item_id, pilar, valor: Number(it.marca.valor),
+      descripcion: it.descripcion,
+      obsActual: it.marca.observaciones || ''
+    });
   },
 
   openModuloModal(id) {
@@ -3064,12 +3111,20 @@ const App = {
   },
 
   async marcarGuiadaB(item_id, valor) {
+    if (valor === 0) {
+      const it = (State.pilarBGuiada && State.pilarBGuiada.items || []).find(x => x.id === item_id);
+      return this.openNotaHallazgoModal({
+        item_id, pilar: 'B', valor: 0,
+        descripcion: it ? it.descripcion : '',
+        obsActual: (it && it.marca && it.marca.observaciones) || ''
+      });
+    }
     try {
       await apiCall('marcarChecklistB', { item_id, valor });
       const data = await apiCall('getChecklistB', {});
       State.pilarBGuiada = data;
       this._renderGuiadaBodyB();
-      toast(valor === 1 ? 'Cumplido ✓' : 'No cumplido');
+      toast('Cumplido ✓');
     } catch (err) { toast(err.message, true); }
   },
 
@@ -3575,12 +3630,20 @@ const App = {
   },
 
   async marcarGuiadaC(item_id, valor) {
+    if (valor === 0) {
+      const it = (State.pilarCGuiada && State.pilarCGuiada.items || []).find(x => x.id === item_id);
+      return this.openNotaHallazgoModal({
+        item_id, pilar: 'C', valor: 0,
+        descripcion: it ? it.descripcion : '',
+        obsActual: (it && it.marca && it.marca.observaciones) || ''
+      });
+    }
     try {
       await apiCall('marcarChecklistC', { item_id, valor });
       const data = await apiCall('getChecklistC', {});
       State.pilarCGuiada = data;
       this._renderGuiadaBodyC();
-      toast(valor === 1 ? 'Cumplido ✓' : 'No cumplido');
+      toast('Cumplido ✓');
     } catch (err) { toast(err.message, true); }
   },
 
@@ -4183,6 +4246,70 @@ const App = {
   closeModal() {
     el('modal-backdrop').classList.remove('show');
     el('modal').classList.remove('modal-wide');
+  },
+
+  /* =========== NOTA DE HALLAZGO (vista guiada A/B/C) =========== */
+  // Modal compartido: al marcar ✗ en la vista guiada abrimos esto para que la auxiliar
+  // (u otro rol con permiso) deje el "por qué". También se reusa para editar la nota
+  // de una marca existente (sin cambiar el valor). El backend ya acepta observaciones
+  // en marcarChecklistA/B/C — sólo no se las estábamos mandando.
+  openNotaHallazgoModal(ctx) {
+    // ctx = { item_id, pilar:'A'|'B'|'C', valor:0|1, descripcion, obsActual }
+    const titulo = ctx.valor === 0 ? 'Marcar como no cumplido' : 'Editar nota del ítem';
+    const sub = ctx.valor === 0
+      ? 'Deja una nota para que el informe de hallazgos tenga contexto. Es opcional.'
+      : 'Modifica la observación de este ítem. Es opcional.';
+    const btnLabel = ctx.valor === 0 ? 'Guardar como no cumplido' : 'Guardar nota';
+    State._notaHallazgoCtx = ctx;
+    this.openModal(`
+      <div class="modal-head">
+        <h2>${escapeHtml(titulo)}</h2>
+        <div class="sub">${escapeHtml(sub)}</div>
+      </div>
+      <div class="modal-body">
+        <p style="margin-bottom:1rem; color:var(--ink-soft); font-style:italic;">
+          ${escapeHtml(ctx.descripcion || '')}
+        </p>
+        <div class="form-group">
+          <label>Observación (opcional)</label>
+          <textarea id="nota-hallazgo-obs" rows="4"
+            placeholder="${ctx.valor === 0 ? '¿Por qué no se cumplió? ¿Qué hace falta?' : 'Contexto adicional…'}">${escapeHtml(ctx.obsActual || '')}</textarea>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn-ghost" onclick="App.closeModal()">Cancelar</button>
+        <button class="btn-primary" style="width:auto;margin:0;" onclick="App.guardarNotaHallazgo()">${escapeHtml(btnLabel)}</button>
+      </div>
+    `);
+    // Auto-focus al textarea para que escriba directo (en móvil abre el teclado).
+    setTimeout(() => { const t = el('nota-hallazgo-obs'); if (t) t.focus(); }, 50);
+  },
+
+  async guardarNotaHallazgo() {
+    const ctx = State._notaHallazgoCtx;
+    if (!ctx) return this.closeModal();
+    const obs = (el('nota-hallazgo-obs').value || '').trim();
+    const endpoint = ctx.pilar === 'A' ? 'marcarChecklistA'
+                   : ctx.pilar === 'B' ? 'marcarChecklistB'
+                                       : 'marcarChecklistC';
+    const refresh  = ctx.pilar === 'A' ? 'getChecklistA'
+                   : ctx.pilar === 'B' ? 'getChecklistB'
+                                       : 'getChecklistC';
+    const stateKey = ctx.pilar === 'A' ? 'pilarAGuiada'
+                   : ctx.pilar === 'B' ? 'pilarBGuiada'
+                                       : 'pilarCGuiada';
+    const renderFn = ctx.pilar === 'A' ? '_renderGuiadaBody'
+                   : ctx.pilar === 'B' ? '_renderGuiadaBodyB'
+                                       : '_renderGuiadaBodyC';
+    try {
+      await apiCall(endpoint, { item_id: ctx.item_id, valor: ctx.valor, observaciones: obs });
+      const data = await apiCall(refresh, {});
+      State[stateKey] = data;
+      this[renderFn]();
+      this.closeModal();
+      State._notaHallazgoCtx = null;
+      toast(ctx.valor === 1 ? 'Cumplido ✓' : 'No cumplido · nota guardada');
+    } catch (err) { toast(err.message, true); }
   }
 };
 
@@ -4884,6 +5011,7 @@ function guiadaItemRowHTML(it) {
     ? `<span class="guiada-meta">marcada por ${escapeHtml(m.usuario_email || '')} · ${escapeHtml(String(m.timestamp || '').slice(11,16))}</span>`
     : '<span class="guiada-meta guiada-meta-pending">pendiente</span>';
   const sinPerm = it.puedo_marcar ? '' : '<span class="guiada-meta" style="color:var(--red);">tu rol no marca esto</span>';
+  const obsLine = guiadaObsLineHTML(it, 'A');
   return `
     <article class="${rowClass}">
       <div class="guiada-row-info">
@@ -4893,6 +5021,7 @@ function guiadaItemRowHTML(it) {
           ${meta}
           ${sinPerm}
         </div>
+        ${obsLine}
       </div>
       <div class="guiada-toggle">
         <button class="guiada-btn guiada-btn-no ${noCumplido ? 'active' : ''}" ${disabled}
@@ -4901,6 +5030,23 @@ function guiadaItemRowHTML(it) {
           onclick="App.marcarGuiada('${escapeHtml(it.id)}', 1)" aria-label="Marcar como cumplida">✓</button>
       </div>
     </article>`;
+}
+
+// Línea de observación (compartida A/B/C) que aparece debajo de cada ítem ya
+// marcado. Si hay nota la muestra textualmente; si no la hay (y el usuario
+// puede marcar), ofrece "+ nota" para añadir. Tap en cualquiera abre el modal
+// preservando el valor actual.
+function guiadaObsLineHTML(it, pilar) {
+  if (!it.marca || !it.puedo_marcar) return '';
+  const obs = (it.marca.observaciones || '').trim();
+  const cls = obs ? 'guiada-obs has-obs' : 'guiada-obs no-obs';
+  const icon = obs ? '📝' : '+';
+  const text = obs ? escapeHtml(obs) : 'añadir nota';
+  return `<button class="${cls}" type="button"
+            onclick="App.editarNotaGuiada('${escapeHtml(it.id)}', '${pilar}')"
+            title="Editar la observación de este ítem">
+            <span class="guiada-obs-icon">${icon}</span><span class="guiada-obs-text">${text}</span>
+          </button>`;
 }
 
 function checklistItemRowHTML(it) {
@@ -4989,6 +5135,7 @@ function guiadaBItemRowHTML(it) {
     ? `<span class="guiada-meta">marcada por ${escapeHtml(m.usuario_email || '')} · ${escapeHtml(String(m.timestamp || '').slice(11,16))}</span>`
     : '<span class="guiada-meta guiada-meta-pending">pendiente</span>';
   const sinPerm = it.puedo_marcar ? '' : '<span class="guiada-meta" style="color:var(--red);">tu rol no marca esto</span>';
+  const obsLine = guiadaObsLineHTML(it, 'B');
   return `
     <article class="${rowClass}">
       <div class="guiada-row-info">
@@ -4998,6 +5145,7 @@ function guiadaBItemRowHTML(it) {
           ${meta}
           ${sinPerm}
         </div>
+        ${obsLine}
       </div>
       <div class="guiada-toggle">
         <button class="guiada-btn guiada-btn-no ${noCumplido ? 'active' : ''}" ${disabled}
@@ -5077,6 +5225,7 @@ function guiadaCItemRowHTML(it) {
     ? `<span class="guiada-meta">marcada por ${escapeHtml(m.usuario_email || '')} · ${escapeHtml(String(m.timestamp || '').slice(11,16))}</span>`
     : '<span class="guiada-meta guiada-meta-pending">pendiente</span>';
   const sinPerm = it.puedo_marcar ? '' : '<span class="guiada-meta" style="color:var(--red);">tu rol no marca esto</span>';
+  const obsLine = guiadaObsLineHTML(it, 'C');
   return `
     <article class="${rowClass}">
       <div class="guiada-row-info">
@@ -5086,6 +5235,7 @@ function guiadaCItemRowHTML(it) {
           ${meta}
           ${sinPerm}
         </div>
+        ${obsLine}
       </div>
       <div class="guiada-toggle">
         <button class="guiada-btn guiada-btn-no ${noCumplido ? 'active' : ''}" ${disabled}
