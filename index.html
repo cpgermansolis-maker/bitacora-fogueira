@@ -1172,6 +1172,64 @@ body.has-modo-banner .nav { top: calc(70px + 40px); }
   margin-top: 0.45rem;
   font-size: 0.78rem; color: var(--ink-muted);
 }
+/* Toggle "Mostrar atendidos" en los controles de Reporte → Hallazgos */
+.report-toggle {
+  display: inline-flex; align-items: center; gap: 0.45rem;
+  margin: 0; padding: 0.55rem 0.75rem;
+  background: var(--bg-paper); border: 1px solid var(--border);
+  border-radius: 3px; cursor: pointer; user-select: none;
+  font-size: 0.82rem; color: var(--ink-soft); font-weight: 500;
+  text-transform: none; letter-spacing: 0;
+}
+.report-toggle:hover { border-color: var(--gold-line); }
+.report-toggle input[type="checkbox"] { margin: 0; cursor: pointer; }
+
+/* Línea informativa "X atendidos ocultos" */
+.hallazgos-ocultos-line {
+  margin: 0.8rem 0; padding: 0.55rem 0.8rem;
+  background: var(--bg-paper); border-left: 3px solid var(--gold-line);
+  font-size: 0.85rem; color: var(--ink-soft);
+}
+
+/* Acciones al pie de tarjeta de hallazgo */
+.hallazgo-acciones {
+  margin-top: 0.55rem;
+  display: flex; justify-content: flex-end;
+}
+.hallazgo-btn-atender {
+  font-size: 0.78rem; padding: 0.35rem 0.85rem;
+}
+
+/* Tarjeta de hallazgo cuando está marcado como atendido */
+.hallazgo-card.hallazgo-atendido {
+  opacity: 0.72;
+  border-left-color: var(--green) !important;
+}
+.hallazgo-card.hallazgo-atendido .hallazgo-titulo {
+  text-decoration: line-through;
+  text-decoration-color: var(--ink-muted);
+}
+.hallazgo-atendido-strip {
+  margin-top: 0.55rem;
+  padding: 0.5rem 0.7rem;
+  background: var(--green-bg); border: 1px solid var(--green);
+  border-radius: 3px;
+  display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap;
+  font-size: 0.82rem;
+}
+.hallazgo-atendido-badge {
+  font-weight: 600; color: var(--green);
+  background: var(--bg-paper); padding: 0.15rem 0.6rem;
+  border-radius: 999px; border: 1px solid var(--green);
+}
+.hallazgo-atendido-meta { color: var(--ink-soft); }
+.hallazgo-btn-reabrir {
+  font-size: 0.74rem; padding: 0.25rem 0.7rem; margin-left: auto;
+}
+.hallazgo-atendido-nota {
+  flex-basis: 100%; margin-top: 0.35rem;
+  font-style: italic; color: var(--ink-soft); font-size: 0.82rem;
+}
 
 /* =========================================================
    UTILIDADES Y RESPONSIVE
@@ -3954,8 +4012,19 @@ const App = {
             <label>Hasta</label>
             <input type="date" id="rep-hasta" value="${today}">
           </div>
+          ${sub === 'hallazgos' ? `
+            <label class="report-toggle" title="Por default los hallazgos atendidos se ocultan">
+              <input type="checkbox" id="rep-incluir-atendidos"
+                ${State.hallazgosIncluirAtendidos ? 'checked' : ''}>
+              <span>Mostrar atendidos</span>
+            </label>
+          ` : ''}
           <button class="btn-primary" style="width:auto; margin:0;" onclick="App.${sub === 'hallazgos' ? 'genHallazgos' : 'genReporte'}()">Generar</button>
           <button class="btn-secondary" onclick="App.imprimir()">Imprimir / PDF</button>
+          ${sub === 'hallazgos' ? `
+            <button class="btn-secondary" onclick="App.exportarHallazgosCSV()" id="btn-exportar-csv" disabled
+              title="Genera la lista actual como archivo .csv">Exportar CSV</button>
+          ` : ''}
         </div>
         <div class="report-output" id="report-output">
           <div class="empty-state"><p>Selecciona un periodo y haz click en <strong>Generar</strong>.</p></div>
@@ -4025,10 +4094,14 @@ const App = {
 
   // Informe de hallazgos — pide al backend la combinación de no-cumplidos,
   // banderas rojas, reqs bloqueadas y módulos SR12 críticos. Agrupa por pilar
-  // y dentro por día (más reciente arriba).
+  // y dentro por día (más reciente arriba). El toggle "Mostrar atendidos"
+  // controla si los cerrados aparecen o se quedan ocultos.
   async genHallazgos() {
     const desde = el('rep-desde').value;
     const hasta = el('rep-hasta').value;
+    const toggle = el('rep-incluir-atendidos');
+    const incluirAtendidos = !!(toggle && toggle.checked);
+    State.hallazgosIncluirAtendidos = incluirAtendidos;
     const out = el('report-output');
     if (!desde || !hasta) {
       out.innerHTML = '<div class="empty-state"><p>Selecciona ambas fechas (desde / hasta).</p></div>';
@@ -4040,11 +4113,113 @@ const App = {
     }
     out.innerHTML = '<div class="empty-state"><div class="spinner"></div></div>';
     try {
-      const data = await apiCall('getHallazgos', { desde, hasta });
+      const data = await apiCall('getHallazgos', { desde, hasta, incluir_atendidos: incluirAtendidos });
+      // Guardamos la respuesta para que (a) Exportar CSV use la lista actual
+      // y (b) los botones de marcar/desmarcar atendido refresquen sin volver
+      // a pegarle al backend si no cambia el rango.
+      State.hallazgosUltimo = data;
       out.innerHTML = this._renderHallazgosHTML(data);
+      const btnCsv = el('btn-exportar-csv');
+      if (btnCsv) btnCsv.disabled = data.hallazgos.length === 0;
     } catch (err) {
       out.innerHTML = `<div class="empty-state"><p>${escapeHtml(err.message)}</p></div>`;
     }
+  },
+
+  // Exporta los hallazgos del último Generar a un .csv descargable. Usa la
+  // lista exacta en pantalla (respeta el filtro de "atendidos" del toggle).
+  exportarHallazgosCSV() {
+    const data = State.hallazgosUltimo;
+    if (!data || !data.hallazgos.length) {
+      toast('No hay hallazgos para exportar. Genera primero.', true);
+      return;
+    }
+    const headers = ['pilar','tipo','fecha','hora','titulo','contexto','responsable_rol','observacion','capturado_por','atendido','atendido_por','atendido_at','nota_atendido'];
+    const tipoLbl = {
+      no_cumplido: 'No cumplido',
+      bandera_roja: 'Bandera roja',
+      req_bloqueada: 'Bloqueada',
+      sr12_critico: 'Zona crítica'
+    };
+    // Escapado RFC-4180: comillas duplicadas, envolver si trae coma/comilla/salto.
+    const esc = (v) => {
+      const s = (v === null || v === undefined) ? '' : String(v);
+      return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    };
+    const rows = data.hallazgos.map(h => [
+      'Pilar ' + h.pilar,
+      tipoLbl[h.tipo] || h.tipo,
+      h.fecha || '',
+      String(h.timestamp || '').slice(11, 16),
+      h.titulo || '',
+      h.contexto || '',
+      h.responsable_rol || '',
+      h.observacion || '',
+      h.capturado_por || '',
+      h.atendido ? 'Sí' : 'No',
+      h.atendido_por || '',
+      h.atendido_at || '',
+      h.atendido_nota || ''
+    ]);
+    // BOM al frente para que Excel abra UTF-8 sin romper acentos.
+    const csv = '﻿' + [headers, ...rows].map(r => r.map(esc).join(',')).join('\r\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'hallazgos_' + data.desde + '_' + data.hasta + '.csv';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast('CSV descargado · ' + data.hallazgos.length + ' filas');
+  },
+
+  // Abre el modal para marcar un hallazgo como atendido (auditor + gerente).
+  // Persistente en hoja Hallazgos_Atendidos hasta que se desmarque.
+  openMarcarAtendidoModal(key, titulo) {
+    State._atendidoCtx = { key, titulo };
+    this.openModal(`
+      <div class="modal-head">
+        <h2>Marcar hallazgo como atendido</h2>
+        <div class="sub">Quedará oculto del informe por default. Puedes deshacerlo después.</div>
+      </div>
+      <div class="modal-body">
+        <p style="margin-bottom:1rem; color:var(--ink-soft); font-style:italic;">
+          ${escapeHtml(titulo || '')}
+        </p>
+        <div class="form-group">
+          <label>Nota de cierre (opcional)</label>
+          <textarea id="atendido-nota" rows="3" placeholder="¿Qué se hizo para cerrarlo? ¿Acuerdo con quién?"></textarea>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn-ghost" onclick="App.closeModal()">Cancelar</button>
+        <button class="btn-primary" style="width:auto;margin:0;" onclick="App.confirmarAtendido()">Marcar atendido</button>
+      </div>
+    `);
+    setTimeout(() => { const t = el('atendido-nota'); if (t) t.focus(); }, 50);
+  },
+
+  async confirmarAtendido() {
+    const ctx = State._atendidoCtx;
+    if (!ctx) return this.closeModal();
+    const nota = (el('atendido-nota').value || '').trim();
+    try {
+      await apiCall('marcarHallazgoAtendido', { key: ctx.key, nota });
+      this.closeModal();
+      State._atendidoCtx = null;
+      toast('Hallazgo atendido ✓');
+      // Refrescamos la lista respetando el rango ya elegido.
+      await this.genHallazgos();
+    } catch (err) { toast(err.message, true); }
+  },
+
+  async desmarcarAtendido(key) {
+    if (!confirm('¿Desmarcar este hallazgo? Volverá a aparecer en el informe.')) return;
+    try {
+      await apiCall('desmarcarHallazgoAtendido', { key });
+      toast('Hallazgo reabierto');
+      await this.genHallazgos();
+    } catch (err) { toast(err.message, true); }
   },
 
   // Genera el HTML del informe de hallazgos. Si no hay nada, mensaje claro;
@@ -4101,15 +4276,23 @@ const App = {
       </section>`;
     }).join('');
 
+    const ocultos = Number(data.conteos.atendidos_ocultos || 0);
+    const noticeOcultos = (!data.incluir_atendidos && ocultos > 0)
+      ? `<p class="hallazgos-ocultos-line">
+           <em>${ocultos} hallazgo${ocultos===1?'':'s'} atendido${ocultos===1?'':'s'} oculto${ocultos===1?'':'s'}</em>
+           — activa "Mostrar atendidos" arriba para verlos.
+         </p>` : '';
+
     return `
       <h3>Informe de hallazgos</h3>
       <p>Periodo: <strong>${escapeHtml(periodo)}</strong> · Auditor: <strong>${escapeHtml(State.config.auditor_nombre || 'C.P. Germán Solís Zamora')}</strong></p>
       <p>
-        <span class="hallazgos-conteo">${data.conteos.total} hallazgo${data.conteos.total===1?'':'s'} en total</span>
+        <span class="hallazgos-conteo">${data.conteos.total} hallazgo${data.conteos.total===1?'':'s'}${data.incluir_atendidos ? ' (incluye atendidos)' : ''}</span>
         · <strong>A:</strong> ${data.conteos.A}
         · <strong>B:</strong> ${data.conteos.B}
         · <strong>C:</strong> ${data.conteos.C}
       </p>
+      ${noticeOcultos}
       ${bloques}
       <h3>Conclusión del auditor</h3>
       <p style="color:var(--ink-soft); font-style:italic;">Espacio reservado para tu opinión profesional. Edita esta sección directamente en pantalla antes de imprimir o exportar a PDF.</p>
@@ -5133,6 +5316,12 @@ function modulRowHTML(m, ck, sparkSerie) {
 // de Reporte). Pintamos un badge por tipo, el título y el contexto, y abajo la
 // observación si la auxiliar dejó nota — sin nota mostramos un hint neutro
 // para que el lector sepa que el espacio existe.
+//
+// Acción al pie:
+//   - Si el hallazgo NO está atendido y el usuario es auditor/gerente: botón
+//     "Marcar como atendido" (abre modal con textarea opcional).
+//   - Si SÍ está atendido: badge verde + nota de cierre (si existe) + botón
+//     "Reabrir" (también restringido a auditor/gerente).
 function hallazgoCardHTML(h) {
   const badges = {
     no_cumplido:   { label: '✗ No cumplido',     cls: 'h-no-cumplido' },
@@ -5150,8 +5339,34 @@ function hallazgoCardHTML(h) {
   const obsHTML = obs
     ? `<div class="hallazgo-obs"><strong>Observación:</strong> ${escapeHtml(obs)}</div>`
     : `<div class="hallazgo-obs hallazgo-obs-empty">Sin observación capturada</div>`;
+
+  // Bloque acción / estado atendido
+  const puedeAtender = State.user && (State.user.rol === 'auditor' || State.user.rol === 'gerente');
+  const cardCls = h.atendido ? 'hallazgo-card hallazgo-atendido' : 'hallazgo-card';
+  let accionHTML = '';
+  if (h.atendido) {
+    const fecha = String(h.atendido_at || '').slice(0, 10);
+    const notaAt = (h.atendido_nota || '').trim();
+    accionHTML = `<div class="hallazgo-atendido-strip">
+        <span class="hallazgo-atendido-badge">✓ Atendido</span>
+        <span class="hallazgo-atendido-meta">
+          por <strong>${escapeHtml(h.atendido_por || '')}</strong>${fecha ? ' · ' + escapeHtml(fecha) : ''}
+        </span>
+        ${puedeAtender ? `<button class="btn-ghost hallazgo-btn-reabrir"
+          onclick="App.desmarcarAtendido('${escapeHtml(h.key)}')">Reabrir</button>` : ''}
+        ${notaAt ? `<div class="hallazgo-atendido-nota">"${escapeHtml(notaAt)}"</div>` : ''}
+      </div>`;
+  } else if (puedeAtender) {
+    accionHTML = `<div class="hallazgo-acciones">
+        <button class="btn-ghost hallazgo-btn-atender"
+          onclick="App.openMarcarAtendidoModal('${escapeHtml(h.key)}', ${JSON.stringify(h.titulo || '').replace(/"/g, '&quot;')})">
+          ✓ Marcar como atendido
+        </button>
+      </div>`;
+  }
+
   return `
-    <article class="hallazgo-card">
+    <article class="${cardCls}">
       <div class="hallazgo-head">
         <span class="hallazgo-badge ${b.cls}">${b.label}</span>
         <span class="hallazgo-pilar">Pilar ${escapeHtml(h.pilar)}</span>
@@ -5160,6 +5375,7 @@ function hallazgoCardHTML(h) {
       ${h.contexto ? `<div class="hallazgo-contexto">${escapeHtml(h.contexto)}</div>` : ''}
       ${obsHTML}
       ${meta.length ? `<div class="hallazgo-meta">${meta.join(' · ')}</div>` : ''}
+      ${accionHTML}
     </article>
   `;
 }

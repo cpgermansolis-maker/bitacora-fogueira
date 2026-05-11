@@ -39,8 +39,14 @@ const SHEETS = {
   PILAR_C_CK_ITEMS: 'PilarC_ChecklistItems',
   PILAR_C_CK_MARCAS: 'PilarC_ChecklistMarcas',
   COMENTARIOS: 'Bitacora_Comentarios',
-  BITACORA: 'Bitacora_Sistema'
+  BITACORA: 'Bitacora_Sistema',
+  HALLAZGOS_ATENDIDOS: 'Hallazgos_Atendidos'
 };
+
+// Hoja Hallazgos_Atendidos: creada on-demand la primera vez que alguien marca
+// uno (ver ensureSheetExists). El key es un identificador estable del hallazgo
+// que reconstruye el frontend/backend a partir de su tipo + referencia.
+const HALLAZGOS_ATENDIDOS_HEADERS = ['key', 'atendido_por', 'atendido_at', 'nota'];
 
 // El ID de la carpeta de Drive se guarda en PropertiesService al ejecutar
 // setupSheet() (ver Setup.gs). No requiere edición manual de este archivo.
@@ -99,6 +105,8 @@ function doPost(e) {
         case 'getChecklistResumenC': response = getChecklistResumenC(user); break;
         case 'getReporte':         response = getReporte(user, payload); break;
         case 'getHallazgos':       response = getHallazgos(user, payload); break;
+        case 'marcarHallazgoAtendido':   response = marcarHallazgoAtendido(user, payload); break;
+        case 'desmarcarHallazgoAtendido':response = desmarcarHallazgoAtendido(user, payload); break;
         case 'subirEvidencia':     response = subirEvidencia(user, payload); break;
         case 'getUsuarios':        response = getUsuarios(user); break;
         case 'addUsuario':         response = addUsuario(user, payload); break;
@@ -134,6 +142,20 @@ function ss() { return SpreadsheetApp.getActiveSpreadsheet(); }
 function sheet(name) {
   const s = ss().getSheetByName(name);
   if (!s) throw new Error('Falta la pestaña: ' + name);
+  return s;
+}
+
+// Crea la hoja si no existe, con los headers indicados. Útil para hojas que
+// se introducen en una versión posterior sin requerir re-correr setupSheet()
+// en producción. Si ya existe, no toca nada.
+function ensureSheetExists(name, headers) {
+  let s = ss().getSheetByName(name);
+  if (!s) {
+    s = ss().insertSheet(name);
+    s.getRange(1, 1, 1, headers.length).setValues([headers]);
+    s.getRange(1, 1, 1, headers.length).setFontWeight('bold');
+    s.setFrozenRows(1);
+  }
   return s;
 }
 
@@ -1658,6 +1680,7 @@ function getHallazgos(user, payload) {
     hallazgos.push({
       pilar: 'A',
       tipo: 'no_cumplido',
+      ref: String(m.item_id),                 // id estable del item
       fecha: fecha,
       titulo: it ? it.descripcion : ('Ítem ' + m.item_id),
       contexto: it ? ('Módulo ' + it.modulo_id + ' · ' + it.frecuencia) : '',
@@ -1677,6 +1700,7 @@ function getHallazgos(user, payload) {
     hallazgos.push({
       pilar: 'B',
       tipo: 'no_cumplido',
+      ref: String(m.item_id),
       fecha: fecha,
       titulo: it ? it.descripcion : ('Ítem ' + m.item_id),
       contexto: it ? ('Etapa ' + it.etapa_id + ' · ' + (it.seccion || it.frecuencia)) : '',
@@ -1696,6 +1720,7 @@ function getHallazgos(user, payload) {
     hallazgos.push({
       pilar: 'C',
       tipo: 'no_cumplido',
+      ref: String(m.item_id),
       fecha: fecha,
       titulo: it ? it.descripcion : ('Ítem ' + m.item_id),
       contexto: it ? ('Etapa ' + it.etapa_id + ' · ' + (it.seccion || it.frecuencia)) : '',
@@ -1715,6 +1740,7 @@ function getHallazgos(user, payload) {
     hallazgos.push({
       pilar: 'B',
       tipo: 'bandera_roja',
+      ref: String(d.etapa_id),
       fecha: fecha,
       titulo: et ? ('Bandera roja en ' + et.nombre) : ('Bandera roja en etapa ' + d.etapa_id),
       contexto: et ? et.descripcion : ('Etapa ' + d.etapa_id),
@@ -1732,6 +1758,7 @@ function getHallazgos(user, payload) {
     hallazgos.push({
       pilar: 'C',
       tipo: 'req_bloqueada',
+      ref: String(r.id),
       fecha: hasta,
       titulo: 'Requisición bloqueada: ' + (r.folio || r.id),
       contexto: (r.area_solicitante || '') + ' · ' + (r.descripcion || ''),
@@ -1748,6 +1775,7 @@ function getHallazgos(user, payload) {
     hallazgos.push({
       pilar: 'A',
       tipo: 'sr12_critico',
+      ref: String(m.id),
       fecha: hasta,
       titulo: 'Módulo en zona crítica: ' + m.modulo,
       contexto: 'Capacidad ' + Number(m.porcentaje_actual) + '% (meta ' + Number(m.meta || 100) + '%)',
@@ -1758,24 +1786,121 @@ function getHallazgos(user, payload) {
     });
   });
 
+  // Cada hallazgo necesita un key estable para poder marcarlo como "atendido"
+  // sin importar el rango de fechas con que se consulte. La función de key
+  // vive como helper (hallazgoKey) abajo y se reusa en marcar/desmarcar.
+  hallazgos.forEach(h => { h.key = hallazgoKey(h); });
+
+  // Left-join con la hoja Hallazgos_Atendidos. Si no existe (primer uso),
+  // ensureSheetExists la crea vacía con sus headers.
+  ensureSheetExists(SHEETS.HALLAZGOS_ATENDIDOS, HALLAZGOS_ATENDIDOS_HEADERS);
+  const atendidos = {};
+  sheetData(SHEETS.HALLAZGOS_ATENDIDOS).forEach(a => {
+    atendidos[String(a.key)] = a;
+  });
+  hallazgos.forEach(h => {
+    const a = atendidos[h.key];
+    if (a) {
+      h.atendido = true;
+      h.atendido_por = a.atendido_por || '';
+      h.atendido_at  = String(a.atendido_at || '');
+      h.atendido_nota = a.nota || '';
+    } else {
+      h.atendido = false;
+    }
+  });
+
+  // Filtro: por default los atendidos se ocultan. El frontend pasa
+  // incluir_atendidos:true cuando el usuario activa el toggle.
+  const incluirAtendidos = payload.incluir_atendidos === true;
+  const visibles = incluirAtendidos ? hallazgos : hallazgos.filter(h => !h.atendido);
+
   // Orden global: más reciente arriba (timestamp desc). Esto deja, dentro de
   // cada bloque por pilar/día que arme el frontend, lo más reciente primero.
-  hallazgos.sort((a, b) => String(b.timestamp).localeCompare(String(a.timestamp)));
+  visibles.sort((a, b) => String(b.timestamp).localeCompare(String(a.timestamp)));
 
   const conteos = {
-    A: hallazgos.filter(h => h.pilar === 'A').length,
-    B: hallazgos.filter(h => h.pilar === 'B').length,
-    C: hallazgos.filter(h => h.pilar === 'C').length,
-    total: hallazgos.length
+    A: visibles.filter(h => h.pilar === 'A').length,
+    B: visibles.filter(h => h.pilar === 'B').length,
+    C: visibles.filter(h => h.pilar === 'C').length,
+    total: visibles.length,
+    // total de atendidos en el rango — útil para mostrar "X ocultos" si el
+    // toggle está apagado.
+    atendidos_ocultos: incluirAtendidos ? 0 : hallazgos.filter(h => h.atendido).length
   };
   const porTipo = {
-    no_cumplido:  hallazgos.filter(h => h.tipo === 'no_cumplido').length,
-    bandera_roja: hallazgos.filter(h => h.tipo === 'bandera_roja').length,
-    req_bloqueada:hallazgos.filter(h => h.tipo === 'req_bloqueada').length,
-    sr12_critico: hallazgos.filter(h => h.tipo === 'sr12_critico').length
+    no_cumplido:  visibles.filter(h => h.tipo === 'no_cumplido').length,
+    bandera_roja: visibles.filter(h => h.tipo === 'bandera_roja').length,
+    req_bloqueada:visibles.filter(h => h.tipo === 'req_bloqueada').length,
+    sr12_critico: visibles.filter(h => h.tipo === 'sr12_critico').length
   };
 
-  return { hallazgos, conteos, por_tipo: porTipo, desde, hasta };
+  return { hallazgos: visibles, conteos, por_tipo: porTipo, desde, hasta, incluir_atendidos: incluirAtendidos };
+}
+
+// Genera un identificador estable de un hallazgo. Determinístico — mismas
+// entradas → misma key, así marcar/desmarcar funciona entre consultas con
+// rangos distintos.
+//   - no_cumplido_*  → key incluye timestamp (cada marca es un evento único)
+//   - bandera_roja   → key incluye fecha (una bandera por etapa por día)
+//   - req_bloqueada  → key sin fecha (snapshot — una req bloqueada es una req)
+//   - sr12_critico   → key sin fecha (snapshot — un módulo en zona es un módulo)
+function hallazgoKey(h) {
+  switch (h.tipo) {
+    case 'no_cumplido':
+      return h.pilar + '|no_cumplido|' + h.ref + '|' + (h.timestamp || h.fecha);
+    case 'bandera_roja':
+      return 'B|bandera_roja|' + h.ref + '|' + h.fecha;
+    case 'req_bloqueada':
+      return 'C|req_bloqueada|' + h.ref;
+    case 'sr12_critico':
+      return 'A|sr12_critico|' + h.ref;
+    default:
+      return h.pilar + '|' + h.tipo + '|' + (h.ref || '') + '|' + (h.timestamp || '');
+  }
+}
+
+// Marca un hallazgo como atendido. Solo auditor o gerente — los auxiliares
+// capturan datos pero el "cierre" del hallazgo es una decisión de supervisión.
+function marcarHallazgoAtendido(user, payload) {
+  if (user.rol !== 'auditor' && user.rol !== 'gerente') {
+    throw new Error('Solo auditor o gerente pueden marcar hallazgos como atendidos');
+  }
+  if (!payload || !payload.key) throw new Error('key del hallazgo requerido');
+  ensureSheetExists(SHEETS.HALLAZGOS_ATENDIDOS, HALLAZGOS_ATENDIDOS_HEADERS);
+  const existing = findRow(SHEETS.HALLAZGOS_ATENDIDOS, r => String(r.key) === String(payload.key));
+  const rowData = {
+    key: payload.key,
+    atendido_por: user.email,
+    atendido_at: nowISO(),
+    nota: payload.nota || ''
+  };
+  if (existing) {
+    updateRow(SHEETS.HALLAZGOS_ATENDIDOS, existing.rowIdx, rowData);
+  } else {
+    appendRow(SHEETS.HALLAZGOS_ATENDIDOS, rowData);
+  }
+  logBitacora(user.email, 'marcarHallazgoAtendido', payload.key);
+  return { ok: true, key: payload.key, atendido_por: user.email, atendido_at: rowData.atendido_at };
+}
+
+function desmarcarHallazgoAtendido(user, payload) {
+  if (user.rol !== 'auditor' && user.rol !== 'gerente') {
+    throw new Error('Solo auditor o gerente pueden desmarcar hallazgos');
+  }
+  if (!payload || !payload.key) throw new Error('key del hallazgo requerido');
+  ensureSheetExists(SHEETS.HALLAZGOS_ATENDIDOS, HALLAZGOS_ATENDIDOS_HEADERS);
+  const s = sheet(SHEETS.HALLAZGOS_ATENDIDOS);
+  // Borrar la fila correspondiente. Buscamos manualmente para tener el rowIdx.
+  const values = s.getDataRange().getValues();
+  for (let i = values.length - 1; i >= 1; i--) {
+    if (String(values[i][0]) === String(payload.key)) {
+      s.deleteRow(i + 1);
+      logBitacora(user.email, 'desmarcarHallazgoAtendido', payload.key);
+      return { ok: true, key: payload.key };
+    }
+  }
+  return { ok: true, key: payload.key, no_existia: true };
 }
 
 // =============================================================
