@@ -1101,6 +1101,78 @@ body.has-modo-banner .nav { top: calc(70px + 40px); }
 .report-output h3:first-child { margin-top: 0; }
 .report-output ul { margin-left: 1.5rem; }
 
+/* ----- Reporte · sub-pestaña Hallazgos ----- */
+.hallazgos-conteo {
+  display: inline-block;
+  padding: 0.2rem 0.7rem; border-radius: 999px;
+  background: var(--gold-deep); color: var(--bg-deep);
+  font-weight: 600; font-size: 0.85rem;
+}
+.hallazgos-bloque {
+  margin-top: 1.4rem;
+}
+.hallazgos-dia {
+  margin-top: 1rem;
+}
+.hallazgos-dia-head {
+  font-family: var(--font-display); font-weight: 600;
+  color: var(--ink-soft); font-size: 0.95rem;
+  text-transform: capitalize; letter-spacing: 0.02em;
+  margin-bottom: 0.5rem;
+}
+.hallazgos-list {
+  display: flex; flex-direction: column; gap: 0.7rem;
+}
+.hallazgo-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border); border-left-width: 4px;
+  border-radius: 4px; padding: 0.85rem 1rem;
+}
+.hallazgo-head {
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 0.6rem; margin-bottom: 0.35rem;
+}
+.hallazgo-badge {
+  display: inline-block; padding: 0.18rem 0.6rem;
+  border-radius: 999px; font-size: 0.75rem; font-weight: 600;
+  letter-spacing: 0.02em;
+  background: var(--bg-paper); color: var(--ink-soft);
+  border: 1px solid var(--border-strong);
+}
+.hallazgo-badge.h-no-cumplido { background: var(--red-bg);   color: var(--red);    border-color: var(--red); }
+.hallazgo-badge.h-bandera     { background: var(--red-bg);   color: var(--red);    border-color: var(--red); }
+.hallazgo-badge.h-bloqueada   { background: var(--orange-bg);color: var(--orange); border-color: var(--orange); }
+.hallazgo-badge.h-critico     { background: var(--amber-bg); color: var(--amber);  border-color: var(--amber); }
+.hallazgo-card:has(.h-no-cumplido), .hallazgo-card:has(.h-bandera)   { border-left-color: var(--red); }
+.hallazgo-card:has(.h-bloqueada)                                     { border-left-color: var(--orange); }
+.hallazgo-card:has(.h-critico)                                       { border-left-color: var(--amber); }
+.hallazgo-pilar {
+  font-size: 0.72rem; color: var(--ink-muted);
+  text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600;
+}
+.hallazgo-titulo {
+  font-weight: 600; font-size: 0.96rem; color: var(--ink);
+  margin-bottom: 0.2rem;
+}
+.hallazgo-contexto {
+  font-size: 0.82rem; color: var(--ink-soft); margin-bottom: 0.4rem;
+}
+.hallazgo-obs {
+  background: var(--bg-paper);
+  padding: 0.55rem 0.75rem; border-radius: 3px;
+  font-size: 0.88rem; color: var(--ink);
+  border-left: 2px solid var(--gold-line);
+  margin-top: 0.4rem;
+}
+.hallazgo-obs.hallazgo-obs-empty {
+  font-style: italic; color: var(--ink-muted);
+  border-left-color: var(--border-strong);
+}
+.hallazgo-meta {
+  margin-top: 0.45rem;
+  font-size: 0.78rem; color: var(--ink-muted);
+}
+
 /* =========================================================
    UTILIDADES Y RESPONSIVE
    ========================================================= */
@@ -3855,13 +3927,22 @@ const App = {
   /* =========== REPORTE =========== */
   async render_reporte() {
     const c = el('reporte-content');
+    const sub = State.reporteSubview || 'resumen';
     const today = todayInputValue();
+    // Defaults distintos por sub-vista: el resumen ejecutivo abarca el último
+    // mes (igual que antes), los hallazgos arrancan en "hoy" para la junta diaria.
     const monthAgo = new Date(); monthAgo.setMonth(monthAgo.getMonth() - 1);
-    const desdeDefault = monthAgo.toISOString().split('T')[0];
+    const desdeMensual = monthAgo.toISOString().split('T')[0];
+    const desdeDefault = sub === 'hallazgos' ? today : desdeMensual;
+
     c.innerHTML = `
       <div class="section-head">
         <h1><span class="badge">Reporte</span> Papel de trabajo de supervisión</h1>
-        <div class="meta">Genera el resumen del periodo para tu archivo de auditoría</div>
+        <div class="meta">Genera el resumen y los hallazgos del periodo para tu archivo de auditoría</div>
+      </div>
+      <div class="subtabs">
+        <button class="subtab ${sub === 'resumen'   ? 'active' : ''}" onclick="App.reporte_setView('resumen')">Resumen ejecutivo</button>
+        <button class="subtab ${sub === 'hallazgos' ? 'active' : ''}" onclick="App.reporte_setView('hallazgos')">Hallazgos</button>
       </div>
       <div class="report-shell">
         <div class="report-controls">
@@ -3873,7 +3954,7 @@ const App = {
             <label>Hasta</label>
             <input type="date" id="rep-hasta" value="${today}">
           </div>
-          <button class="btn-primary" style="width:auto; margin:0;" onclick="App.genReporte()">Generar</button>
+          <button class="btn-primary" style="width:auto; margin:0;" onclick="App.${sub === 'hallazgos' ? 'genHallazgos' : 'genReporte'}()">Generar</button>
           <button class="btn-secondary" onclick="App.imprimir()">Imprimir / PDF</button>
         </div>
         <div class="report-output" id="report-output">
@@ -3881,6 +3962,11 @@ const App = {
         </div>
       </div>
     `;
+  },
+
+  reporte_setView(view) {
+    State.reporteSubview = view;
+    this.render_reporte();
   },
 
   async genReporte() {
@@ -3935,6 +4021,100 @@ const App = {
     } catch (err) {
       out.innerHTML = `<div class="empty-state"><p>${escapeHtml(err.message)}</p></div>`;
     }
+  },
+
+  // Informe de hallazgos — pide al backend la combinación de no-cumplidos,
+  // banderas rojas, reqs bloqueadas y módulos SR12 críticos. Agrupa por pilar
+  // y dentro por día (más reciente arriba).
+  async genHallazgos() {
+    const desde = el('rep-desde').value;
+    const hasta = el('rep-hasta').value;
+    const out = el('report-output');
+    if (!desde || !hasta) {
+      out.innerHTML = '<div class="empty-state"><p>Selecciona ambas fechas (desde / hasta).</p></div>';
+      return;
+    }
+    if (desde > hasta) {
+      out.innerHTML = '<div class="empty-state"><p>"Desde" no puede ser posterior a "hasta".</p></div>';
+      return;
+    }
+    out.innerHTML = '<div class="empty-state"><div class="spinner"></div></div>';
+    try {
+      const data = await apiCall('getHallazgos', { desde, hasta });
+      out.innerHTML = this._renderHallazgosHTML(data);
+    } catch (err) {
+      out.innerHTML = `<div class="empty-state"><p>${escapeHtml(err.message)}</p></div>`;
+    }
+  },
+
+  // Genera el HTML del informe de hallazgos. Si no hay nada, mensaje claro;
+  // si sí hay, 3 secciones (A / B / C) con conteos y subgrupos por día.
+  _renderHallazgosHTML(data) {
+    const periodo = data.desde === data.hasta
+      ? formatDate(data.desde)
+      : (formatDate(data.desde) + ' al ' + formatDate(data.hasta));
+    if (data.conteos.total === 0) {
+      return `
+        <h3>Informe de hallazgos</h3>
+        <p>Periodo: <strong>${escapeHtml(periodo)}</strong></p>
+        <div class="empty-state"><div class="big-icon">✓</div>
+          <p>Sin hallazgos en el periodo. Cero no-cumplidos, banderas rojas, reqs bloqueadas o módulos en zona crítica.</p>
+        </div>
+      `;
+    }
+    // Agrupar por pilar y dentro por fecha (yyyy-MM-dd). El backend ya entregó
+    // los hallazgos ordenados por timestamp desc, así que dentro de cada día
+    // mantenemos ese orden natural.
+    const porPilar = { A: [], B: [], C: [] };
+    data.hallazgos.forEach(h => { if (porPilar[h.pilar]) porPilar[h.pilar].push(h); });
+    const pilares = [
+      { key: 'A', label: 'Pilar A · Soft Restaurant 12' },
+      { key: 'B', label: 'Pilar B · Conciliación' },
+      { key: 'C', label: 'Pilar C · Inventarios' }
+    ];
+    const bloques = pilares.map(p => {
+      const lista = porPilar[p.key];
+      if (lista.length === 0) {
+        return `<section class="hallazgos-bloque">
+          <h3>${escapeHtml(p.label)} <small style="font-weight:400;color:var(--ink-soft);">· sin hallazgos</small></h3>
+        </section>`;
+      }
+      // Agrupar por fecha
+      const porDia = {};
+      lista.forEach(h => {
+        const f = h.fecha || '—';
+        if (!porDia[f]) porDia[f] = [];
+        porDia[f].push(h);
+      });
+      const diasOrdenados = Object.keys(porDia).sort().reverse(); // más reciente arriba
+      const diasHTML = diasOrdenados.map(d => `
+        <div class="hallazgos-dia">
+          <div class="hallazgos-dia-head">${escapeHtml(formatDate(d) || d)}</div>
+          <div class="hallazgos-list">
+            ${porDia[d].map(h => hallazgoCardHTML(h)).join('')}
+          </div>
+        </div>
+      `).join('');
+      return `<section class="hallazgos-bloque">
+        <h3>${escapeHtml(p.label)} <small style="font-weight:400;color:var(--ink-soft);">· ${lista.length} hallazgo${lista.length===1?'':'s'}</small></h3>
+        ${diasHTML}
+      </section>`;
+    }).join('');
+
+    return `
+      <h3>Informe de hallazgos</h3>
+      <p>Periodo: <strong>${escapeHtml(periodo)}</strong> · Auditor: <strong>${escapeHtml(State.config.auditor_nombre || 'C.P. Germán Solís Zamora')}</strong></p>
+      <p>
+        <span class="hallazgos-conteo">${data.conteos.total} hallazgo${data.conteos.total===1?'':'s'} en total</span>
+        · <strong>A:</strong> ${data.conteos.A}
+        · <strong>B:</strong> ${data.conteos.B}
+        · <strong>C:</strong> ${data.conteos.C}
+      </p>
+      ${bloques}
+      <h3>Conclusión del auditor</h3>
+      <p style="color:var(--ink-soft); font-style:italic;">Espacio reservado para tu opinión profesional. Edita esta sección directamente en pantalla antes de imprimir o exportar a PDF.</p>
+      <div contenteditable="true" style="min-height:80px; background:var(--bg-elevated); padding:0.85rem; border:1px dashed var(--border-strong); border-radius:4px;"></div>
+    `;
   },
 
   imprimir() { window.print(); },
@@ -4946,6 +5126,41 @@ function modulRowHTML(m, ck, sparkSerie) {
         ${ckButton}
       </div>
     </div>
+  `;
+}
+
+// Tarjeta de un hallazgo individual dentro del informe (sub-pestaña Hallazgos
+// de Reporte). Pintamos un badge por tipo, el título y el contexto, y abajo la
+// observación si la auxiliar dejó nota — sin nota mostramos un hint neutro
+// para que el lector sepa que el espacio existe.
+function hallazgoCardHTML(h) {
+  const badges = {
+    no_cumplido:   { label: '✗ No cumplido',     cls: 'h-no-cumplido' },
+    bandera_roja:  { label: '🚩 Bandera roja',   cls: 'h-bandera' },
+    req_bloqueada: { label: '⛔ Bloqueada',       cls: 'h-bloqueada' },
+    sr12_critico:  { label: '⚠️ Zona crítica',   cls: 'h-critico' }
+  };
+  const b = badges[h.tipo] || { label: h.tipo, cls: '' };
+  const hora = String(h.timestamp || '').slice(11, 16);
+  const meta = [];
+  if (h.responsable_rol) meta.push('Responsable: <strong>' + escapeHtml(h.responsable_rol) + '</strong>');
+  if (h.capturado_por)   meta.push('Capturó: ' + escapeHtml(h.capturado_por));
+  if (hora && hora !== '00:00' && hora !== '23:59') meta.push(escapeHtml(hora));
+  const obs = (h.observacion || '').trim();
+  const obsHTML = obs
+    ? `<div class="hallazgo-obs"><strong>Observación:</strong> ${escapeHtml(obs)}</div>`
+    : `<div class="hallazgo-obs hallazgo-obs-empty">Sin observación capturada</div>`;
+  return `
+    <article class="hallazgo-card">
+      <div class="hallazgo-head">
+        <span class="hallazgo-badge ${b.cls}">${b.label}</span>
+        <span class="hallazgo-pilar">Pilar ${escapeHtml(h.pilar)}</span>
+      </div>
+      <div class="hallazgo-titulo">${escapeHtml(h.titulo)}</div>
+      ${h.contexto ? `<div class="hallazgo-contexto">${escapeHtml(h.contexto)}</div>` : ''}
+      ${obsHTML}
+      ${meta.length ? `<div class="hallazgo-meta">${meta.join(' · ')}</div>` : ''}
+    </article>
   `;
 }
 

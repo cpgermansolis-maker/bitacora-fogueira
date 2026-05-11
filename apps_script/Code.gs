@@ -98,6 +98,7 @@ function doPost(e) {
         case 'marcarChecklistC':   response = marcarChecklistC(user, payload); break;
         case 'getChecklistResumenC': response = getChecklistResumenC(user); break;
         case 'getReporte':         response = getReporte(user, payload); break;
+        case 'getHallazgos':       response = getHallazgos(user, payload); break;
         case 'subirEvidencia':     response = subirEvidencia(user, payload); break;
         case 'getUsuarios':        response = getUsuarios(user); break;
         case 'addUsuario':         response = addUsuario(user, payload); break;
@@ -1616,6 +1617,165 @@ function getReporte(user, payload) {
   const reqs = sheetData(SHEETS.PILAR_C_REQS)
     .filter(r => String(r.fecha_solicitud) >= desde && String(r.fecha_solicitud) <= hasta + 'T23:59:59');
   return { modulos, histA, diarioB, reqs, desde, hasta };
+}
+
+// =============================================================
+// INFORME DE HALLAZGOS — para auditor y gerente
+// =============================================================
+// Combina 4 fuentes en un solo payload normalizado:
+//   1. No-cumplidos (valor=0) en los 3 check lists A/B/C  → filtrado por timestamp en [desde, hasta]
+//   2. Banderas rojas en PilarB_Diario                    → filtrado por fecha en [desde, hasta]
+//   3. Requisiciones con bloqueado=TRUE                   → snapshot al cierre (fecha=hasta)
+//   4. Módulos SR12 con porcentaje_actual < 50            → snapshot al cierre (fecha=hasta)
+//
+// Las observaciones de cada captura vienen incluidas: las marcas de no-cumplido
+// pueden traer el "por qué" que dejó la auxiliar (ver v15). Si la observación
+// está vacía, el frontend lo indica con una pista neutra.
+function getHallazgos(user, payload) {
+  payload = payload || {};
+  const desde = payload.desde || todayStr();
+  const hasta = payload.hasta || desde;
+
+  const tz = ss().getSpreadsheetTimeZone() || 'America/Mexico_City';
+  const fmt = (d) => Utilities.formatDate(d, tz, 'yyyy-MM-dd');
+  const inRange = (f) => f && f >= desde && f <= hasta;
+
+  // Diccionarios para enriquecer cada marca/etapa con su descripción humana.
+  const ckItemsA = {}; sheetData(SHEETS.PILAR_A_CK_ITEMS).forEach(it => { ckItemsA[String(it.id)] = it; });
+  const ckItemsB = {}; sheetData(SHEETS.PILAR_B_CK_ITEMS).forEach(it => { ckItemsB[String(it.id)] = it; });
+  const ckItemsC = {}; sheetData(SHEETS.PILAR_C_CK_ITEMS).forEach(it => { ckItemsC[String(it.id)] = it; });
+  const etapasB  = {}; sheetData(SHEETS.PILAR_B_ETAPAS).forEach(e  => { etapasB[String(e.id)]  = e;  });
+
+  const hallazgos = [];
+
+  // 1. No-cumplidos del Pilar A — un registro por marca con valor=0 dentro del rango.
+  //    Como cada (item, periodo) tiene UNA marca vigente (sobrescritura), no hay duplicados.
+  sheetData(SHEETS.PILAR_A_CK_MARCAS).forEach(m => {
+    if (Number(m.valor) !== 0) return;
+    const fecha = fmt(new Date(m.timestamp));
+    if (!inRange(fecha)) return;
+    const it = ckItemsA[String(m.item_id)];
+    hallazgos.push({
+      pilar: 'A',
+      tipo: 'no_cumplido',
+      fecha: fecha,
+      titulo: it ? it.descripcion : ('Ítem ' + m.item_id),
+      contexto: it ? ('Módulo ' + it.modulo_id + ' · ' + it.frecuencia) : '',
+      responsable_rol: it ? it.responsable_rol : '',
+      observacion: m.observaciones || '',
+      capturado_por: m.usuario_email || '',
+      timestamp: String(m.timestamp || '')
+    });
+  });
+
+  // 2. No-cumplidos del Pilar B.
+  sheetData(SHEETS.PILAR_B_CK_MARCAS).forEach(m => {
+    if (Number(m.valor) !== 0) return;
+    const fecha = fmt(new Date(m.timestamp));
+    if (!inRange(fecha)) return;
+    const it = ckItemsB[String(m.item_id)];
+    hallazgos.push({
+      pilar: 'B',
+      tipo: 'no_cumplido',
+      fecha: fecha,
+      titulo: it ? it.descripcion : ('Ítem ' + m.item_id),
+      contexto: it ? ('Etapa ' + it.etapa_id + ' · ' + (it.seccion || it.frecuencia)) : '',
+      responsable_rol: it ? it.responsable_rol : '',
+      observacion: m.observaciones || '',
+      capturado_por: m.usuario_email || '',
+      timestamp: String(m.timestamp || '')
+    });
+  });
+
+  // 3. No-cumplidos del Pilar C.
+  sheetData(SHEETS.PILAR_C_CK_MARCAS).forEach(m => {
+    if (Number(m.valor) !== 0) return;
+    const fecha = fmt(new Date(m.timestamp));
+    if (!inRange(fecha)) return;
+    const it = ckItemsC[String(m.item_id)];
+    hallazgos.push({
+      pilar: 'C',
+      tipo: 'no_cumplido',
+      fecha: fecha,
+      titulo: it ? it.descripcion : ('Ítem ' + m.item_id),
+      contexto: it ? ('Etapa ' + it.etapa_id + ' · ' + (it.seccion || it.frecuencia)) : '',
+      responsable_rol: it ? it.responsable_rol : '',
+      observacion: m.observaciones || '',
+      capturado_por: m.usuario_email || '',
+      timestamp: String(m.timestamp || '')
+    });
+  });
+
+  // 4. Banderas rojas del Pilar B — fila de PilarB_Diario con bandera_roja=TRUE.
+  sheetData(SHEETS.PILAR_B_DIARIO).forEach(d => {
+    if (String(d.bandera_roja).toUpperCase() !== 'TRUE') return;
+    const fecha = String(d.fecha || '');
+    if (!inRange(fecha)) return;
+    const et = etapasB[String(d.etapa_id)];
+    hallazgos.push({
+      pilar: 'B',
+      tipo: 'bandera_roja',
+      fecha: fecha,
+      titulo: et ? ('Bandera roja en ' + et.nombre) : ('Bandera roja en etapa ' + d.etapa_id),
+      contexto: et ? et.descripcion : ('Etapa ' + d.etapa_id),
+      responsable_rol: et ? et.responsable_rol : '',
+      observacion: d.observaciones || d.comentario_auxiliar || '',
+      capturado_por: d.usuario_completo_email || '',
+      timestamp: fecha + 'T' + (d.hora_completado || '23:59')
+    });
+  });
+
+  // 5. Requisiciones bloqueadas — estado vigente, no evento histórico. Las
+  //    anclamos a "hasta" para que aparezcan en el último día del informe.
+  sheetData(SHEETS.PILAR_C_REQS).forEach(r => {
+    if (String(r.bloqueado).toUpperCase() !== 'TRUE') return;
+    hallazgos.push({
+      pilar: 'C',
+      tipo: 'req_bloqueada',
+      fecha: hasta,
+      titulo: 'Requisición bloqueada: ' + (r.folio || r.id),
+      contexto: (r.area_solicitante || '') + ' · ' + (r.descripcion || ''),
+      responsable_rol: '',
+      observacion: r.motivo_bloqueo || '',
+      capturado_por: '',
+      timestamp: hasta + 'T23:59'
+    });
+  });
+
+  // 6. Módulos SR12 en zona crítica (<50%) — snapshot, también ancla a "hasta".
+  sheetData(SHEETS.PILAR_A_MODULOS).forEach(m => {
+    if (Number(m.porcentaje_actual) >= 50) return;
+    hallazgos.push({
+      pilar: 'A',
+      tipo: 'sr12_critico',
+      fecha: hasta,
+      titulo: 'Módulo en zona crítica: ' + m.modulo,
+      contexto: 'Capacidad ' + Number(m.porcentaje_actual) + '% (meta ' + Number(m.meta || 100) + '%)',
+      responsable_rol: '',
+      observacion: m.observaciones || '',
+      capturado_por: m.actualizado_por || '',
+      timestamp: hasta + 'T23:59'
+    });
+  });
+
+  // Orden global: más reciente arriba (timestamp desc). Esto deja, dentro de
+  // cada bloque por pilar/día que arme el frontend, lo más reciente primero.
+  hallazgos.sort((a, b) => String(b.timestamp).localeCompare(String(a.timestamp)));
+
+  const conteos = {
+    A: hallazgos.filter(h => h.pilar === 'A').length,
+    B: hallazgos.filter(h => h.pilar === 'B').length,
+    C: hallazgos.filter(h => h.pilar === 'C').length,
+    total: hallazgos.length
+  };
+  const porTipo = {
+    no_cumplido:  hallazgos.filter(h => h.tipo === 'no_cumplido').length,
+    bandera_roja: hallazgos.filter(h => h.tipo === 'bandera_roja').length,
+    req_bloqueada:hallazgos.filter(h => h.tipo === 'req_bloqueada').length,
+    sr12_critico: hallazgos.filter(h => h.tipo === 'sr12_critico').length
+  };
+
+  return { hallazgos, conteos, por_tipo: porTipo, desde, hasta };
 }
 
 // =============================================================
