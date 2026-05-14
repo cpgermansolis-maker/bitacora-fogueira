@@ -546,10 +546,89 @@
       "numero": 7,
       "titulo": "Impacto en los pilares",
       "duracion_min": 40,
-      "objetivos": ["Leer la sub-pestaña Impacto", "Conectar el trabajo de Estefanía con la evolución del SR12, conciliación e inventarios", "Detectar mejoras vs deterioros"],
-      "contenido_html": "<p><em>Contenido completo en preparación.</em></p>",
-      "quiz": { "preguntas": [{"id":"M7Q1","texto":"[Placeholder] Si el Pilar A sube de 60 a 75 en 30 días:","opciones":["Estafa","Mejora real apoyada por la supervisión"],"correcta":1,"explicacion":"Δ positivo en un pilar suele acompañar a buena cobertura/profundidad de la supervisora."}] },
-      "disponible": false
+      "objetivos": [
+        "Leer las 3 gráficas de la sub-pestaña Impacto (una por pilar)",
+        "Distinguir mejora del pilar acompañada de buena supervisión vs mejora aparente sin sustento",
+        "Reconocer cuándo el semáforo está verde pero los pilares NO avanzan (señal de alarma)"
+      ],
+      "contenido_html": "<h2>Por qué existe la sub-pestaña Impacto</h2><p>El semáforo (M3) mide a Estefanía. Pero hay una pregunta más profunda que el negocio necesita responder:</p><blockquote><strong>«¿La supervisión de Estefanía está haciendo que los 3 pilares avancen?»</strong></blockquote><p>Esa es la pregunta del Impacto. Una supervisora puede tener el semáforo en verde marcando muy bien — y aun así los pilares pueden estar estancados o deteriorándose. Eso es lo que la sub-pestaña Impacto detecta: el <em>nexo</em> entre el trabajo de Estefanía y el resultado en el restaurante.</p><h2>La sub-pestaña Impacto</h2><p>Cuando entras a Supervisión → Impacto ves <strong>3 gráficas</strong>, una por pilar. Cada gráfica muestra dos líneas superpuestas semana por semana:</p><ul><li><strong>Línea sólida</strong>: el KPI del pilar (evolución del problema/avance)</li><li><strong>Línea punteada</strong>: la cobertura semanal de Estefanía sobre items diarios del pilar</li></ul><p>La idea: si Estefanía supervisa bien (línea punteada alta), el KPI del pilar (línea sólida) debería mejorar con el tiempo. Si no, hay desconexión.</p><h2>Qué mide cada pilar en la gráfica</h2><table><thead><tr><th>Pilar</th><th>KPI (línea sólida)</th><th>Qué significa subir</th></tr></thead><tbody><tr><td>A · SR12</td><td>Brecha = 100 − promedio del SR12 al cierre de la semana</td><td>Subir = MAL (mayor brecha al 100%). Bajar = BIEN.</td></tr><tr><td>B · Conciliación</td><td>Banderas rojas semanales + % etapas cerradas</td><td>Banderas suben = MAL. % etapas cerradas sube = BIEN.</td></tr><tr><td>C · Inventarios</td><td>% completadas acumulado al cierre + tiempo del flujo</td><td>% completadas sube = BIEN. Tiempo del flujo sube = MAL.</td></tr></tbody></table><p>Importante: cada pilar tiene su propia dirección «buena». No leas todas las gráficas igual. El sistema te muestra ya con etiquetas claras qué es bueno y qué es malo en cada una.</p><h2>Las 4 lecturas típicas</h2><table><thead><tr><th>Patrón</th><th>Interpretación</th><th>Tu acción</th></tr></thead><tbody><tr><td>Cobertura alta + pilar mejorando</td><td><strong>Mejora real</strong>: Estefanía supervisa y el pilar avanza con su trabajo</td><td>Reconocerlo en junta semanal; mantener el ritmo</td></tr><tr><td>Cobertura alta + pilar estancado</td><td><strong>Supervisora sin tracción</strong>: marca bien pero los ejecutores no responden a las observaciones</td><td>Investigar quién no está cerrando los hallazgos; intervención con gerente/área usuaria</td></tr><tr><td>Cobertura alta + pilar deteriorándose</td><td><strong>Señal grave</strong>: hay algo estructural más allá de la supervisión. Falta de presupuesto, conflicto interno, problema técnico</td><td>Llevar a Germán o socios; revisar si los hallazgos están siendo ignorados</td></tr><tr><td>Cobertura baja + pilar deteriorándose</td><td>Diagnóstico simple: <strong>la supervisión no está pasando</strong>, por eso el pilar no se controla</td><td>Atender primero a Estefanía con las 5 causas del M4</td></tr></tbody></table><p>El segundo y tercer patrón son los más informativos. Te dicen que el problema NO es Estefanía aunque su semáforo esté verde — y eso cambia la conversación de revisar a la supervisora a intervenir en operación.</p><h2>Δ Pilar mes a mes</h2><p>La sub-pestaña incluye también el Δ (delta) por pilar entre el mes anterior y el actual:</p><ul><li><strong>Δ &gt; +10 pts</strong>: mejora fuerte. Buena noticia.</li><li><strong>Δ entre -5 y +10</strong>: variación normal, ruido de mes.</li><li><strong>Δ &lt; -5 pts</strong>: deterioro. Requiere conversación específica para identificar causa.</li></ul><p>Cruza el Δ con la cobertura para entender la causa probable.</p><h2>El semáforo verde con pilares estancados — la señal silenciosa</h2><p>Este patrón es uno de los más importantes que captura el sistema. Imagina:</p><ul><li>Estefanía está en verde (85/100)</li><li>Pero el Pilar A lleva 3 meses en el mismo porcentaje promedio</li><li>El Pilar C tiene 4 semanas con el mismo tiempo de flujo</li></ul><p>Sin Impacto, dirías «todo bien». Con Impacto, ves que <strong>Estefanía está haciendo su trabajo pero el restaurante no está mejorando</strong>. Eso es información estratégica: el cuello de botella está en otro lado. Tal vez los ejecutores no reciben consecuencias por no cerrar hallazgos. Tal vez falta presupuesto para arreglar lo que la supervisión detecta. Tal vez el gerente bloquea cambios.</p><p>Tu conversación cambia: no es con Estefanía (ella va bien), sino con los responsables del avance del pilar (gerente, contralor, dirección).</p><h2>Texto ejecutivo del Impacto</h2><p>La sub-pestaña genera también un texto ejecutivo pegable, similar al de Calificación pero enfocado en los 3 pilares:</p><blockquote><em>«Durante el periodo X al Y, el Pilar A pasó de N% a M% (Δ Z pts), el Pilar B registró N banderas rojas semanales (vs M la semana anterior), el Pilar C cerró requisiciones en N días promedio. Cobertura semanal de la supervisora: N%.»</em></blockquote><p>Pega ese párrafo al reporte mensual a socios. Junto con el texto ejecutivo del semáforo (M3), forma la página principal del reporte de gestión operativa.</p><h2>Lo que el Impacto NO te dice</h2><ul><li>NO mide ventas ni utilidad (eso es PYG, no Impacto)</li><li>NO captura cambios de tendencia de menos de 4 semanas (el ruido predomina)</li><li>NO atribuye causa entre supervisión y otros factores — solo correlación</li><li>NO funciona bien si Estefanía lleva menos de 6 semanas en el sistema (línea punteada corta)</li></ul><p>El Impacto es la mitad estratégica de la conversación. La otra mitad (la operativa) vive en Cobertura, Profundidad y Hallazgos.</p>",
+      "quiz": {
+        "preguntas": [
+          {
+            "id": "M7Q1",
+            "texto": "La sub-pestaña Impacto responde la pregunta:",
+            "opciones": [
+              "¿Estefanía está supervisando bien?",
+              "¿La supervisión de Estefanía está haciendo que los 3 pilares avancen?",
+              "¿Cuánto vendió el restaurante este mes?",
+              "¿Cuántos clientes vinieron hoy?"
+            ],
+            "correcta": 1,
+            "explicacion": "El semáforo (M3) mide a Estefanía. El Impacto va un paso más profundo: cruza su desempeño con el avance real de los pilares. Es el nexo entre supervisión y resultado."
+          },
+          {
+            "id": "M7Q2",
+            "texto": "Estefanía tiene cobertura alta y el Pilar A está deteriorándose. ¿Qué lectura es?",
+            "opciones": [
+              "Mejora real, todo bien",
+              "Señal grave: hay algo estructural más allá de la supervisión. Llevar a Germán/socios; revisar si los hallazgos están siendo ignorados",
+              "Estefanía tiene la culpa",
+              "El sistema tiene bug"
+            ],
+            "correcta": 1,
+            "explicacion": "Cobertura alta significa que Estefanía detecta. Pilar deteriorándose significa que la operación NO responde a sus detecciones. Eso es problema estructural — fuera del alcance de Estefanía. Conversación con gerente, contralor o socios."
+          },
+          {
+            "id": "M7Q3",
+            "texto": "En la gráfica del Pilar A, la línea sólida muestra «brecha = 100 − promedio del SR12». Que esa línea SUBA significa:",
+            "opciones": [
+              "Mejora del pilar",
+              "Deterioro del pilar — mayor brecha al 100% es PEOR",
+              "Es indiferente",
+              "No se puede leer"
+            ],
+            "correcta": 1,
+            "explicacion": "Brecha = 100 − promedio. Si el promedio del SR12 baja (mal), la brecha sube. Es la única gráfica del Impacto donde «subir» es malo. El sistema te lo muestra con etiqueta clara para que no haya confusión."
+          },
+          {
+            "id": "M7Q4",
+            "texto": "El semáforo de Estefanía está en verde sostenido por 3 meses, pero el Pilar A lleva 12 semanas estancado en el mismo porcentaje. ¿Con quién conversas?",
+            "opciones": [
+              "Con Estefanía: el problema es de ella aunque el semáforo no lo muestre",
+              "Con los responsables del avance del pilar (gerente, contralor, dirección): Estefanía hace bien su parte pero los ejecutores no avanzan",
+              "Con nadie, el sistema está bien",
+              "Con el auditor para revisar el semáforo"
+            ],
+            "correcta": 1,
+            "explicacion": "Este es el patrón clave que captura el Impacto. Verde + pilares estancados = supervisión sin tracción. La conversación correcta NO es con la supervisora (ella cumple), sino con quienes deben cerrar el ciclo operativo. Sin Impacto, este problema sería invisible."
+          },
+          {
+            "id": "M7Q5",
+            "texto": "Δ del Pilar B este mes es +12 pts vs mes anterior. ¿Cómo lo lees?",
+            "opciones": [
+              "Variación normal de ruido",
+              "Mejora fuerte (Δ &gt; +10 pts) — buena noticia, vale reconocerla",
+              "Deterioro grave",
+              "No se puede comparar entre meses"
+            ],
+            "correcta": 1,
+            "explicacion": "Δ &gt; +10 pts es mejora fuerte por encima del ruido. Vale reconocer en junta semanal y al reporte mensual. Cruza con cobertura para validar que vino de buen trabajo, no de cambio de criterio."
+          },
+          {
+            "id": "M7Q6",
+            "texto": "¿Qué NO te dice la sub-pestaña Impacto?",
+            "opciones": [
+              "Cómo evolucionan los 3 pilares",
+              "La cobertura semanal de Estefanía superpuesta",
+              "Ventas, utilidad y atribución causal precisa entre supervisión y otros factores",
+              "El Δ por pilar mes a mes"
+            ],
+            "correcta": 2,
+            "explicacion": "El Impacto muestra correlación entre supervisión y avance del pilar, no causalidad estricta. Tampoco mide PYG (ventas/utilidad). Tu lectura combina Impacto con otros datos del negocio para conclusión completa."
+          }
+        ]
+      },
+      "disponible": true
     },
     {
       "id": "M8",

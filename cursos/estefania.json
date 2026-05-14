@@ -546,10 +546,89 @@
       "numero": 7,
       "titulo": "Hallazgos — abrir, dar contexto y dar seguimiento",
       "duracion_min": 30,
-      "objetivos": ["Saber cuándo abrir un hallazgo", "Diferenciar entre observación y hallazgo", "Hacer seguimiento de edad de pendientes"],
-      "contenido_html": "<p><em>Contenido completo en preparación.</em></p>",
-      "quiz": { "preguntas": [{"id":"M7Q1","texto":"[Placeholder] Un hallazgo abierto sin cerrar por 15 días es:","opciones":["Normal","Una señal de riesgo","Insignificante"],"correcta":1,"explicacion":"Edad alta de pendientes es señal de riesgo y falta de seguimiento."}] },
-      "disponible": false
+      "objetivos": [
+        "Diferenciar observación (texto del ✗) vs hallazgo (item con seguimiento)",
+        "Saber qué información poner para que el hallazgo sirva",
+        "Reconocer los 2 casos de escalación inmediata (segregación + bandera 10)"
+      ],
+      "contenido_html": "<h2>Observación vs hallazgo — la diferencia</h2><p>En el sistema hay dos cosas distintas que la gente confunde:</p><ul><li><strong>Observación</strong>: el texto que escribes en una ✗ del checklist. Se queda con esa marca, ese día.</li><li><strong>Hallazgo</strong>: un item independiente con seguimiento abierto que existe hasta que se cierra. Mónica o Germán lo cierran cuando el problema se resolvió.</li></ul><p>Toda ✗ debe tener observación (M1, M3, M5: una ✗ sin observación es trabajo a medias). Pero NO toda ✗ necesita hallazgo. Lo importante es saber distinguir.</p><h2>Cuándo abrir hallazgo</h2><p>Abre hallazgo cuando se cumple AL MENOS UNA de estas condiciones:</p><ol><li><strong>Requiere acción más allá del día</strong> — alguien tiene que hacer algo en los próximos días para resolverlo</li><li><strong>Es patrón</strong> — esta es la 2ª o 3ª vez que pasa lo mismo este mes</li><li><strong>Tiene monto material</strong> — más de $500 en riesgo o impacto</li><li><strong>Toca segregación o control crítico</strong> — segregación C07, bandera 10 (folios POS), 3-way match con diferencia</li></ol><p>NO abras hallazgo si:</p><ul><li>Es un olvido único sin consecuencia ($0 en riesgo, no es patrón)</li><li>El ejecutor ya lo está resolviendo en el momento que lo detectas</li><li>El problema ya se cerró el mismo día</li></ul><p>La observación sirve para esos casos. El hallazgo es la artillería más pesada — úsala cuando hace falta.</p><h2>Qué información poner en un hallazgo</h2><p>Un hallazgo útil tiene 4 datos:</p><ol><li><strong>QUÉ pasó</strong> — descripción concreta, no «hubo problema» sino «3 hamburguesas vendidas sin descarga de receta en SR12»</li><li><strong>CUÁNTO</strong> — monto, cantidad, edad. Cuantitativo siempre que se pueda.</li><li><strong>QUIÉN</strong> — el ejecutor responsable (cajera X, almacén Y) — solo el rol, sin acusar</li><li><strong>PRÓXIMA ACCIÓN</strong> — qué necesita pasar para cerrar el hallazgo</li></ol><p>Ejemplo malo:</p><blockquote>«Problema con cortesías hoy»</blockquote><p>Ejemplo bueno:</p><blockquote>«Cortesía de $450 sin folio de ticket (CKBD14). Autorizada por Mónica con motivo «cliente VIP». Falta capturar folio del POS. Acción: que cajera capture el folio mañana antes del cierre.»</blockquote><p>La diferencia: Mónica puede cerrar el segundo con una sola acción. El primero requiere reunión para descifrar qué pasó.</p><h2>Tu rol en el ciclo · TÚ ABRES, ELLAS CIERRAN</h2><p>Memoriza esta asimetría:</p><table><thead><tr><th>Quién</th><th>Qué hace</th></tr></thead><tbody><tr><td>Tú (supervisora)</td><td>Abres el hallazgo cuando detectas el problema</td></tr><tr><td>Tú</td><td>Documentas con los 4 datos completos</td></tr><tr><td>Mónica/Germán</td><td>Resuelven o instruyen al ejecutor responsable</td></tr><tr><td>Mónica/Germán</td><td>Cierran el hallazgo con nota corta</td></tr><tr><td>Tú</td><td>Confirmas en la junta semanal que se cerró correctamente</td></tr></tbody></table><p>NO cierras hallazgos tú. Eso es parte del control: la dirección audita la resolución, no la supervisora.</p><h2>Hallazgos prioritarios — los 2 de escalación inmediata</h2><p>Hay 2 tipos de hallazgos que escalas con WhatsApp esa misma noche, sin esperar a la junta del viernes:</p><ol><li><strong>Segregación de funciones rota (C07)</strong> — el comprador firmó una recepción física. Riesgo de fraude potencial.</li><li><strong>Salto en folios POS (bandera 10)</strong> — un folio faltante puede significar ticket borrado a propósito.</li></ol><p>Ambos requieren:</p><ul><li>Marcar ✗ inmediato en el ítem correspondiente</li><li>Hallazgo abierto con los 4 datos completos</li><li>WhatsApp esa misma noche a Mónica Y Germán con el formato CKBD31</li><li>NO firmar el cierre del Pilar B (si la bandera 10 está activa)</li></ul><h2>Edad de pendientes — por qué importa</h2><p>El sistema te muestra cuántos días lleva abierto cada hallazgo. La edad NO es responsabilidad tuya (tú abres, ellas cierran), pero SÍ es información que debes leer:</p><ul><li><strong>≤ 3 días</strong>: normal, está en el flujo</li><li><strong>4-7 días</strong>: amarillo, requiere recordatorio en junta</li><li><strong>8-15 días</strong>: naranja, proceso atorado</li><li><strong>&gt; 15 días</strong>: rojo, llévalo a la junta como tema</li><li><strong>&gt; 30 días</strong>: alarma, el hallazgo está olvidado o nadie sabe cómo cerrarlo</li></ul><p>En la junta del viernes con Mónica, lleva la lista de los pendientes en rojo (más de 15 días). Pregúntale concretamente: «¿este lo cierras tú esta semana o lo escalamos a Germán?». Tu trabajo es mantener la lista visible, no resolverla.</p><h2>Dar seguimiento sin tomar el control</h2><p>La trampa común: cuando un hallazgo viejo te preocupa, querer resolverlo tú. Eso es la trampa del «yo lo arreglo» del M2 en su versión de hallazgo. Lo correcto:</p><ul><li>Lleva el hallazgo a la junta semanal y pregunta concretamente qué falta</li><li>Si la próxima acción requiere algo del ejecutor, ve a recordárselo con la pregunta «¿qué te falta para que se cierre?»</li><li>NO ejecutes la próxima acción tú</li><li>Si el hallazgo es tuyo (de tu rol), entonces sí ciérralo tú haciendo la acción documentada</li></ul><h2>Casos típicos</h2><p><strong>Caso 1</strong> · cortesía sin folio<br>Diagnóstico: requiere acción mañana (la cajera tiene que capturar el folio). ABRE hallazgo. Próxima acción clara.</p><p><strong>Caso 2</strong> · cajera olvidó imprimir Corte Z hoy, lo imprimió media hora tarde<br>Diagnóstico: ya se resolvió el mismo día, no es patrón, no hay monto. NO abras hallazgo. Solo observación en CKD01.</p><p><strong>Caso 3</strong> · cajera no imprime Corte Z por 3ª vez este mes<br>Diagnóstico: ES PATRÓN. ABRE hallazgo aunque cada caso individual sea menor. «Patrón de 3 olvidos del Corte Z en el mes, cajera X. Próxima acción: conversación de Mónica con la cajera.»</p><p><strong>Caso 4</strong> · comprador firmó recepción ($8,500 de proveedor Z)<br>Diagnóstico: segregación rota. HALLAZGO PRIORITARIO. WhatsApp esa misma noche.</p><p><strong>Caso 5</strong> · 3-way match con factura $5,000 vs recepción $4,200<br>Diagnóstico: monto material + posible factura inflada. HALLAZGO con los 4 datos. Próxima acción: contralor revisa factura con proveedor.</p>",
+      "quiz": {
+        "preguntas": [
+          {
+            "id": "M7Q1",
+            "texto": "¿Cuál es la diferencia entre observación y hallazgo?",
+            "opciones": [
+              "Son lo mismo, solo cambia el nombre",
+              "Observación es el texto que escribes en una ✗ del checklist (se queda con esa marca); hallazgo es un item independiente con seguimiento abierto hasta que dirección lo cierre",
+              "Hallazgo es para Pilar A, observación para Pilar B",
+              "Observación es opcional; hallazgo obligatorio"
+            ],
+            "correcta": 1,
+            "explicacion": "Toda ✗ debe tener observación. Pero solo abres hallazgo cuando requiere acción más allá del día, es patrón, tiene monto material, o toca control crítico (segregación/banderas)."
+          },
+          {
+            "id": "M7Q2",
+            "texto": "¿Cuáles son los 4 datos que debe tener un hallazgo útil?",
+            "opciones": [
+              "Fecha, hora, persona, opinión",
+              "QUÉ pasó · CUÁNTO (monto/cantidad) · QUIÉN (rol del ejecutor) · PRÓXIMA ACCIÓN concreta",
+              "Solo «hubo problema» con la fecha",
+              "Solamente el monto"
+            ],
+            "correcta": 1,
+            "explicacion": "Los 4 datos hacen que Mónica pueda cerrar con una sola acción, sin necesidad de reunión para descifrar. Sin esos 4, el hallazgo se vuelve burocracia."
+          },
+          {
+            "id": "M7Q3",
+            "texto": "La cajera no imprimió el Corte Z hoy, pero lo imprimió media hora tarde el mismo día. Es la primera vez. ¿Abres hallazgo?",
+            "opciones": [
+              "Sí, todo ✗ requiere hallazgo",
+              "No: se resolvió el mismo día, no es patrón, no hay monto en riesgo. Solo observación en CKD01.",
+              "Sí, hallazgo prioritario",
+              "Depende del humor de la cajera"
+            ],
+            "correcta": 1,
+            "explicacion": "Hallazgo es la artillería pesada. Para casos resueltos en el día, sin patrón y sin monto, basta la observación. Reservas hallazgo para lo que realmente requiere seguimiento."
+          },
+          {
+            "id": "M7Q4",
+            "texto": "Detectas que el comprador firmó una recepción física. ¿Cuál es la acción correcta?",
+            "opciones": [
+              "Marco ✗ y lo dejo para la junta del viernes",
+              "Marco ✗ + hallazgo prioritario con los 4 datos + WhatsApp esa misma noche a Mónica y Germán (uno de los 2 casos de escalación inmediata)",
+              "Pido al comprador que no lo vuelva a hacer y cierro yo",
+              "Lo ignoro porque era emergencia"
+            ],
+            "correcta": 1,
+            "explicacion": "Segregación rota (C07) y salto en folios POS (bandera 10) son los 2 casos de escalación inmediata, sin esperar a la junta semanal. Riesgo de fraude = acción esa misma noche."
+          },
+          {
+            "id": "M7Q5",
+            "texto": "Un hallazgo lleva 18 días abierto y te preocupa. ¿Qué haces?",
+            "opciones": [
+              "Lo cierro yo para que se vea bien la lista",
+              "Resuelvo yo la próxima acción para acelerar",
+              "Lo llevo a la junta semanal con Mónica como tema; pregunto: «¿lo cierras esta semana o lo escalamos a Germán?»",
+              "Lo borro del sistema"
+            ],
+            "correcta": 2,
+            "explicacion": "TÚ abres, ELLAS cierran. La edad alta es señal a llevar a junta, no a resolver tú. Cerrar sin resolución es la trampa simétrica del M2. Tu valor es mantener la lista visible."
+          },
+          {
+            "id": "M7Q6",
+            "texto": "La cajera olvida imprimir el Corte Z por TERCERA vez este mes. Cada caso individual fue resuelto el mismo día. ¿Abres hallazgo?",
+            "opciones": [
+              "No, cada caso se resolvió solo",
+              "Sí: es PATRÓN. Aunque cada caso individual sea menor, 3 veces en un mes activa el criterio «es patrón». Abre hallazgo: «patrón de 3 olvidos Corte Z, próxima acción: conversación de Mónica con cajera X»",
+              "Solo si la cajera se enoja",
+              "No, eso es responsabilidad de la cajera"
+            ],
+            "correcta": 1,
+            "explicacion": "El criterio «es patrón» es independiente del monto o resolución individual. Cuando lo mismo pasa 3 veces, el problema operativo está vivo aunque cada caso parezca cerrado. Abrir hallazgo escala la conversación."
+          }
+        ]
+      },
+      "disponible": true
     },
     {
       "id": "M8",
