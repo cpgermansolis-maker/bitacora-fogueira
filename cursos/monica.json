@@ -635,10 +635,89 @@
       "numero": 8,
       "titulo": "Reporte a dirección y certificación de Estefanía",
       "duracion_min": 30,
-      "objetivos": ["Estructurar el reporte mensual a socios", "Usar el texto ejecutivo del semáforo", "Firmar la certificación trimestral de Estefanía"],
-      "contenido_html": "<p><em>Contenido completo en preparación.</em></p>",
-      "quiz": { "preguntas": [{"id":"M8Q1","texto":"[Placeholder] El reporte mensual a socios se envía:","opciones":["Cualquier día","Último viernes del mes con el texto ejecutivo del semáforo"],"correcta":1,"explicacion":"Cierre mensual = último viernes; usa el texto ejecutivo generado por el sistema."}] },
-      "disponible": false
+      "objetivos": [
+        "Estructurar el reporte mensual a socios usando los textos ejecutivos del sistema",
+        "Aplicar los criterios de certificación trimestral de Estefanía",
+        "Conectar los 8 módulos del curso en tu rol estratégico"
+      ],
+      "contenido_html": "<h2>Cierres del ciclo · 3 niveles de reporte</h2><p>El sistema produce reportes en 3 ritmos. Cada uno tiene una audiencia distinta:</p><table><thead><tr><th>Ritmo</th><th>Audiencia</th><th>Insumo principal</th></tr></thead><tbody><tr><td>Semanal (viernes)</td><td>TÚ recibes de Estefanía</td><td>Reporte semanal de 5-6 líneas + junta de 10-15 min</td></tr><tr><td>Mensual (último viernes)</td><td>TÚ reportas a socios</td><td>Reporte mensual con textos ejecutivos + tu análisis</td></tr><tr><td>Trimestral</td><td>TÚ certificas a Estefanía</td><td>Junta trimestral con evidencia + decisión de certificación</td></tr></tbody></table><p>Este módulo cubre los 2 reportes que TÚ produces: el mensual a socios y la certificación trimestral.</p><h2>Reporte mensual a socios · estructura</h2><p>El último viernes del mes generas el reporte. Estructura de 7 secciones, una página máximo:</p><ol><li><strong>Texto ejecutivo del semáforo</strong> — copia tal cual de Supervisión → Calificación</li><li><strong>Texto ejecutivo del Impacto</strong> — copia tal cual de Supervisión → Impacto</li><li><strong>Comparativo mes a mes</strong> — Δ del puntaje compuesto + Δ por pilar</li><li><strong>Hallazgos del mes</strong> — abiertos · cerrados · % de cierre · pendientes &gt; 15d</li><li><strong>Banderas rojas del mes</strong> — total por tipo · concentración (si una se repite)</li><li><strong>Análisis estratégico</strong> — TU lectura: ¿supervisión sin tracción? ¿pilar deteriorándose? ¿qué patrón debe ver Dirección?</li><li><strong>Recomendaciones</strong> — 1-3 decisiones concretas que pides a socios</li></ol><p>Las secciones 1-5 son <strong>datos del sistema</strong>. Las secciones 6-7 son <strong>tu juicio estratégico</strong>. Sin las 2 últimas, el reporte es un volcado de datos sin valor — y los socios delegaron eso en TI para que les ahorraras tiempo.</p><h2>Las 3 preguntas que tu reporte debe responder a socios</h2><p>Antes de mandar, lee tu reporte y verifica que responde clara y explícitamente estas 3 preguntas:</p><ol><li><strong>«¿La supervisión operativa está funcionando este mes?»</strong> (semáforo + cobertura/profundidad)</li><li><strong>«¿Los pilares están avanzando, estancados o deteriorándose?»</strong> (Impacto + Δ por pilar)</li><li><strong>«¿Qué decisión necesito de Dirección esta vez?»</strong> (recomendaciones concretas)</li></ol><p>Si tu reporte no responde alguna de las 3, falta algo. Los socios reciben muchos reportes — el tuyo debe ser el que <em>guía la decisión</em>.</p><h2>Lenguaje del reporte · qué evitar</h2><ul><li><strong>NO suavices</strong> el lenguaje del sistema. Si el semáforo dice «No conforme», tu reporte dice «No conforme», no «con áreas de oportunidad»</li><li><strong>NO inventes</strong> datos para llenar huecos. Si no hay dato, escribe «sin información en este periodo»</li><li><strong>NO repitas</strong> el detalle operativo (los hallazgos individuales). Los socios quieren patrones, no transacciones</li><li><strong>SÍ destaca</strong> los 2-3 puntos que cambian decisiones (un patrón nuevo, un pilar atorándose, un riesgo material)</li></ul><h2>Certificación trimestral de Estefanía</h2><p>Cada 3 meses, tienes que tomar una decisión formal: <strong>¿certificas a Estefanía para el siguiente trimestre?</strong></p><p>La certificación trimestral NO es lo mismo que el certificado del curso (eso es de una sola vez al aprobar). La trimestral es continua — valida que Estefanía sigue cumpliendo el rol con calidad.</p><p>Criterios para certificar (los 5 deben cumplirse):</p><ol><li><strong>Semáforo promedio ≥ verde</strong> en al menos 9 de las 13 semanas del trimestre (~70%)</li><li><strong>Sin 3 semanas consecutivas en rojo</strong> en ningún momento del trimestre</li><li><strong>% de cierre de hallazgos ≥ 70%</strong> mensual</li><li><strong>Sin hallazgos de segregación rota</strong> (C07) en el trimestre</li><li><strong>Sin patrón sostenido de profundidad &lt; 50%</strong> (que sería trabajo a medias crónico)</li></ol><p>Si los 5 se cumplen: certificas. Si alguno falla, abre conversación estructurada con Estefanía + Germán para decidir: ¿plan de mejora con seguimiento mensual? ¿recapacitación de algún módulo del curso? ¿cambio de rol?</p><h2>La junta trimestral · estructura (1 hora)</h2><p>Una vez al trimestre, agenda 1 hora con Estefanía y, opcionalmente, Germán:</p><ol><li><strong>Datos del trimestre (10 min)</strong> — abrir sistema, leer juntas los 5 criterios. Sin discusión, solo datos.</li><li><strong>Reconocimientos (10 min)</strong> — qué hizo bien Estefanía este trimestre. Específico, con evidencia.</li><li><strong>Áreas de mejora (15 min)</strong> — donde los datos muestran debilidad. Con la causa raíz que han identificado juntas.</li><li><strong>Decisión formal (10 min)</strong> — certificas, certificas con plan, o no certificas. Con justificación clara.</li><li><strong>Plan trimestre siguiente (15 min)</strong> — 3 metas concretas para los próximos 3 meses.</li></ol><p>La junta trimestral cierra el ciclo grande del sistema. La semanal cierra el ciclo corto; la mensual el medio; la trimestral el estratégico.</p><h2>Tu firma del certificado del curso</h2><p>Cuando Estefanía aprueba el examen final del curso (≥80%), el sistema emite un certificado oficial firmado por TI. Tu nombre aparece como «firmante» en el documento. Esa firma significa:</p><ul><li>«Validé que Estefanía conoce los 8 módulos del sistema»</li><li>«Validé que demostró conocimiento aplicable a casos reales»</li><li>«Asumo el rol de seguimiento trimestral de su desempeño»</li></ul><p>El sistema firma TU certificado en nombre de Dirección Grupo Toda (sin firma humana adicional). El de Estefanía lo firmas tú directamente.</p><h2>Lo que aprendiste en los 8 módulos</h2><p>Has llegado al final del curso. Repasemos lo esencial:</p><ul><li><strong>M1</strong>: Tu rol es revisar a la supervisora. El sistema te mide a través de ella.</li><li><strong>M2</strong>: Las 3 capas (ejecutores · supervisora · dirección). La junta semanal estructurada. La trampa «yo la cubro».</li><li><strong>M3</strong>: El semáforo: cobertura × 0.6 + profundidad × 0.4. Las conversaciones por color.</li><li><strong>M4</strong>: Cobertura · 5 causas típicas · ¿personal o sistémico?</li><li><strong>M5</strong>: Profundidad · supervisora A vs B · protocolo de 3 semanas.</li><li><strong>M6</strong>: Hallazgos · 3 criterios para cerrar · 7 disparadores de escalación.</li><li><strong>M7</strong>: Impacto · 4 lecturas típicas · el patrón silencioso «verde sin tracción».</li><li><strong>M8</strong>: Reportes · 3 preguntas a socios · certificación trimestral.</li></ul><blockquote><strong>Tu valor está en que la conversación incómoda se dé. No en evitarla.</strong></blockquote><h2>Próximo paso · examen final</h2><p>Cuando termines este módulo, el examen final se desbloqueará. Son 25 preguntas que mezclan los 8 módulos. Necesitas 80% para obtener tu certificado oficial firmado por «Dirección Grupo Toda».</p><p>Puedes intentarlo cuantas veces necesites — el sistema guarda tu mejor score. Recomendación: repasa los módulos con quiz más bajo antes del examen.</p><p>Una vez aprobado, Estefanía recibirá tu firma en su propio certificado. Cierra el ciclo de aprendizaje y arranca el ciclo de gobierno.</p><p><strong>Buen trabajo. La supervisión bien hecha cambia los negocios.</strong></p>",
+      "quiz": {
+        "preguntas": [
+          {
+            "id": "M8Q1",
+            "texto": "¿Cuántas secciones tiene el reporte mensual a socios y cuántas son datos del sistema vs juicio tuyo?",
+            "opciones": [
+              "3 secciones todas de datos",
+              "7 secciones: las primeras 5 son datos del sistema; las últimas 2 (análisis estratégico + recomendaciones) son TU juicio",
+              "1 sola sección con resumen libre",
+              "10 secciones todas inventadas por ti"
+            ],
+            "correcta": 1,
+            "explicacion": "El reporte mezcla datos (autoridad) con juicio (valor estratégico). Sin las últimas 2 secciones, los socios recibirían un volcado de números sin guía de decisión — y para eso ya tienen el sistema."
+          },
+          {
+            "id": "M8Q2",
+            "texto": "¿Cuáles son las 3 preguntas que tu reporte mensual debe responder explícitamente a socios?",
+            "opciones": [
+              "Cuánto vendió · cuántos clientes · cuántas quejas",
+              "¿La supervisión está funcionando? · ¿Los pilares avanzan? · ¿Qué decisión necesito de Dirección?",
+              "¿Quién es responsable? · ¿Cuánto cuesta? · ¿Cuándo termina?",
+              "Solo el resumen del semáforo"
+            ],
+            "correcta": 1,
+            "explicacion": "Esas 3 preguntas estructuran la decisión que socios deben tomar. Tu reporte es la herramienta que les ahorra horas — si no responde las 3, falta algo crítico."
+          },
+          {
+            "id": "M8Q3",
+            "texto": "El semáforo del mes está en «No conforme». ¿Cómo lo redactas en el reporte a socios?",
+            "opciones": [
+              "«Con áreas de oportunidad»",
+              "«No conforme» — tal cual, sin suavizar; la autoridad del reporte viene de la integridad del lenguaje del sistema",
+              "Lo omito para no preocupar",
+              "«Excelente con observaciones»"
+            ],
+            "correcta": 1,
+            "explicacion": "Suavizar el lenguaje del sistema introduce subjetividad y debilita la señal. Si los socios reciben «con áreas de oportunidad» y el sistema decía «No conforme», estás disfrazando información crítica."
+          },
+          {
+            "id": "M8Q4",
+            "texto": "¿Cuáles son los 5 criterios para certificar a Estefanía cada trimestre?",
+            "opciones": [
+              "Solo que el semáforo esté verde el último mes",
+              "Verde ≥ 9 de 13 semanas · sin 3 rojas consecutivas · % cierre hallazgos ≥ 70% · sin hallazgos C07 · sin patrón sostenido de profundidad &lt; 50%",
+              "Que tenga buena actitud y llegue a tiempo",
+              "Solo el examen final del curso"
+            ],
+            "correcta": 1,
+            "explicacion": "Los 5 criterios cubren las dimensiones que importan: rendimiento sostenido (no solo último mes), ausencia de fallas críticas (C07), cierre del ciclo de hallazgos, y trabajo no superficial (profundidad). Los 5 deben cumplirse."
+          },
+          {
+            "id": "M8Q5",
+            "texto": "Estefanía falla 1 de los 5 criterios de certificación trimestral (% cierre de hallazgos al 55%). ¿Qué haces?",
+            "opciones": [
+              "No la certifico inmediatamente",
+              "La certifico igual porque está cerca",
+              "Abro conversación estructurada con ella + Germán: ¿plan de mejora con seguimiento mensual? ¿re-capacitación? ¿cambio de rol?",
+              "Espero al siguiente trimestre"
+            ],
+            "correcta": 2,
+            "explicacion": "Un criterio fallado no es automáticamente descertificación. La acción correcta es analizar la causa con Germán y decidir el siguiente paso. Pueden ser causas sistémicas (M4) o personales — la decisión cambia según el diagnóstico."
+          },
+          {
+            "id": "M8Q6",
+            "texto": "Después de los 8 módulos del curso, ¿cuál es la frase que mejor resume tu rol estratégico?",
+            "opciones": [
+              "Operar el restaurante directamente",
+              "Hacer las tareas que Estefanía no termina",
+              "Tu valor está en que la conversación incómoda se dé. No en evitarla.",
+              "Reportar siempre verde a socios"
+            ],
+            "correcta": 2,
+            "explicacion": "La frase atraviesa todo el curso: las 3 capas del M1 sin invadir, la trampa «yo la cubro» del M2, los criterios estrictos de certificación del M8. El valor de la dirección operativa es facilitar las conversaciones que el sistema te muestra."
+          }
+        ]
+      },
+      "disponible": true
     }
   ],
   "examen_final": {

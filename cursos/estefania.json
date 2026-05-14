@@ -635,10 +635,89 @@
       "numero": 8,
       "titulo": "Reporte semanal y mensual",
       "duracion_min": 35,
-      "objetivos": ["Estructurar el reporte semanal a Mónica", "Generar el cierre mensual con el sistema", "Pegar el texto ejecutivo del semáforo al papel de trabajo"],
-      "contenido_html": "<p><em>Contenido completo en preparación.</em></p>",
-      "quiz": { "preguntas": [{"id":"M8Q1","texto":"[Placeholder] El reporte semanal se envía:","opciones":["Lunes","Viernes","Domingo"],"correcta":1,"explicacion":"Cierre semanal = viernes."}] },
-      "disponible": false
+      "objetivos": [
+        "Estructurar el reporte semanal del viernes a Mónica con secciones fijas",
+        "Generar el cierre mensual usando el texto ejecutivo del sistema",
+        "Distinguir lo que pega el sistema vs lo que pones tú (juicio narrativo)"
+      ],
+      "contenido_html": "<h2>Por qué reportas</h2><p>El sistema acumula información cada día. Pero la información sin <em>conversación</em> es solo data. El reporte semanal y mensual es el momento en que la data se convierte en decisiones.</p><p>Tienes 2 ritmos de reporte:</p><ul><li><strong>Semanal (viernes)</strong>: 5-10 min de redacción + envío a Mónica antes de salir. Insumo de la junta semanal.</li><li><strong>Mensual (último viernes)</strong>: 20-30 min de redacción. Insumo de Mónica para socios.</li></ul><p>Y un evento puntual:</p><ul><li><strong>WhatsApp mismo día</strong> cuando hay banderas rojas activas (CKBD31, ya cubierto en M5)</li></ul><h2>Reporte semanal · estructura</h2><p>Cada viernes después del cierre, mandas un mensaje breve a Mónica con estas 5 secciones:</p><ol><li><strong>Puntaje del semáforo</strong> de la semana — copia del banner: «Semáforo: amarillo · 68/100 · cobertura 75% × 0.6 + profundidad 55% × 0.4»</li><li><strong>Hallazgos abiertos del periodo</strong> — cuántos, cuáles pendientes &gt; 7 días</li><li><strong>Banderas rojas de la semana</strong> — cuántas y de qué tipo (si las hubo)</li><li><strong>Patrones detectados</strong> — algo que se repitió 2-3 veces y vale conversar</li><li><strong>Pregunta o pendiente para Mónica</strong> — qué necesitas de ella esta semana</li></ol><p>Ejemplo de reporte semanal real:</p><blockquote><em>«Reporte semana 19-2026. Semáforo amarillo 68/100. Cobertura 75% (bajó del 82% pasada). Profundidad 55% (cayó por prisa al cierre los días con evento). 3 hallazgos abiertos, ninguno mayor a 7 días. 2 banderas rojas el martes (bandera 2: diferencia arqueo $350; bandera 6: 1 cortesía sin folio, ya completada). Patrón: la cajera Y ha olvidado el Corte Z 2 veces este mes. Te pido conversación con ella la próxima semana. Detalle en bitácora.»</em></blockquote><p>Eso son 5-6 líneas. Mónica lo lee en 30 segundos antes de la junta y ya sabe de qué hablar.</p><h2>Reporte mensual · estructura</h2><p>El último viernes del mes, generas un reporte más completo. Estructura sugerida:</p><ol><li><strong>Texto ejecutivo del semáforo</strong> — copia tal cual el párrafo que genera la sub-pestaña Calificación. Es tu encabezado oficial.</li><li><strong>Texto ejecutivo del Impacto</strong> — copia tal cual el párrafo de Impacto con la evolución de los 3 pilares.</li><li><strong>Comparativo mes a mes</strong> — Δ del puntaje compuesto vs mes anterior. Δ por pilar.</li><li><strong>Hallazgos del mes</strong> — abiertos, cerrados, % de cierre, pendientes con edad mayor a 15 días.</li><li><strong>Banderas rojas del mes</strong> — total por tipo, concentración (si una se repite).</li><li><strong>Top 3 patrones</strong> — lo más importante que viste y vale revisar.</li><li><strong>Recomendaciones para Dirección</strong> — 1 a 3 acciones concretas que sugieres.</li></ol><h2>Qué pega el sistema vs qué pones tú</h2><table><thead><tr><th>Sección</th><th>Origen</th></tr></thead><tbody><tr><td>Texto ejecutivo del semáforo</td><td><strong>SISTEMA</strong> · copia y pega tal cual</td></tr><tr><td>Texto ejecutivo del Impacto</td><td><strong>SISTEMA</strong> · copia y pega tal cual</td></tr><tr><td>Comparativo mes a mes</td><td><strong>SISTEMA</strong> · Δ visibles en banner y sub-pestaña Impacto</td></tr><tr><td>Conteos de hallazgos y banderas</td><td><strong>SISTEMA</strong> · números de las sub-pestañas</td></tr><tr><td>Top 3 patrones</td><td><strong>TÚ</strong> · tu juicio narrativo sobre qué vale destacar</td></tr><tr><td>Recomendaciones</td><td><strong>TÚ</strong> · qué propones a Dirección con base en lo visto</td></tr></tbody></table><p>Regla clave: <strong>donde el sistema tiene un dato, usa el dato del sistema</strong>. Donde no, agrega tu juicio. NO inventes números aunque sientas que «es como». La autoridad del reporte viene de la integridad de los datos.</p><h2>Cómo generar el texto ejecutivo del sistema</h2><ol><li>Abre Supervisión → Calificación con el rango del mes</li><li>Scroll abajo, encuentra la sección «Texto ejecutivo»</li><li>Selecciona todo el párrafo</li><li>Copia y pega a tu reporte</li><li>Repite para sub-pestaña Impacto (sección con su propio texto)</li></ol><p>NO edites el texto del sistema. Si Mónica pregunta por qué un número, contesta «así lo genera el sistema» y explica la fórmula del módulo correspondiente.</p><h2>Formato sugerido del reporte mensual</h2><p>Word o Google Doc, una página máximo. Encabezado con logo si aplica, fecha del corte, tu nombre como redactora. Cuerpo con las 7 secciones del orden anterior. Anexo opcional con tabla detallada de hallazgos.</p><p>NO uses presentación en slides. NO mandes screenshots. NO improvises gráficas — las que importan ya están en el sistema, referénciales («ver Supervisión → Impacto»).</p><h2>El cierre del ciclo</h2><p>Tu reporte cierra el ciclo del mes:</p><ol><li><strong>El sistema acumuló</strong> datos toda la semana/mes</li><li><strong>Tú marcaste</strong> con cobertura y profundidad</li><li><strong>Abriste hallazgos</strong> donde había patrones o riesgo</li><li><strong>Reportaste</strong> con estructura clara y datos del sistema</li><li><strong>Mónica decide</strong> qué cerrar, qué escalar, qué cambiar</li><li><strong>El ciclo se reinicia</strong> el lunes siguiente</li></ol><p>Sin tu reporte, el ciclo no cierra. Mónica lee el sistema directo pero el reporte es tu <em>traducción</em> en lenguaje accionable.</p><h2>Lo que aprendiste en los 8 módulos</h2><p>Has llegado al final del curso. Repasemos lo esencial:</p><ul><li><strong>M1</strong>: Vigilas, no ejecutas. El sistema te mide a TI vigilando.</li><li><strong>M2</strong>: Las 4 acciones (revisar, validar, documentar, escalar). La trampa del «yo lo arreglo».</li><li><strong>M3</strong>: El semáforo: cobertura × 0.6 + profundidad × 0.4. Umbrales adaptativos.</li><li><strong>M4</strong>: Pilar A · 36 ítems del checklist · rutina diaria de 30-45 min.</li><li><strong>M5</strong>: Pilar B · 10 banderas rojas · tu firma vale más que el monto del día.</li><li><strong>M6</strong>: Pilar C · segregación crítica · 3-way match.</li><li><strong>M7</strong>: Hallazgos · 4 datos · TÚ ABRES, ELLAS CIERRAN.</li><li><strong>M8</strong>: Reporte semanal y mensual · pegar lo del sistema, agregar tu juicio.</li></ul><blockquote><strong>Tu valor está en la conversación que provocas. Eso es la supervisión.</strong></blockquote><h2>Próximo paso · examen final</h2><p>Cuando termines este módulo, el examen final se desbloqueará. Son 25 preguntas que mezclan los 8 módulos. Necesitas 80% para obtener tu certificado oficial firmado por Mónica.</p><p>Puedes intentarlo cuantas veces necesites — el sistema guarda tu mejor score. Recomendación: repasa los módulos en los que tu quiz fue más bajo antes de tomar el examen.</p><p><strong>Buena suerte. Has trabajado bien.</strong></p>",
+      "quiz": {
+        "preguntas": [
+          {
+            "id": "M8Q1",
+            "texto": "¿En qué día y con qué ritmo mandas el reporte semanal a Mónica?",
+            "opciones": [
+              "Lunes, después de la apertura",
+              "Viernes, después del cierre — 5-6 líneas con las 5 secciones (semáforo, hallazgos, banderas, patrones, pregunta a Mónica)",
+              "Cualquier día que te acuerdes",
+              "Solo cuando hay problemas"
+            ],
+            "correcta": 1,
+            "explicacion": "Viernes es el ritmo del ciclo semanal del sistema (mismo día del cierre semanal de los checklists). 5-6 líneas con estructura fija son suficientes — el detalle vive en la bitácora."
+          },
+          {
+            "id": "M8Q2",
+            "texto": "Para el reporte mensual, ¿qué haces con el texto ejecutivo que genera la sub-pestaña Calificación?",
+            "opciones": [
+              "Lo reescribo con mis palabras para suavizarlo",
+              "Lo copio y pego tal cual como encabezado del reporte — es la versión oficial del semáforo del mes",
+              "Lo ignoro y mando solo números",
+              "Le pido a Mónica que lo redacte ella"
+            ],
+            "correcta": 1,
+            "explicacion": "El texto ejecutivo está diseñado para esto: pegable, neutro, con calibración técnica del periodo. Reescribirlo introduce subjetividad y pierde la autoridad del dato del sistema."
+          },
+          {
+            "id": "M8Q3",
+            "texto": "¿Cuál sección del reporte mensual NO viene del sistema sino de TU juicio?",
+            "opciones": [
+              "El texto ejecutivo del semáforo",
+              "El Δ del puntaje compuesto vs mes anterior",
+              "Top 3 patrones + recomendaciones para Dirección",
+              "Conteos de hallazgos y banderas rojas del mes"
+            ],
+            "correcta": 2,
+            "explicacion": "Datos (texto ejecutivo, Δ, conteos) vienen del sistema. Juicio narrativo (qué patrones destacar, qué recomendar) es tu aporte. La regla: donde hay dato del sistema, usa el dato; donde no, agrega juicio."
+          },
+          {
+            "id": "M8Q4",
+            "texto": "¿Cuántas secciones tiene el reporte semanal?",
+            "opciones": [
+              "1 — solo el puntaje",
+              "5 — puntaje, hallazgos abiertos, banderas, patrones, pregunta a Mónica",
+              "10 con detalle exhaustivo",
+              "Variable según el día"
+            ],
+            "correcta": 1,
+            "explicacion": "5 secciones fijas en 5-6 líneas. Estructura corta y consistente es lo que permite a Mónica leerlo en 30 segundos antes de la junta semanal. El detalle vive en el sistema."
+          },
+          {
+            "id": "M8Q5",
+            "texto": "¿En qué momento mandas un WhatsApp con reporte breve antes del reporte semanal/mensual?",
+            "opciones": [
+              "Cada día sin excepción",
+              "Cuando hay banderas rojas activas al cierre del día (CKBD31): esa misma noche a Mónica y Germán",
+              "Solo si el restaurante se incendia",
+              "Nunca"
+            ],
+            "correcta": 1,
+            "explicacion": "El WhatsApp del mismo día (M5) es para banderas rojas críticas. Permite intervención inmediata sin esperar al reporte semanal. Los 2 reportes (semanal/mensual) son para el flujo normal del ciclo."
+          },
+          {
+            "id": "M8Q6",
+            "texto": "Después de los 8 módulos del curso, ¿cuál es la frase que mejor resume tu trabajo?",
+            "opciones": [
+              "Marcar todo rápido para tener buen semáforo",
+              "Hacer las tareas que los demás no terminan",
+              "Tu valor está en la conversación que provocas. Eso es la supervisión.",
+              "Reportar los problemas y olvidarte"
+            ],
+            "correcta": 2,
+            "explicacion": "La frase atraviesa todos los módulos: el círculo virtuoso del supervisor (M2), la trampa del «yo lo arreglo» (M2, M4-M7), TÚ ABRES, ELLAS CIERRAN (M7). El valor de la supervisión es generar las conversaciones correctas para que el sistema avance."
+          }
+        ]
+      },
+      "disponible": true
     }
   ],
   "examen_final": {
