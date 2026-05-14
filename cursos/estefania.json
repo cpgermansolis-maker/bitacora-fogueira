@@ -195,9 +195,84 @@
         "Interpretar los umbrales adaptativos (rampa 90d)",
         "Saber qué hacer cuando el semáforo baja a amarillo o naranja"
       ],
-      "contenido_html": "<p><em>Contenido completo en preparación.</em></p>",
-      "quiz": { "preguntas": [{"id":"M3Q1","texto":"[Placeholder] ¿Cuál es el peso de cobertura en el puntaje?","opciones":["40%","60%","100%"],"correcta":1,"explicacion":"Cobertura pesa 60%, profundidad 40%."}] },
-      "disponible": false
+      "contenido_html": "<h2>Tu semáforo en una pantalla</h2><p>El semáforo de desempeño vive en una sola pestaña: <strong>Supervisión → Calificación</strong>. Mónica entra ahí cada viernes. Tú deberías entrar ahí todos los días para ver cómo vas.</p><p>Lo primero que verás es un <strong>banner grande</strong> con:</p><ul><li>Un círculo de color (verde, amarillo, naranja, rojo o gris)</li><li>Una etiqueta («Conforme», «Conforme con observaciones», «Atención requerida», «No conforme», «Rango insuficiente»)</li><li>Tu <strong>puntaje del periodo</strong>, de 0 a 100</li><li>El desglose: cuánto sumó cobertura y cuánto profundidad</li><li>Tu nombre, el rango de fechas que mide, y los umbrales del día</li></ul><p>Eso es lo que Mónica lee. Y es lo que tú deberías estar mirando para ajustar tu trabajo antes de que ella lo note.</p><h2>La fórmula del puntaje</h2><blockquote><strong>Puntaje = Cobertura × 0.60 + Profundidad × 0.40</strong></blockquote><p>Dos números nada más. Los dos van de 0 a 100. Tu puntaje resultante también va de 0 a 100. Vamos componente por componente.</p><h2>Componente 1 · Cobertura (60%)</h2><p>Cobertura responde: <strong>«¿cuántas marcas de las que te tocaban dejaste capturadas?»</strong></p><blockquote><strong>Cobertura % = atendidas / esperadas × 100</strong></blockquote><p>El denominador (esperadas) se calcula así:</p><ul><li><strong>Items diarios</strong> × días laborales del rango (lunes a sábado, domingo no cuenta porque descansas)</li><li><strong>+</strong> Items semanales × semanas del rango</li><li><strong>+</strong> Items mensuales × meses del rango</li></ul><p>Ejemplo: si el rango es del 1 al 15 de mayo y hay 35 items diarios + 7 semanales + 6 mensuales:</p><ul><li>13 días laborales × 35 = 455</li><li>2 semanas × 7 = 14</li><li>1 mes × 6 = 6</li><li><strong>Esperadas = 475</strong></li></ul><p>Si capturaste 380 marcas en ese rango, tu cobertura es 380/475 = <strong>80%</strong>.</p><p>Cobertura pesa 60% porque es la base: ¿estuviste? ¿marcaste lo que tocaba?</p><h2>Componente 2 · Profundidad (40%)</h2><p>Profundidad responde: <strong>«de las marcas que pusiste como NO cumplidas (✗), ¿cuántas tienen observación?»</strong></p><blockquote><strong>Profundidad % = no-cumplidos con observación / total de no-cumplidos × 100</strong></blockquote><p>Si marcaste 20 ✗ en el rango y 18 tienen texto en la observación: 18/20 = <strong>90% de profundidad</strong>.</p><p>Profundidad pesa 40% porque es lo que distingue trabajo serio de marcar por marcar. Recuerda M1: una ✗ sin observación es trabajo a medias.</p><p><strong>Caso especial</strong>: si no hubo NINGÚN no-cumplido en el rango (todos los ✓), profundidad no aplica. La fórmula automáticamente le da 100% del peso a cobertura. El banner te lo indica con «profundidad no aplica».</p><h2>Umbrales adaptativos — la rampa de 90 días</h2><p>El sistema NO te exige lo mismo el día 1 que el día 90. Los umbrales suben gradualmente:</p><table><thead><tr><th>Día desde inicio</th><th>Verde</th><th>Amarillo</th><th>Naranja</th><th>Rojo</th></tr></thead><tbody><tr><td>Día 0</td><td>≥ 60</td><td>≥ 40</td><td>≥ 20</td><td>&lt; 20</td></tr><tr><td>Día 45</td><td>≥ 70</td><td>≥ 50</td><td>≥ 30</td><td>&lt; 30</td></tr><tr><td>Día 90+</td><td>≥ 80</td><td>≥ 60</td><td>≥ 40</td><td>&lt; 40</td></tr></tbody></table><p>El sistema te da margen al arranque porque aprender el ritmo toma tiempo. Después de 90 días, ya estás profesional y el sistema te lo exige.</p><h2>Los 5 colores</h2><ul><li><strong>Verde · Conforme</strong>: estás cumpliendo. Mantén el ritmo.</li><li><strong>Amarillo · Conforme con observaciones</strong>: cumples pero hay margen. Mónica te preguntará qué se está atorando.</li><li><strong>Naranja · Atención requerida</strong>: NO suficiente. Mónica te llama a conversación para identificar causa raíz.</li><li><strong>Rojo · No conforme</strong>: el sistema operativo no está funcionando. Conversación seria con Mónica.</li><li><strong>Gris · Rango insuficiente</strong>: menos de 3 días laborales en el rango — no hay suficiente data para calificar.</li></ul><h2>El histórico semanal</h2><p>Debajo del banner ves una gráfica de tu puntaje semana por semana, con bandas de color que muestran dónde está cada umbral. Esa línea te dice más que el número del periodo, porque muestra tendencia:</p><ul><li><strong>Subiendo</strong> → vas mejorando, sigue así</li><li><strong>Bajando</strong> → algo cambió esta semana, identifícalo y arréglalo antes del viernes</li><li><strong>Plana arriba</strong> → estabilidad alta, excelente</li><li><strong>Plana abajo</strong> → estancada, requiere conversación con Mónica</li><li><strong>Picos y valles</strong> → inconsistencia, algo en tu rutina no cuadra</li></ul><p>Las bandas de color usan los umbrales del cierre del rango — toda la serie con la misma calibración para que sea comparable.</p><h2>Qué hacer cuando baja</h2><p>Si tu semáforo baja a amarillo o naranja, lo primero es identificar cuál componente cayó:</p><p><strong>Cayó cobertura</strong>:</p><ul><li>¿Faltaste días laborales? Revisa tu asistencia con Mónica</li><li>¿Hubo días que entraste pero no marcaste todo? Revisa tu rutina del cierre</li><li>¿Te están sobrecargando con tareas operativas que no te tocan? Conversación con Mónica</li></ul><p><strong>Cayó profundidad</strong>:</p><ul><li>Tus ✗ no traen texto. Esta es la más fácil de arreglar: cada vez que marques ✗, escribe en una línea qué pasó</li><li>Si estás marcando ✗ porque «no sé qué pasó», hablar con el ejecutor antes de marcar te da el texto</li></ul><h2>El semáforo no es un castigo</h2><p>El semáforo es información para que tú y Mónica tomen mejores decisiones. Si está rojo, no es que «hagas mal tu trabajo» — es una señal de que algo en la operación o en tu rutina no está cuadrando.</p><blockquote><strong>El semáforo es tu termómetro. Léelo, no lo evites.</strong></blockquote>",
+      "quiz": {
+        "preguntas": [
+          {
+            "id": "M3Q1",
+            "texto": "¿Cuál es la fórmula del puntaje del semáforo?",
+            "opciones": [
+              "Cobertura × 0.50 + Profundidad × 0.50",
+              "Cobertura × 0.60 + Profundidad × 0.40",
+              "Cobertura × 0.40 + Profundidad × 0.60",
+              "Solo cobertura"
+            ],
+            "correcta": 1,
+            "explicacion": "Cobertura pesa 60% (la base: estuviste y marcaste); profundidad pesa 40% (lo que distingue trabajo serio de marcar por marcar)."
+          },
+          {
+            "id": "M3Q2",
+            "texto": "Marcaste 30 ✗ en el mes, pero solo 12 tienen texto en observación. ¿Cuál es tu profundidad?",
+            "opciones": [
+              "40%",
+              "30%",
+              "50%",
+              "60%"
+            ],
+            "correcta": 0,
+            "explicacion": "Profundidad = no-cumplidos con observación / total de no-cumplidos = 12 / 30 = 40%. Estarías en amarillo/naranja en ese componente."
+          },
+          {
+            "id": "M3Q3",
+            "texto": "¿Por qué los umbrales son adaptativos con rampa de 90 días?",
+            "opciones": [
+              "Porque el sistema tiene un bug",
+              "Porque aprender el ritmo de la supervisión toma tiempo; el sistema te da margen al arranque y endurece la barra después",
+              "Porque el restaurante cambia cada mes",
+              "Porque Mónica lo decidió así sin razón técnica"
+            ],
+            "correcta": 1,
+            "explicacion": "La rampa reconoce que el primer trimestre es de aprendizaje. Día 0: verde ≥ 60. Día 90+: verde ≥ 80. Es justo y exigente al mismo tiempo."
+          },
+          {
+            "id": "M3Q4",
+            "texto": "Si en el rango NO hay ningún no-cumplido (todos ✓), ¿qué pasa con tu puntaje?",
+            "opciones": [
+              "Es automáticamente 100",
+              "Es 0 porque no hay datos para calcular profundidad",
+              "Profundidad no aplica y cobertura toma peso 100%",
+              "El sistema marca error y no calcula"
+            ],
+            "correcta": 2,
+            "explicacion": "Si no hay ✗, no hay nada que medir en profundidad. El banner explícitamente dice «profundidad no aplica» y el puntaje queda igual a tu cobertura."
+          },
+          {
+            "id": "M3Q5",
+            "texto": "Tu semáforo bajó esta semana a naranja. Cobertura sigue en 75% pero profundidad bajó a 35%. ¿Cuál es la acción correcta?",
+            "opciones": [
+              "Revisar mis observaciones — probablemente estoy marcando ✗ sin escribir el porqué; cada nueva ✗ debe llevar texto",
+              "Trabajar más horas para subir cobertura",
+              "Ignorarlo porque cobertura está bien",
+              "Borrar marcas pasadas para que no se cuenten"
+            ],
+            "correcta": 0,
+            "explicacion": "El componente que cayó fue profundidad. Subirla es lo más fácil: cada vez que marques ✗, escribe en una línea qué pasó. Cobertura está bien."
+          },
+          {
+            "id": "M3Q6",
+            "texto": "¿Qué significa el color GRIS en el semáforo?",
+            "opciones": [
+              "Que estás reprobada",
+              "Que el rango es menor a 3 días laborales y no hay suficiente data para calificar",
+              "Que el sistema está caído",
+              "Que vas excelente"
+            ],
+            "correcta": 1,
+            "explicacion": "Gris = «Rango insuficiente». El sistema necesita al menos 3 días laborales para producir un puntaje confiable; si pides un rango más corto, te muestra gris."
+          }
+        ]
+      },
+      "disponible": true
     },
     {
       "id": "M4",

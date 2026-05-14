@@ -190,10 +190,89 @@
       "numero": 3,
       "titulo": "Lectura del semáforo de desempeño",
       "duracion_min": 40,
-      "objetivos": ["Interpretar el puntaje 0-100 y el color", "Entender los umbrales adaptativos (rampa 90d)", "Leer el histórico semanal del puntaje"],
-      "contenido_html": "<p><em>Contenido completo en preparación.</em></p>",
-      "quiz": { "preguntas": [{"id":"M3Q1","texto":"[Placeholder] ¿Qué significa color naranja?","opciones":["Felicitar","Atención requerida","No conforme"],"correcta":1,"explicacion":"Naranja = atención requerida (rango intermedio)."}] },
-      "disponible": false
+      "objetivos": [
+        "Interpretar el puntaje 0-100 y el color",
+        "Entender los umbrales adaptativos (rampa 90d) y por qué no se comparan puntajes a través del tiempo sin ajustar",
+        "Leer el histórico semanal y distinguir tendencia vs incidente puntual"
+      ],
+      "contenido_html": "<h2>El semáforo es tu pregunta del viernes en un número</h2><p>En el M2 vimos cuál es tu pregunta semanal: <strong>«¿Estefanía está supervisando bien?»</strong>. Este módulo te enseña a leer la respuesta — que vive en un solo lugar: <strong>Supervisión → Calificación</strong>.</p><p>Cuando entras a esa pestaña con un rango de fechas, el sistema calcula un puntaje único de 0 a 100 y lo pinta con un color. Eso es tu respuesta. El resto del módulo es aprender a leerlo bien para tener la conversación correcta.</p><h2>Anatomía del banner</h2><p>Al abrir Supervisión (cualquier sub-pestaña, no solo Calificación) ves un banner horizontal con:</p><ul><li><strong>El círculo de color a la izquierda</strong> — verde, amarillo, naranja, rojo o gris</li><li><strong>La etiqueta</strong> en mayúsculas (ej. «CONFORME CON OBSERVACIONES»)</li><li><strong>El desglose</strong>: «Cobertura X% × 0.60 + Profundidad Y% × 0.40»</li><li><strong>El nombre de Estefanía</strong> y el rango de fechas</li><li><strong>Los umbrales del día</strong>: «verde ≥ 70 · amarillo ≥ 50 · naranja ≥ 30»</li><li><strong>El puntaje gigante</strong> a la derecha (0-100)</li></ul><p>Léelo en este orden: <strong>color → puntaje → desglose</strong>. Te toma 5 segundos y te dice si la semana fue verde o si tienes que tener conversación.</p><h2>La fórmula del puntaje</h2><blockquote><strong>Puntaje = Cobertura × 0.60 + Profundidad × 0.40</strong></blockquote><p>Dos componentes. Cobertura responde «¿estuvo?» y profundidad «¿hizo bien lo que tocó cuando algo falló?». Cobertura pesa más (60%) porque es el insumo básico. Profundidad pesa 40% porque es lo que distingue trabajo serio de marcar por marcar.</p><p><strong>Caso especial</strong>: si en el rango no hubo NINGÚN no-cumplido (todos ✓), profundidad no aplica y cobertura toma 100% del peso. El banner te lo indica explícitamente con «profundidad no aplica».</p><h2>Cobertura — qué te dice</h2><p>Cobertura = atendidas / esperadas. El denominador (esperadas) se calcula con items × días laborales (L-S), incluyendo items diarios, semanales y mensuales del checklist.</p><p>Lectura rápida:</p><ul><li><strong>&lt; 50%</strong> → Estefanía está faltando demasiado (asistencia, sobrecarga, herramientas rotas)</li><li><strong>50-70%</strong> → cumple parcialmente, hay algo atorando su rutina diaria</li><li><strong>70-85%</strong> → cumple casi todo, falta el último 15%</li><li><strong>≥ 85%</strong> → cumple bien lo cuantitativo</li></ul><p>La conversación correspondiente: «¿qué días te faltaron y por qué?»</p><h2>Profundidad — qué te dice</h2><p>Profundidad = no-cumplidos con observación / total de no-cumplidos. Mide si Estefanía documenta el porqué cuando marca ✗.</p><p>Lectura rápida:</p><ul><li><strong>&lt; 50%</strong> → está marcando ✗ sin documentar — trabajo a medias</li><li><strong>50-80%</strong> → la mayoría de sus ✗ tienen contexto pero hay olvidos</li><li><strong>&gt; 80%</strong> → trabajo profesional, documenta consistentemente</li></ul><p>La conversación correspondiente: «cuando marcas ✗, ¿estás dejando el porqué? Vamos a revisar tres ejemplos juntas».</p><h2>Umbrales adaptativos — la rampa de 90 días</h2><p>El sistema NO le exige lo mismo a Estefanía el día 1 que el día 90. La barra sube con el tiempo:</p><table><thead><tr><th>Día desde inicio</th><th>Verde</th><th>Amarillo</th><th>Naranja</th><th>Rojo</th></tr></thead><tbody><tr><td>Día 0</td><td>≥ 60</td><td>≥ 40</td><td>≥ 20</td><td>&lt; 20</td></tr><tr><td>Día 45</td><td>≥ 70</td><td>≥ 50</td><td>≥ 30</td><td>&lt; 30</td></tr><tr><td>Día 90+</td><td>≥ 80</td><td>≥ 60</td><td>≥ 40</td><td>&lt; 40</td></tr></tbody></table><p>Por qué importa para ti: <strong>NO compares un puntaje del día 30 con uno del día 120</strong> sin ajustar. Un 75 al día 30 es excelente (verde); un 75 al día 120 ya está en amarillo. El banner siempre te muestra los umbrales del día — léelos para calibrar.</p><h2>Los 5 colores y tu conversación correspondiente</h2><table><thead><tr><th>Color</th><th>Etiqueta</th><th>Tu conversación con Estefanía</th></tr></thead><tbody><tr><td>Verde</td><td>Conforme</td><td>«Gracias, vamos bien. ¿Necesitas algo de mí?»</td></tr><tr><td>Amarillo</td><td>Conforme con observaciones</td><td>«Está bien pero hay margen. ¿Qué se está atorando?»</td></tr><tr><td>Naranja</td><td>Atención requerida</td><td>Conversación de 20-30 min para identificar causa raíz y acordar acciones</td></tr><tr><td>Rojo</td><td>No conforme</td><td>Conversación seria: ¿capacidad, voluntad, herramientas, sobrecarga? Plan claro con fechas</td></tr><tr><td>Gris</td><td>Rango insuficiente</td><td>Espera más días (rango debe tener ≥ 3 días laborales)</td></tr></tbody></table><h2>Leer el histórico semanal</h2><p>La sub-pestaña Calificación tiene una gráfica del puntaje semana por semana, con bandas de color de los umbrales. Esa gráfica te dice más que el número del periodo, porque muestra <em>tendencia</em>.</p><p>Patrones que importan:</p><ul><li><strong>Línea subiendo</strong> → Estefanía está mejorando. Reconócelo explícitamente en la junta.</li><li><strong>Línea bajando</strong> → algo cambió. Pregunta qué.</li><li><strong>Línea plana arriba (verde sostenido)</strong> → operación madura. Mantén el ritmo de juntas semanales pero cortas.</li><li><strong>Línea plana abajo</strong> → estancamiento. Conversación estructural — no es incidente, es patrón.</li><li><strong>Picos y valles marcados</strong> → inconsistencia. Identifica qué semanas son malas y por qué.</li><li><strong>Una semana mala aislada</strong> → puede ser incidente puntual (asalto, sistema caído, evento atípico). NO la trates igual que tendencia.</li></ul><h2>El texto ejecutivo pegable</h2><p>Al final de la sub-pestaña Calificación hay un párrafo que dice algo como:</p><blockquote><em>«Durante el periodo X al Y, Estefanía obtuvo un puntaje de N/100 (color, etiqueta) bajo umbrales adaptativos del día Z desde el inicio…»</em></blockquote><p>Ese párrafo está diseñado para que lo copies tal cual a tu reporte mensual a socios o a Germán. NO inventes redacción. NO lo edites para suavizar. Es la versión oficial del semáforo.</p><h2>Lo que NO mide el semáforo</h2><p>El semáforo NO mide:</p><ul><li>Si el restaurante vendió mucho o poco (eso es ventas)</li><li>Si los clientes están contentos (eso es servicio)</li><li>Si los pilares operativos avanzan (eso vive en sub-pestaña Impacto)</li><li>Si tú, como Dirección, hiciste bien tu trabajo (eso lo audita Germán)</li></ul><p>El semáforo mide UNA cosa: si Estefanía supervisó bien en el rango. Por eso es tan limpio de leer y tan útil para tu junta semanal.</p>",
+      "quiz": {
+        "preguntas": [
+          {
+            "id": "M3Q1",
+            "texto": "¿Cuál es la fórmula del puntaje del semáforo?",
+            "opciones": [
+              "Cobertura × 0.50 + Profundidad × 0.50",
+              "Cobertura × 0.60 + Profundidad × 0.40",
+              "Cobertura × 0.40 + Profundidad × 0.60",
+              "Solo cobertura"
+            ],
+            "correcta": 1,
+            "explicacion": "60/40, con cobertura como base y profundidad como diferenciador. Es la misma fórmula que Estefanía ve cuando entra a su sub-pestaña Calificación."
+          },
+          {
+            "id": "M3Q2",
+            "texto": "Esta semana Estefanía obtuvo puntaje 65 en color amarillo. ¿Cuál es tu conversación correcta?",
+            "opciones": [
+              "Felicitarla como si estuviera verde",
+              "Preguntarle qué se está atorando, sin alarmar — está cumpliendo con observaciones",
+              "Conversación seria con plan de mejora y fechas",
+              "Escalarla a Germán inmediatamente"
+            ],
+            "correcta": 1,
+            "explicacion": "Amarillo = «Conforme con observaciones». Cumple pero hay margen. La conversación es de diagnóstico, no de alarma. Reserva el plan formal para naranja/rojo."
+          },
+          {
+            "id": "M3Q3",
+            "texto": "Estefanía lleva 30 días desde supervision_inicio y obtuvo 70. ¿Cómo lo lees con los umbrales adaptativos?",
+            "opciones": [
+              "Verde — al día 30 el umbral de verde aún es alrededor de 67, así que 70 lo supera",
+              "Naranja — le faltó mucho para el estándar maduro",
+              "Hay que comparar con el día 90, que es cuando «cuenta»",
+              "Está reprobada"
+            ],
+            "correcta": 0,
+            "explicacion": "Al día 30, factor = 30/90 = 0.33. Umbral verde = 60 + 20 × 0.33 ≈ 67. Un 70 supera ese umbral. El sistema te da margen al arranque, úsalo."
+          },
+          {
+            "id": "M3Q4",
+            "texto": "La gráfica de histórico semanal muestra picos y valles muy marcados (de 80 a 30 y de vuelta). ¿Qué te dice?",
+            "opciones": [
+              "Excelente, está mejorando",
+              "El sistema tiene errores y hay que revisarlo",
+              "Inconsistencia — algo de su rutina semanal no cuadra; identifica qué semanas son malas y qué pasa esos días",
+              "Hay que esperar más datos antes de leerlo"
+            ],
+            "correcta": 2,
+            "explicacion": "Picos y valles ≠ tendencia ascendente. Es señal de inconsistencia. Lleva esas semanas malas a la junta y pregunta concreto qué cambia esos días."
+          },
+          {
+            "id": "M3Q5",
+            "texto": "Para tu reporte mensual a socios, ¿qué texto usas?",
+            "opciones": [
+              "Lo invento yo con base en mi impresión de Estefanía",
+              "Le pido a Estefanía que me lo redacte ella",
+              "Copio tal cual el texto ejecutivo que genera la sub-pestaña Calificación",
+              "Lo dejo en blanco y mando solo los números"
+            ],
+            "correcta": 2,
+            "explicacion": "El texto ejecutivo está diseñado para esto: es la versión oficial del semáforo, neutra, pegable, y refleja la calibración técnica del periodo (umbrales del día, componentes, días desde inicio)."
+          },
+          {
+            "id": "M3Q6",
+            "texto": "¿Qué NO mide el semáforo?",
+            "opciones": [
+              "La cobertura de Estefanía",
+              "La profundidad de Estefanía",
+              "Si los clientes están contentos, si las ventas subieron o si los pilares operativos avanzan",
+              "El puntaje compuesto 60/40"
+            ],
+            "correcta": 2,
+            "explicacion": "El semáforo mide UNA cosa: si Estefanía supervisó bien en el rango. Ventas, clientes y evolución de pilares son otras métricas (la última vive en sub-pestaña Impacto, no en Calificación)."
+          }
+        ]
+      },
+      "disponible": true
     },
     {
       "id": "M4",
