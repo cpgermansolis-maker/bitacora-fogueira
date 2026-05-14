@@ -1818,7 +1818,18 @@ function semaforoFromPct(pct) {
 }
 function formatDate(iso) {
   if (!iso) return '';
-  const d = new Date(iso);
+  // Fix de timezone: "yyyy-MM-dd" puro lo parseamos como fecha LOCAL para
+  // evitar que new Date() lo interprete como UTC midnight y muestre el día
+  // anterior en zonas con offset negativo (p.ej. México = UTC-6 → "2026-05-01"
+  // se renderizaba como "30 abr 2026"). Para ISO completos con hora,
+  // mantenemos el parser estándar.
+  let d;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) {
+    const [y, m, day] = iso.split('-').map(Number);
+    d = new Date(y, m - 1, day);
+  } else {
+    d = new Date(iso);
+  }
   if (isNaN(d.getTime())) return iso;
   return d.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' });
 }
