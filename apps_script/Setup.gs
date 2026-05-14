@@ -321,6 +321,14 @@ const SHEET_DEFINITIONS = [
     rows: []
   },
   {
+    // Notificaciones · timestamp de última vista de Supervisión por usuario.
+    // Permite contar "nuevas observaciones / hallazgos desde tu última visita"
+    // y reiniciar el badge al entrar a la pestaña Supervisión.
+    name: 'Notificaciones_UltimaVista',
+    headers: ['usuario_email', 'last_seen_at'],
+    rows: []
+  },
+  {
     // Capacitación · progreso de cada usuario por módulo/intento.
     // Un usuario puede tener N intentos del mismo módulo; el certificado
     // se calcula con el MEJOR score por módulo (reintentos ilimitados).

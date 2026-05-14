@@ -42,7 +42,8 @@ const SHEETS = {
   BITACORA: 'Bitacora_Sistema',
   HALLAZGOS_ATENDIDOS: 'Hallazgos_Atendidos',
   CURSOS_PROGRESO: 'Cursos_Progreso',
-  CURSOS_CERTIFICADOS: 'Cursos_Certificados'
+  CURSOS_CERTIFICADOS: 'Cursos_Certificados',
+  NOTIF_ULTIMA_VISTA: 'Notificaciones_UltimaVista'
 };
 
 // Hoja Hallazgos_Atendidos: creada on-demand la primera vez que alguien marca
@@ -120,6 +121,9 @@ function doPost(e) {
         case 'enviarRespuestasQuiz': response = enviarRespuestasQuiz(user, payload); break;
         case 'getCertificado':     response = getCertificado(user, payload); break;
         case 'getProgresoEquipo':  response = getProgresoEquipo(user); break;
+        case 'getNotificacionesNuevas':   response = getNotificacionesNuevas(user); break;
+        case 'marcarNotificacionesVistas':response = marcarNotificacionesVistas(user); break;
+        case 'getReporteEjecutivo':       response = getReporteEjecutivo(user, payload); break;
         default: throw new Error('Acción desconocida: ' + action);
       }
     }

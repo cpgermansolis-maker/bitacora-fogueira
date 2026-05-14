@@ -566,6 +566,92 @@ body.has-modo-banner .nav { top: calc(70px + 40px); }
 .ejecutivo-box p { margin: 0; }
 
 /* =========================================================
+   NOTIFICACIONES + INFORME EJECUTIVO (v30)
+   ========================================================= */
+.nav-badge {
+  display: inline-block;
+  background: var(--red); color: white;
+  font-size: 0.7rem; font-weight: 700;
+  padding: 0.1rem 0.45rem;
+  border-radius: 10px;
+  margin-left: 0.4rem;
+  min-width: 18px; text-align: center;
+  vertical-align: middle; line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.nav-tab.active .nav-badge {
+  background: var(--gold-deep);
+}
+
+/* Acciones (Copiar / Imprimir) arriba del informe */
+.reporte-acciones {
+  display: flex; gap: 0.75rem; margin: 0 0 1.25rem 0; flex-wrap: wrap;
+}
+
+/* Documento del informe (pensado para imprimirse limpio) */
+.reporte-doc {
+  background: white; padding: 2.5rem 2rem;
+  max-width: 920px; margin: 0 auto;
+  border: 1px solid var(--border); border-radius: 4px;
+}
+.reporte-header { margin-bottom: 2rem; border-bottom: 2px solid var(--gold-deep); padding-bottom: 1rem; }
+.reporte-marca {
+  font-size: 0.75rem; letter-spacing: 0.2em;
+  color: var(--gold-deep); font-weight: 700;
+  margin-bottom: 0.75rem; text-transform: uppercase;
+}
+.reporte-header h1 {
+  font-family: var(--font-display); font-size: 1.75rem; font-weight: 600;
+  margin: 0 0 0.75rem 0; color: var(--ink);
+}
+.reporte-meta {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 0.35rem 1.5rem; font-size: 0.88rem; color: var(--ink);
+}
+@media (max-width: 600px) { .reporte-meta { grid-template-columns: 1fr; } }
+
+.reporte-doc section { margin-bottom: 1.75rem; }
+.reporte-doc section h3 {
+  font-family: var(--font-display); font-size: 1.1rem;
+  margin: 0 0 0.6rem 0; padding-bottom: 0.3rem;
+  border-bottom: 1px solid var(--border-strong); color: var(--ink);
+}
+.reporte-doc section h4 {
+  font-size: 0.95rem; font-weight: 600;
+  margin: 1rem 0 0.5rem 0; color: var(--ink-soft);
+}
+.reporte-resumen p {
+  background: var(--bg-paper); border-left: 3px solid var(--gold-deep);
+  padding: 0.85rem 1.1rem; line-height: 1.6; margin: 0;
+  font-size: 0.95rem;
+}
+.reporte-lista td:nth-child(4) {
+  max-width: 380px; white-space: normal; line-height: 1.4;
+  font-size: 0.86rem;
+}
+.reporte-footer {
+  margin-top: 1.5rem; padding-top: 0.8rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.78rem; color: var(--ink-soft); text-align: center;
+}
+
+@media print {
+  /* Modo print del informe ejecutivo. Solo el .reporte-doc se imprime. */
+  body.printing-reporte * { visibility: hidden; }
+  body.printing-reporte .reporte-doc,
+  body.printing-reporte .reporte-doc * { visibility: visible; }
+  body.printing-reporte .reporte-doc {
+    position: absolute; top: 0; left: 0; right: 0;
+    box-shadow: none; border: none; padding: 1.5rem;
+  }
+  body.printing-reporte .reporte-no-print { display: none !important; }
+  body.printing-reporte .nav, body.printing-reporte .footer,
+  body.printing-reporte .modo-banner, body.printing-reporte .user-area,
+  body.printing-reporte .subtabs, body.printing-reporte .section-head,
+  body.printing-reporte .semaforo-banner { display: none !important; }
+}
+
+/* =========================================================
    CAPACITACIÓN — Curso de certificación (v21)
    ========================================================= */
 .cap-presentacion {
@@ -2004,7 +2090,7 @@ body.has-modo-banner .nav { top: calc(70px + 40px); }
     <button class="nav-tab" data-view="pilar-a">Pilar A · Soft Restaurant</button>
     <button class="nav-tab" data-view="pilar-b">Pilar B · Conciliación</button>
     <button class="nav-tab" data-view="pilar-c">Pilar C · Inventarios</button>
-    <button class="nav-tab" data-view="supervision" data-roles="auditor,gerente" style="display:none;">Supervisión</button>
+    <button class="nav-tab" data-view="supervision" data-roles="auditor,gerente" style="display:none;">Supervisión<span class="nav-badge" id="badge-supervision" style="display:none;">0</span></button>
     <button class="nav-tab" data-view="capacitacion">Capacitación</button>
     <button class="nav-tab" data-view="reporte">Reporte</button>
     <button class="nav-tab" data-view="usuarios" data-rol="auditor" style="display:none;">Usuarios</button>
@@ -2142,7 +2228,9 @@ const State = {
   supervisionEmail: null,
   supervisionUltimo: null,
   supervisionImpactoUltimo: null,  // payload de getImpactoSupervisor
+  supervisionReporteUltimo: null,  // payload de getReporteEjecutivo (v30)
   supervisionCandidatas: null,  // [{email,nombre,rol}] activos no-auditor/gerente
+  notifNuevas: null,  // payload de getNotificacionesNuevas (v30)
   // Capacitación — curso de certificación según rol
   capacitacionView: 'curso',      // 'curso' | 'modulo' | 'quiz' | 'resultado' | 'certificado' | 'admin'
   capacitacionCurso: null,        // JSON del curso (cargado desde cursos/<id>.json)
@@ -2463,8 +2551,37 @@ const App = {
     // El antiguo "Tablero" mostraba estado de pilares (no actividad), confundía
     // más de lo que ayudaba y se eliminó en favor de Mi Día.
     this.go('mi-dia');
+    // Cargar badge de notificaciones (visible solo para auditor/gerente).
+    // No bloquea el render; corre en background.
+    this.refreshNotifBadge();
     // Tour de bienvenida — solo la primera vez que cada usuario entra.
     this.maybeShowTour();
+  },
+
+  // Pide al backend cuántas observaciones/hallazgos nuevos hay desde la última
+  // vista del usuario actual. Inyecta el número en el badge de la pestaña
+  // Supervisión. Silencioso ante errores — no afecta el render principal.
+  async refreshNotifBadge() {
+    const badge = el('badge-supervision');
+    if (!badge) return;
+    if (!State.user || (State.user.rol !== 'auditor' && State.user.rol !== 'gerente')) {
+      badge.style.display = 'none';
+      return;
+    }
+    try {
+      const data = await apiCall('getNotificacionesNuevas', {});
+      State.notifNuevas = data;
+      if (data.count > 0) {
+        badge.textContent = data.count > 99 ? '99+' : String(data.count);
+        badge.style.display = '';
+        badge.title = data.count + ' no-cumplidos nuevos desde ' + (data.desde || 'tu última visita');
+      } else {
+        badge.style.display = 'none';
+      }
+    } catch (err) {
+      // Silencioso — si falla, simplemente no mostramos badge.
+      badge.style.display = 'none';
+    }
   },
 
   // Banner que indica el modo de responsabilidad activo (Config!modo_responsable).
@@ -2518,6 +2635,14 @@ const App = {
     const tab = document.querySelector('.nav-tab[data-view="' + view + '"]');
     if (tab) tab.classList.add('active');
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Al entrar a Supervisión, resetear el badge de notificaciones (las vistas
+    // anteriores se marcan como vistas). Corre en background sin bloquear render.
+    if (view === 'supervision' && State.user &&
+        (State.user.rol === 'auditor' || State.user.rol === 'gerente')) {
+      apiCall('marcarNotificacionesVistas', {})
+        .then(() => this.refreshNotifBadge())
+        .catch(() => {});
+    }
     this['render_' + view.replace('-', '_')]();
   },
 
@@ -5320,6 +5445,7 @@ const App = {
         <button class="subtab ${sub === 'hallazgos'    ? 'active' : ''}" onclick="App.supervision_setView('hallazgos')">Hallazgos</button>
         <button class="subtab ${sub === 'impacto'      ? 'active' : ''}" onclick="App.supervision_setView('impacto')">Impacto</button>
         <button class="subtab ${sub === 'calificacion' ? 'active' : ''}" onclick="App.supervision_setView('calificacion')">Calificación</button>
+        <button class="subtab ${sub === 'informe'      ? 'active' : ''}" onclick="App.supervision_setView('informe')">Informe</button>
       </div>
       <div class="report-shell">
         <div class="report-controls">
@@ -5344,7 +5470,9 @@ const App = {
   supervision_setView(view) {
     State.supervisionSubview = view;
     // Si ya tenemos datos cargados, sólo re-renderiza el output sin tocar el form.
-    const tieneCualquiera = State.supervisionUltimo || State.supervisionImpactoUltimo;
+    const tieneCualquiera = State.supervisionUltimo
+                          || State.supervisionImpactoUltimo
+                          || State.supervisionReporteUltimo;
     if (tieneCualquiera) {
       const out = el('supervision-output');
       if (out) out.innerHTML = this._renderSupervisionSubOrEmpty(
@@ -5359,13 +5487,18 @@ const App = {
     }
   },
 
-  // Decide qué renderizar según sub-tab y disponibilidad de datos. Impacto
-  // y los otros 3 sub-tabs usan endpoints distintos, así que un puede estar
-  // cargado mientras el otro no.
+  // Decide qué renderizar según sub-tab y disponibilidad de datos. Impacto,
+  // Informe y los 4 sub-tabs principales usan endpoints distintos, así que
+  // un dataset puede estar cargado mientras los otros no.
   _renderSupervisionSubOrEmpty(last, lastImpacto, sub) {
     if (sub === 'impacto') {
       return lastImpacto
         ? this._renderSupervisionImpacto(lastImpacto)
+        : '<div class="empty-state"><p>Selecciona un periodo y haz click en <strong>Generar</strong>.</p></div>';
+    }
+    if (sub === 'informe') {
+      return State.supervisionReporteUltimo
+        ? this._renderReporteEjecutivo(State.supervisionReporteUltimo)
         : '<div class="empty-state"><p>Selecciona un periodo y haz click en <strong>Generar</strong>.</p></div>';
     }
     return last
@@ -5394,17 +5527,22 @@ const App = {
         State.supervisionEmail = emailSel.value;
       }
       // Carga en paralelo: desempeño (cobertura/profundidad/hallazgos) +
-      // impacto (evolución por pilar). Si Impacto truena, no debe tumbar
-      // el resto — log y seguimos.
-      const [data, dataImpacto] = await Promise.all([
+      // impacto (evolución por pilar) + reporte ejecutivo (lista de
+      // observaciones del rango). Si uno truena, no debe tumbar el resto.
+      const [data, dataImpacto, dataReporte] = await Promise.all([
         apiCall('getDesempenoSupervisor', payload),
         apiCall('getImpactoSupervisor', payload).catch(err => {
           console.error('Impacto error:', err);
+          return null;
+        }),
+        apiCall('getReporteEjecutivo', { desde, hasta }).catch(err => {
+          console.error('Reporte ejecutivo error:', err);
           return null;
         })
       ]);
       State.supervisionUltimo = data;
       State.supervisionImpactoUltimo = dataImpacto;
+      State.supervisionReporteUltimo = dataReporte;
       this.render_supervision();
     } catch (err) {
       out.innerHTML = `<div class="empty-state"><p>${escapeHtml(err.message)}</p></div>`;
@@ -6005,6 +6143,224 @@ const App = {
       ${blockC}
       ${lectura}
     `;
+  },
+
+  // ----- Sub-tab INFORME EJECUTIVO (v30) -----
+  // Reporte para mandar al Director Operativo. Vive en sub-pestaña Informe.
+  // Combina: resumen narrativo + tabla pivote por pilar/grupo + lista
+  // cronológica de cada observación. Botones para copiar (texto plano) e
+  // imprimir (PDF imprimible vía CSS).
+  _renderReporteEjecutivo(data) {
+    if (!data) return '<div class="empty-state"><p>Sin datos del reporte.</p></div>';
+    const periodo = data.periodo.desde === data.periodo.hasta
+      ? formatDate(data.periodo.desde)
+      : (formatDate(data.periodo.desde) + ' al ' + formatDate(data.periodo.hasta));
+    const t = data.totales;
+
+    // Tarjetas KPI arriba
+    const cards = `
+      <div class="dash-cards">
+        <div class="dash-card">
+          <div class="dash-card-head">Total observaciones</div>
+          <div class="dash-card-body"><div class="big-number">${t.total}</div></div>
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-head">Con observación</div>
+          <div class="dash-card-body">
+            <div class="big-number">${t.con_obs}</div>
+            <div class="dash-card-meta">${data.profundidad_global === null ? '—' : data.profundidad_global + '% de profundidad'}</div>
+          </div>
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-head">Pilar A · B · C</div>
+          <div class="dash-card-body">
+            <div class="big-number" style="font-size:1.4rem;">${t.A} · ${t.B} · ${t.C}</div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Tabla pivote por pilar
+    function pivoteHtml(label, items) {
+      if (!items || items.length === 0) {
+        return `<h4>${escapeHtml(label)}</h4><p class="muted">Sin observaciones en este pilar.</p>`;
+      }
+      const rows = items.map(g => `
+        <tr>
+          <td><strong>${escapeHtml(g.grupo)}</strong>${g.grupo_nombre ? ' · ' + escapeHtml(g.grupo_nombre) : ''}</td>
+          <td>${g.total}</td>
+          <td>${g.con_obs}</td>
+          <td>${g.total > 0 ? Math.round(g.con_obs * 100 / g.total) + '%' : '—'}</td>
+        </tr>
+      `).join('');
+      return `
+        <h4>${escapeHtml(label)}</h4>
+        <table class="data-table">
+          <thead><tr><th>Grupo</th><th>Total</th><th>Con obs.</th><th>% prof.</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
+    }
+    const pivoteBlock = `
+      <div class="reporte-pivote">
+        ${pivoteHtml('Pilar A · Soft Restaurant 12', data.pivote.A)}
+        ${pivoteHtml('Pilar B · Conciliación', data.pivote.B)}
+        ${pivoteHtml('Pilar C · Inventarios', data.pivote.C)}
+      </div>
+    `;
+
+    // Lista cronológica detallada
+    const obs = data.observaciones || [];
+    let lista = '';
+    if (obs.length === 0) {
+      lista = '<p class="muted">Sin observaciones en el rango.</p>';
+    } else {
+      lista = `
+        <table class="data-table reporte-lista">
+          <thead>
+            <tr><th>Fecha</th><th>Pilar</th><th>Ítem</th><th>Observación</th></tr>
+          </thead>
+          <tbody>
+            ${obs.map(o => `
+              <tr>
+                <td>${escapeHtml(o.fecha)}</td>
+                <td>${escapeHtml(o.pilar)}${o.grupo ? ' · ' + escapeHtml(o.grupo) : ''}</td>
+                <td>
+                  <strong>${escapeHtml(o.item_id)}</strong>
+                  <div class="muted" style="font-size:0.82rem;">${escapeHtml(o.item_descripcion)}</div>
+                </td>
+                <td>${o.observacion ? escapeHtml(o.observacion) : '<em class="muted">sin observación documentada</em>'}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+
+    return `
+      <div class="resp-tag resp-mixto reporte-no-print">
+        Informe ejecutivo de observaciones para enviar al Director Operativo.
+        Botones para copiar texto plano o imprimir/exportar PDF.
+      </div>
+      <div class="reporte-acciones reporte-no-print">
+        <button class="btn-secondary" style="margin:0;width:auto;" onclick="App.copiarReporteAlPortapapeles()">📋 Copiar al portapapeles</button>
+        <button class="btn-primary" style="margin:0;width:auto;" onclick="App.imprimirReporte()">🖨️ Imprimir / PDF</button>
+      </div>
+
+      <div class="reporte-doc">
+        <header class="reporte-header">
+          <div class="reporte-marca">GRUPO TODA · FOGUEIRA · INFORME EJECUTIVO DE SUPERVISIÓN</div>
+          <h1>Observaciones del periodo</h1>
+          <div class="reporte-meta">
+            <div><strong>Periodo:</strong> ${escapeHtml(periodo)}</div>
+            <div><strong>Supervisora:</strong> ${escapeHtml(data.supervisora_nombre)}</div>
+            <div><strong>Emitido por:</strong> ${escapeHtml(State.user.nombre || State.user.email)} · ${escapeHtml(State.user.rol)}</div>
+            <div><strong>Fecha de emisión:</strong> ${formatDate(new Date().toISOString().substring(0, 10))}</div>
+          </div>
+        </header>
+
+        <section class="reporte-resumen">
+          <h3>Resumen ejecutivo</h3>
+          <p>${escapeHtml(data.resumen_ejecutivo)}</p>
+        </section>
+
+        <section class="reporte-kpis">
+          <h3>Vista de un vistazo</h3>
+          ${cards}
+        </section>
+
+        <section class="reporte-pivote-sec">
+          <h3>Distribución por pilar y módulo / etapa</h3>
+          ${pivoteBlock}
+        </section>
+
+        <section class="reporte-lista-sec">
+          <h3>Lista cronológica de observaciones</h3>
+          ${lista}
+        </section>
+
+        <footer class="reporte-footer">
+          <div>Informe generado automáticamente desde la Bitácora de Supervisión Fogueira. Datos extraídos del sistema sin edición manual.</div>
+        </footer>
+      </div>
+    `;
+  },
+
+  // Construye texto plano del reporte y lo copia al portapapeles.
+  async copiarReporteAlPortapapeles() {
+    const r = State.supervisionReporteUltimo;
+    if (!r) { toast('Genera el reporte primero', true); return; }
+    const periodo = r.periodo.desde === r.periodo.hasta
+      ? r.periodo.desde
+      : (r.periodo.desde + ' al ' + r.periodo.hasta);
+    const lines = [];
+    lines.push('INFORME EJECUTIVO DE SUPERVISIÓN');
+    lines.push('GRUPO TODA · FOGUEIRA');
+    lines.push('');
+    lines.push('Periodo: ' + periodo);
+    lines.push('Supervisora: ' + r.supervisora_nombre);
+    lines.push('Emitido por: ' + (State.user.nombre || State.user.email) + ' · ' + State.user.rol);
+    lines.push('');
+    lines.push('— RESUMEN EJECUTIVO —');
+    lines.push(r.resumen_ejecutivo);
+    lines.push('');
+    lines.push('— VISTA DE UN VISTAZO —');
+    lines.push('Total observaciones: ' + r.totales.total);
+    lines.push('Con observación documentada: ' + r.totales.con_obs +
+      (r.profundidad_global !== null ? ' (' + r.profundidad_global + '% de profundidad)' : ''));
+    lines.push('Distribución: Pilar A = ' + r.totales.A + ' · Pilar B = ' + r.totales.B + ' · Pilar C = ' + r.totales.C);
+    lines.push('');
+    ['A', 'B', 'C'].forEach(p => {
+      const items = r.pivote[p] || [];
+      if (items.length === 0) return;
+      lines.push('— PILAR ' + p + ' · distribución —');
+      items.forEach(g => {
+        const pct = g.total > 0 ? Math.round(g.con_obs * 100 / g.total) : 0;
+        lines.push('  · ' + g.grupo + (g.grupo_nombre ? ' (' + g.grupo_nombre + ')' : '') +
+          ': ' + g.total + ' total, ' + g.con_obs + ' con obs (' + pct + '%)');
+      });
+      lines.push('');
+    });
+    lines.push('— LISTA CRONOLÓGICA —');
+    (r.observaciones || []).forEach(o => {
+      lines.push(o.fecha + ' · Pilar ' + o.pilar + ' · ' + o.item_id + ' — ' + o.item_descripcion);
+      if (o.observacion) {
+        lines.push('   Observación: ' + o.observacion);
+      } else {
+        lines.push('   (sin observación documentada)');
+      }
+    });
+    lines.push('');
+    lines.push('Informe generado automáticamente desde la Bitácora de Supervisión Fogueira.');
+
+    const texto = lines.join('\n');
+    try {
+      await navigator.clipboard.writeText(texto);
+      toast('Reporte copiado al portapapeles · pégalo en correo o WhatsApp');
+    } catch (err) {
+      // Fallback: textarea oculto + execCommand
+      const ta = document.createElement('textarea');
+      ta.value = texto;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+        toast('Reporte copiado al portapapeles');
+      } catch (e) {
+        toast('No se pudo copiar — selecciona el texto manualmente', true);
+      }
+      document.body.removeChild(ta);
+    }
+  },
+
+  imprimirReporte() {
+    // Añade clase al body para activar @media print del reporte únicamente.
+    document.body.classList.add('printing-reporte');
+    window.print();
+    // Quitar la clase después del print (handler que detecta cierre del diálogo).
+    setTimeout(() => document.body.classList.remove('printing-reporte'), 500);
   },
 
   /* =========== USUARIOS (admin, solo auditor) =========== */
