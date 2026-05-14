@@ -476,6 +476,95 @@ body.has-modo-banner .nav { top: calc(70px + 40px); }
 .line-chart .bar-open   { fill: var(--red);   opacity: 0.7; }
 .line-chart .bar-closed { fill: var(--green); opacity: 0.7; }
 
+/* ----- Semáforo de desempeño (v20) — banner + sub-tab Calificación ----- */
+.semaforo-banner {
+  display: grid; grid-template-columns: auto 1fr auto;
+  align-items: center; gap: 1.25rem;
+  padding: 1rem 1.25rem; margin: 0 0 1.25rem 0;
+  border-radius: 4px; border: 1px solid var(--border);
+  background: var(--bg-elevated); border-left-width: 6px;
+}
+.semaforo-banner.s-verde    { border-left-color: var(--green);     background: var(--green-bg); }
+.semaforo-banner.s-amarillo { border-left-color: var(--gold-deep); background: var(--gold-soft); }
+.semaforo-banner.s-naranja  { border-left-color: var(--orange);    background: var(--orange-bg); }
+.semaforo-banner.s-rojo     { border-left-color: var(--red);       background: var(--red-bg); }
+.semaforo-banner.s-gris     { border-left-color: var(--ink-soft);  background: var(--bg-paper); }
+
+.semaforo-dot {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--ink-soft); flex-shrink: 0;
+}
+.semaforo-banner.s-verde    .semaforo-dot { background: var(--green); }
+.semaforo-banner.s-amarillo .semaforo-dot { background: var(--gold-deep); }
+.semaforo-banner.s-naranja  .semaforo-dot { background: var(--orange); }
+.semaforo-banner.s-rojo     .semaforo-dot { background: var(--red); }
+.semaforo-banner.s-gris     .semaforo-dot { background: var(--ink-soft); }
+
+.semaforo-cuerpo { min-width: 0; }
+.semaforo-etiqueta {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 1.05rem; letter-spacing: 0.08em; color: var(--ink);
+  margin-bottom: 0.4rem;
+}
+.semaforo-meta { font-size: 0.82rem; color: var(--ink); line-height: 1.45; }
+.semaforo-puntaje-wrap { text-align: right; padding-left: 0.5rem; }
+.semaforo-puntaje-lbl {
+  font-size: 0.7rem; color: var(--ink-soft);
+  text-transform: uppercase; letter-spacing: 0.12em;
+}
+.semaforo-puntaje {
+  font-family: var(--font-display); font-size: 3.4rem; font-weight: 700;
+  line-height: 1; font-variant-numeric: tabular-nums; color: var(--ink);
+}
+@media (max-width: 700px) {
+  .semaforo-banner { grid-template-columns: auto 1fr; }
+  .semaforo-puntaje-wrap { grid-column: 1 / span 2; text-align: left; padding-left: 0; }
+  .semaforo-puntaje { font-size: 2.4rem; }
+}
+
+/* Barras de progreso del desglose (sub-tab Calificación). */
+.semaforo-barras { margin: 0.5rem 0 1rem 0; }
+.semaforo-bar-row {
+  display: grid; grid-template-columns: 200px 1fr 60px;
+  align-items: center; gap: 0.75rem; margin-bottom: 0.6rem;
+  font-size: 0.9rem;
+}
+.semaforo-bar {
+  background: var(--bg-paper); border: 1px solid var(--border);
+  border-radius: 3px; height: 16px; overflow: hidden;
+}
+.semaforo-bar-fill { height: 100%; transition: width 0.3s; }
+.semaforo-bar-fill.s-verde    { background: var(--green); }
+.semaforo-bar-fill.s-amarillo { background: var(--gold-deep); }
+.semaforo-bar-fill.s-naranja  { background: var(--orange); }
+.semaforo-bar-fill.s-rojo     { background: var(--red); }
+.semaforo-bar-fill.s-gris     { background: var(--ink-soft); opacity: 0.4; }
+.semaforo-bar-val { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+@media (max-width: 700px) {
+  .semaforo-bar-row { grid-template-columns: 1fr 70px; }
+  .semaforo-bar-row .semaforo-bar-lbl { grid-column: 1 / span 2; margin-bottom: 0.2rem; }
+}
+
+/* Bandas de color en el SVG del histórico semanal. */
+.line-chart .band            { opacity: 0.18; }
+.line-chart .band.s-verde    { fill: var(--green); }
+.line-chart .band.s-amarillo { fill: var(--gold-deep); }
+.line-chart .band.s-naranja  { fill: var(--orange); }
+.line-chart .band.s-rojo     { fill: var(--red); }
+.line-chart .dot.s-verde    { fill: var(--green); stroke: var(--green); }
+.line-chart .dot.s-amarillo { fill: var(--gold-deep); stroke: var(--gold-deep); }
+.line-chart .dot.s-naranja  { fill: var(--orange); stroke: var(--orange); }
+.line-chart .dot.s-rojo     { fill: var(--red); stroke: var(--red); }
+.line-chart .dot.s-gris     { fill: var(--ink-soft); stroke: var(--ink-soft); }
+
+/* Caja de texto ejecutivo pegable al papel de trabajo. */
+.ejecutivo-box {
+  background: var(--bg-paper); border: 1px dashed var(--border-strong);
+  border-radius: 4px; padding: 0.85rem 1rem;
+  font-size: 0.92rem; line-height: 1.55;
+}
+.ejecutivo-box p { margin: 0; }
+
 /* Dashboard de evolución del Pilar A. */
 .evol-hero {
   display: grid; grid-template-columns: 1fr 1fr 2fr; gap: 1rem;
@@ -4476,6 +4565,11 @@ const App = {
         </select>
       </div>`;
 
+    // Banner del semáforo: visible siempre que ya hayamos cargado datos. Da
+    // la lectura ejecutiva (puntaje + color + etiqueta) sin requerir
+    // cambiar de sub-tab. El detalle completo vive en sub-tab Calificación.
+    const banner = (last && last.semaforo) ? this._renderSupervisionBanner(last) : '';
+
     c.innerHTML = `
       <div class="section-head">
         <h1><span class="badge">Supervisión</span> Desempeño de la supervisora</h1>
@@ -4484,11 +4578,13 @@ const App = {
           <span>Cobertura, profundidad y cierre de hallazgos en un rango libre</span>
         </div>
       </div>
+      ${banner}
       <div class="subtabs">
-        <button class="subtab ${sub === 'cobertura'   ? 'active' : ''}" onclick="App.supervision_setView('cobertura')">Cobertura</button>
-        <button class="subtab ${sub === 'profundidad' ? 'active' : ''}" onclick="App.supervision_setView('profundidad')">Profundidad</button>
-        <button class="subtab ${sub === 'hallazgos'   ? 'active' : ''}" onclick="App.supervision_setView('hallazgos')">Hallazgos</button>
-        <button class="subtab ${sub === 'impacto'     ? 'active' : ''}" onclick="App.supervision_setView('impacto')">Impacto</button>
+        <button class="subtab ${sub === 'cobertura'    ? 'active' : ''}" onclick="App.supervision_setView('cobertura')">Cobertura</button>
+        <button class="subtab ${sub === 'profundidad'  ? 'active' : ''}" onclick="App.supervision_setView('profundidad')">Profundidad</button>
+        <button class="subtab ${sub === 'hallazgos'    ? 'active' : ''}" onclick="App.supervision_setView('hallazgos')">Hallazgos</button>
+        <button class="subtab ${sub === 'impacto'      ? 'active' : ''}" onclick="App.supervision_setView('impacto')">Impacto</button>
+        <button class="subtab ${sub === 'calificacion' ? 'active' : ''}" onclick="App.supervision_setView('calificacion')">Calificación</button>
       </div>
       <div class="report-shell">
         <div class="report-controls">
@@ -4580,10 +4676,11 @@ const App = {
     }
   },
 
-  // Despacha al renderer del sub-tab elegido. Los 3 comparten el mismo `data`.
+  // Despacha al renderer del sub-tab elegido. Los 4 comparten el mismo `data`.
   _renderSupervisionSub(data, sub) {
-    if (sub === 'profundidad') return this._renderSupervisionProfundidad(data);
-    if (sub === 'hallazgos')   return this._renderSupervisionHallazgos(data);
+    if (sub === 'profundidad')  return this._renderSupervisionProfundidad(data);
+    if (sub === 'hallazgos')    return this._renderSupervisionHallazgos(data);
+    if (sub === 'calificacion') return this._renderSupervisionCalificacion(data);
     return this._renderSupervisionCobertura(data);  // default
   },
 
@@ -4833,6 +4930,133 @@ const App = {
       ${kpis}
       ${svgTend}
       ${tablaPend}
+    `;
+  },
+
+  // ----- Banner del SEMÁFORO (v20) -----
+  // Lectura ejecutiva siempre visible al abrir Supervisión. Resume la
+  // calificación del periodo en color + etiqueta + puntaje, sin requerir
+  // sub-tab. El detalle (componentes, histórico) vive en Calificación.
+  _renderSupervisionBanner(data) {
+    const s = data.semaforo;
+    if (!s) return '';
+    const periodo = data.desde === data.hasta
+      ? formatDate(data.desde)
+      : (formatDate(data.desde) + ' al ' + formatDate(data.hasta));
+    const persona = data.persona ? (data.persona.nombre || data.persona.email) : '';
+    const punt = (s.puntaje === null || s.puntaje === undefined) ? '—' : s.puntaje;
+    const c = s.componentes;
+    const cobStr = (c.cobertura.pct === null ? '—' : c.cobertura.pct + '%');
+    const profStr = c.profundidad.aplicado
+      ? (c.profundidad.pct === null ? '—' : c.profundidad.pct + '%')
+      : 'n/a';
+    const desglose = c.profundidad.aplicado
+      ? `Cobertura ${cobStr} × ${c.cobertura.peso.toFixed(2)} + Profundidad ${profStr} × ${c.profundidad.peso.toFixed(2)}`
+      : `Cobertura ${cobStr} × 1.00 (profundidad no aplica: 0 no-cumplidos)`;
+    const u = s.umbrales_aplicados;
+    return `
+      <div class="semaforo-banner s-${escapeHtml(s.color)}">
+        <div class="semaforo-dot"></div>
+        <div class="semaforo-cuerpo">
+          <div class="semaforo-etiqueta">${escapeHtml((s.etiqueta || '').toUpperCase())}</div>
+          <div class="semaforo-meta">${escapeHtml(desglose)}</div>
+          <div class="semaforo-meta">${escapeHtml(persona)}${persona ? ' · ' : ''}${escapeHtml(periodo)}</div>
+          <div class="semaforo-meta">Umbrales hoy (día ${s.dias_desde_inicio} desde inicio): verde ≥ ${u.verde} · amarillo ≥ ${u.amarillo} · naranja ≥ ${u.naranja}</div>
+        </div>
+        <div class="semaforo-puntaje-wrap">
+          <div class="semaforo-puntaje-lbl">Puntaje</div>
+          <div class="semaforo-puntaje">${punt}</div>
+        </div>
+      </div>
+    `;
+  },
+
+  // ----- Sub-tab CALIFICACIÓN (v20) -----
+  // Vista dedicada al semáforo: banner ampliado, desglose de componentes
+  // con barras de progreso, histórico semanal del puntaje, y texto
+  // ejecutivo auto-pegable al papel de trabajo.
+  _renderSupervisionCalificacion(data) {
+    const s = data.semaforo;
+    if (!s) {
+      return `<div class="empty-state"><p>Sin datos de semáforo.</p></div>`;
+    }
+    const periodo = data.desde === data.hasta
+      ? formatDate(data.desde)
+      : (formatDate(data.desde) + ' al ' + formatDate(data.hasta));
+    const persona = data.persona ? (data.persona.nombre || data.persona.email) : '';
+    const c = s.componentes;
+    const u = s.umbrales_aplicados;
+    const pctStr = (p) => (p === null || p === undefined) ? '—' : (p + '%');
+
+    // Desglose con barras de progreso (cobertura, profundidad).
+    const barras = `
+      <div class="semaforo-barras">
+        <div class="semaforo-bar-row">
+          <div class="semaforo-bar-lbl">Cobertura <span class="muted">× ${c.cobertura.peso.toFixed(2)}</span></div>
+          <div class="semaforo-bar"><div class="semaforo-bar-fill s-${semaforoClass(c.cobertura.pct || 0).slice(2)}" style="width:${(c.cobertura.pct || 0)}%;"></div></div>
+          <div class="semaforo-bar-val">${pctStr(c.cobertura.pct)}</div>
+        </div>
+        <div class="semaforo-bar-row">
+          <div class="semaforo-bar-lbl">Profundidad <span class="muted">${c.profundidad.aplicado ? '× ' + c.profundidad.peso.toFixed(2) : '(no aplica)'}</span></div>
+          <div class="semaforo-bar"><div class="semaforo-bar-fill s-${c.profundidad.aplicado ? semaforoClass(c.profundidad.pct || 0).slice(2) : 'gris'}" style="width:${c.profundidad.aplicado ? (c.profundidad.pct || 0) : 0}%;"></div></div>
+          <div class="semaforo-bar-val">${c.profundidad.aplicado ? pctStr(c.profundidad.pct) : 'n/a'}</div>
+        </div>
+      </div>
+    `;
+
+    // Línea de evolución semanal del puntaje con banda de umbrales.
+    const serie = (s.historico_semanal || []).filter(x => x.puntaje !== null);
+    let svgHist = '';
+    if (serie.length > 0) {
+      const W = 720, H = 220, PAD_L = 36, PAD_R = 16, PAD_T = 18, PAD_B = 36;
+      const innerW = W - PAD_L - PAD_R, innerH = H - PAD_T - PAD_B;
+      const n = serie.length;
+      const x = (i) => PAD_L + (n === 1 ? innerW / 2 : (i * innerW) / (n - 1));
+      const y = (v) => PAD_T + innerH - (Math.max(0, Math.min(100, v)) / 100) * innerH;
+      // Bandas de color: rojo (0..naranja), naranja (naranja..amarillo), amarillo (amarillo..verde), verde (verde..100).
+      const band = (lo, hi, cls) => `<rect x="${PAD_L}" y="${y(hi).toFixed(1)}" width="${innerW}" height="${(y(lo) - y(hi)).toFixed(1)}" class="band ${cls}"/>`;
+      const bands = `
+        ${band(u.verde, 100, 's-verde')}
+        ${band(u.amarillo, u.verde, 's-amarillo')}
+        ${band(u.naranja, u.amarillo, 's-naranja')}
+        ${band(0, u.naranja, 's-rojo')}
+      `;
+      const yGrid = [0, 25, 50, 75, 100].map(v => `<line x1="${PAD_L}" x2="${W-PAD_R}" y1="${y(v)}" y2="${y(v)}" class="grid"/>`).join('');
+      const yLabels = [0, 25, 50, 75, 100].map(v => `<text x="${PAD_L - 6}" y="${(y(v)+4).toFixed(1)}" text-anchor="end" class="ax">${v}</text>`).join('');
+      const everyN = n > 10 ? Math.ceil(n / 10) : 1;
+      const xLabels = serie.map((p, i) => i % everyN === 0
+        ? `<text x="${x(i).toFixed(1)}" y="${H - 16}" text-anchor="middle" class="ax">${escapeHtml(p.semana.replace(/^\d+-/, ''))}</text>`
+        : '').join('');
+      const pathD = serie.map((p, i) => (i === 0 ? 'M' : 'L') + x(i).toFixed(1) + ',' + y(p.puntaje).toFixed(1)).join(' ');
+      const dots = serie.map((p, i) => `<circle cx="${x(i).toFixed(1)}" cy="${y(p.puntaje).toFixed(1)}" r="3.5" class="dot s-${p.color}"/>`).join('');
+      svgHist = `
+        <h4 style="margin:1.4rem 0 0.6rem;">Evolución semanal del puntaje</h4>
+        <svg viewBox="0 0 ${W} ${H}" class="line-chart" preserveAspectRatio="xMidYMid meet">
+          ${bands}
+          ${yGrid}
+          ${yLabels}
+          ${xLabels}
+          <path d="${pathD}" fill="none" stroke="#1A1410" stroke-width="2"/>
+          ${dots}
+        </svg>
+        <p class="muted">Bandas: rojo &lt; ${u.naranja} · naranja ${u.naranja}–${u.amarillo-1} · amarillo ${u.amarillo}–${u.verde-1} · verde ≥ ${u.verde}. Misma calibración para toda la serie (la del cierre del rango).</p>
+      `;
+    } else {
+      svgHist = `<p class="muted">Sin semanas con datos suficientes para graficar.</p>`;
+    }
+
+    // Texto ejecutivo pegable.
+    const puntStr = (s.puntaje === null || s.puntaje === undefined) ? '—' : s.puntaje;
+    const ejecutivo = `Durante el periodo ${periodo}, ${persona || 'la supervisora'} obtuvo un puntaje de ${puntStr}/100 (${s.color}, ${s.etiqueta}) bajo umbrales adaptativos del día ${s.dias_desde_inicio} desde el inicio de la supervisión (${formatDate(s.supervision_inicio)}). ${c.profundidad.aplicado ? 'Cobertura ' + pctStr(c.cobertura.pct) + ' y profundidad ' + pctStr(c.profundidad.pct) + ' sobre ' + c.profundidad.n_no_cumplidos + ' no-cumplido(s).' : 'Profundidad no aplica en el periodo (0 no-cumplidos).'}`;
+
+    return `
+      <div class="resp-tag resp-supervisora">Calificación: <strong>cobertura × 0.60 + profundidad × 0.40</strong>, umbrales adaptativos rampa 90d</div>
+      <h3 style="margin-top:0;">Calificación · ${escapeHtml(periodo)}</h3>
+      <h4 style="margin:1.4rem 0 0.6rem;">Componentes</h4>
+      ${barras}
+      ${svgHist}
+      <h4 style="margin:1.4rem 0 0.6rem;">Texto ejecutivo</h4>
+      <div class="ejecutivo-box"><p>${escapeHtml(ejecutivo)}</p></div>
     `;
   },
 

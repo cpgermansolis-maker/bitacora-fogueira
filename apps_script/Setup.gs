@@ -34,7 +34,12 @@ const SHEET_DEFINITIONS = [
       //   'por_rol'        → cada rol opera su área (modo design original).
       // Para cambiar: edita esta celda directamente en el Sheet.
       ['modo_responsable', 'auxiliar_unica'],
-      ['auxiliar_nombre', 'Mónica Solís']
+      ['auxiliar_nombre', 'Mónica Solís'],
+      // Fecha en que la supervisora arranca su gestión. Sirve para el
+      // semáforo de desempeño v20: los umbrales son adaptativos con una
+      // rampa de 90 días desde este punto. Si la clave no existe, el
+      // backend hace fallback a hoy-30 (asume primer mes).
+      ['supervision_inicio', '2026-05-01']
     ]
   },
   {

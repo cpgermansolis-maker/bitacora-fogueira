@@ -826,6 +826,35 @@ function getPersonasDia(user) {
 // Solo auditor/gerente. Si no se pasa email, se autodetecta el primer
 // usuario activo con rol='administracion' (Estefanía).
 // =============================================================
+
+// --------------------------------------------------------------
+// SEMÁFORO de desempeño · helpers (v20)
+// --------------------------------------------------------------
+// Umbrales adaptativos con rampa de 90 días desde supervision_inicio:
+//   día 0:  verde ≥ 60 · amarillo ≥ 40 · naranja ≥ 20
+//   día 45: verde ≥ 70 · amarillo ≥ 50 · naranja ≥ 30
+//   día 90+:verde ≥ 80 · amarillo ≥ 60 · naranja ≥ 40
+// La rampa da margen al primer trimestre y endurece la barra después.
+function umbralesAdaptativos(diasDesdeInicio) {
+  const dias = Math.max(0, Number(diasDesdeInicio) || 0);
+  const factor = Math.min(1, dias / 90);
+  return {
+    verde:    Math.round(60 + (80 - 60) * factor),
+    amarillo: Math.round(40 + (60 - 40) * factor),
+    naranja:  Math.round(20 + (40 - 20) * factor)
+  };
+}
+
+function clasificarPuntaje(puntaje, umbrales) {
+  if (puntaje === null || puntaje === undefined) {
+    return { color: 'gris', etiqueta: 'Rango insuficiente' };
+  }
+  if (puntaje >= umbrales.verde)    return { color: 'verde',    etiqueta: 'Conforme' };
+  if (puntaje >= umbrales.amarillo) return { color: 'amarillo', etiqueta: 'Conforme con observaciones' };
+  if (puntaje >= umbrales.naranja)  return { color: 'naranja',  etiqueta: 'Atención requerida' };
+  return { color: 'rojo', etiqueta: 'No conforme' };
+}
+
 function getDesempenoSupervisor(user, payload) {
   if (user.rol !== 'auditor' && user.rol !== 'gerente') {
     throw new Error('Solo el auditor o el gerente pueden ver este tablero');
@@ -1114,6 +1143,122 @@ function getDesempenoSupervisor(user, payload) {
     tendencia_semanal
   };
 
+  // ---------- (5) SEMÁFORO de desempeño (v20) ----------
+  // Puntaje único 0-100 = cobertura × 0.60 + profundidad × 0.40.
+  // Cobertura agregada: suma A+B+C (más estable que promediar pcts).
+  // Si no hubo no-cumplidos en el rango, profundidad no aplica y la
+  // cobertura toma peso 100%.
+  // Umbrales adaptativos según días desde `supervision_inicio` (Config).
+  // Si rango < 3 días laborales → color gris, etiqueta "Rango insuficiente".
+  const configMap = {};
+  sheetData(SHEETS.CONFIG).forEach(c => { configMap[String(c.clave)] = c.valor; });
+  let supervisionInicio = String(configMap.supervision_inicio || '').trim();
+  if (!supervisionInicio) {
+    const def = new Date(); def.setDate(def.getDate() - 30);
+    supervisionInicio = fmt(def);
+  }
+  const diasDesdeInicio = Math.max(0, Math.round(
+    (new Date(hasta + 'T00:00:00Z').getTime() - new Date(supervisionInicio + 'T00:00:00Z').getTime()) / 86400000
+  ));
+  const umbrales = umbralesAdaptativos(diasDesdeInicio);
+
+  const atendidasTotal = cobertura_esperadas.A.atendidas + cobertura_esperadas.B.atendidas + cobertura_esperadas.C.atendidas;
+  const esperadasTotal = cobertura_esperadas.A.esperadas + cobertura_esperadas.B.esperadas + cobertura_esperadas.C.esperadas;
+  const coberturaPct = pctOrNull(atendidasTotal, esperadasTotal);
+  const profundidadPct = profundidad.global.pct;
+  const profundidadAplica = profundidad.global.no_cumplidos > 0;
+
+  let puntaje = null;
+  let pesoCobertura = 0.6;
+  let pesoProfundidad = 0.4;
+  if (nDias < 3) {
+    puntaje = null;
+  } else if (!profundidadAplica) {
+    pesoCobertura = 1;
+    pesoProfundidad = 0;
+    puntaje = (coberturaPct === null) ? null : Math.round(coberturaPct);
+  } else if (coberturaPct === null) {
+    puntaje = null;
+  } else {
+    puntaje = Math.round(coberturaPct * pesoCobertura + (profundidadPct || 0) * pesoProfundidad);
+  }
+  const clase = clasificarPuntaje(puntaje, umbrales);
+
+  // ---------- Histórico semanal del puntaje ----------
+  // Recorre los días del rango agrupando por semana ISO. Para cada semana
+  // recolecta sus propios contadores con la misma fórmula del rango.
+  // - dias_lab: días no-domingo de la semana ∩ rango
+  // - sem: 1 si la semana intersecta el rango (siempre 1 dentro del bucle)
+  // - mes: cuántos fines de mes calendario caen en la semana
+  // Umbrales: se aplican los del cierre del rango para que toda la serie
+  // sea comparable (no umbrales móviles por semana).
+  const itemsAllD = itemsA.filter(it => it.frecuencia === 'D').length + itemsB.filter(it => it.frecuencia === 'D').length + itemsC.filter(it => it.frecuencia === 'D').length;
+  const itemsAllS = itemsA.filter(it => it.frecuencia === 'S').length + itemsB.filter(it => it.frecuencia === 'S').length + itemsC.filter(it => it.frecuencia === 'S').length;
+  const itemsAllM = itemsA.filter(it => it.frecuencia === 'M').length + itemsB.filter(it => it.frecuencia === 'M').length + itemsC.filter(it => it.frecuencia === 'M').length;
+
+  const semanasPunt = {}; // sw -> { dias_lab, finesMes, atendidas, no_cumplidos, con_obs }
+  function bumpSemPunt(sw) {
+    if (!semanasPunt[sw]) semanasPunt[sw] = { semana: sw, dias_lab: 0, fines_mes: 0, atendidas: 0, no_cumplidos: 0, con_obs: 0 };
+    return semanasPunt[sw];
+  }
+  const endDt = new Date(hasta + 'T00:00:00Z');
+  for (let cur = new Date(desde + 'T00:00:00Z'); cur <= endDt; cur.setUTCDate(cur.getUTCDate() + 1)) {
+    const sw = semanaIsoStr(cur);
+    const acc = bumpSemPunt(sw);
+    if (cur.getUTCDay() !== 0) acc.dias_lab++;
+    // ¿Es último día del mes calendario? (mes cambia mañana)
+    const next = new Date(cur.getTime()); next.setUTCDate(next.getUTCDate() + 1);
+    if (next.getUTCMonth() !== cur.getUTCMonth() || next.getUTCFullYear() !== cur.getUTCFullYear()) acc.fines_mes++;
+  }
+  // Reparte marcas de la supervisora por semana del timestamp.
+  function repartirMarca(m, esNoCumpl, esConObs) {
+    const f = fmtTs(m.timestamp);
+    if (!f) return;
+    const sw = semanaIsoStr(new Date(f + 'T00:00:00Z'));
+    if (!semanasPunt[sw]) return; // marca fuera del rango (defensivo)
+    semanasPunt[sw].atendidas++;
+    if (esNoCumpl) {
+      semanasPunt[sw].no_cumplidos++;
+      if (esConObs) semanasPunt[sw].con_obs++;
+    }
+  }
+  marcasAEst.concat(marcasBEst, marcasCEst).forEach(m => {
+    const noCumpl = Number(m.valor) === 0;
+    const conObs = String(m.observaciones || '').trim() !== '';
+    repartirMarca(m, noCumpl, conObs);
+  });
+
+  const historico_semanal = Object.keys(semanasPunt).sort().map(sw => {
+    const s = semanasPunt[sw];
+    const denom = itemsAllD * s.dias_lab + itemsAllS * 1 + itemsAllM * s.fines_mes;
+    const cobPct = denom > 0 ? Math.round((s.atendidas * 100) / denom) : null;
+    const profPct = s.no_cumplidos > 0 ? Math.round((s.con_obs * 100) / s.no_cumplidos) : null;
+    let p;
+    if (cobPct === null) {
+      p = null;
+    } else if (profPct === null) {
+      p = cobPct;
+    } else {
+      p = Math.round(cobPct * 0.6 + profPct * 0.4);
+    }
+    const cls = clasificarPuntaje(p, umbrales);
+    return { semana: sw, puntaje: p, color: cls.color };
+  });
+
+  const semaforo = {
+    puntaje,
+    color: clase.color,
+    etiqueta: clase.etiqueta,
+    componentes: {
+      cobertura:   { pct: coberturaPct,   peso: pesoCobertura },
+      profundidad: { pct: profundidadPct, peso: pesoProfundidad, n_no_cumplidos: profundidad.global.no_cumplidos, aplicado: profundidadAplica }
+    },
+    umbrales_aplicados: umbrales,
+    dias_desde_inicio: diasDesdeInicio,
+    supervision_inicio: supervisionInicio,
+    historico_semanal
+  };
+
   return {
     persona: {
       email: String(persona.email).toLowerCase().trim(),
@@ -1126,7 +1271,8 @@ function getDesempenoSupervisor(user, payload) {
     rango: { dias: nDias, semanas: nSem, meses: nMes },
     cobertura_esperadas,
     profundidad,
-    hallazgos
+    hallazgos,
+    semaforo
   };
 }
 
