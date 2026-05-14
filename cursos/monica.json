@@ -725,67 +725,307 @@
     "titulo": "Examen final de certificación",
     "n_preguntas": 25,
     "umbral_aprobacion": 80,
-    "instrucciones": "Examen final del curso. Reúne preguntas de los 8 módulos. Necesitas 80% de aciertos para obtener tu certificado de Supervisora Estratégica firmado por Dirección Grupo Toda. Puedes intentarlo cuantas veces necesites; queda registrado tu mejor score.",
+    "instrucciones": "Examen final del curso · 25 preguntas mezcladas de los 8 módulos. Necesitas 80% de aciertos para obtener tu certificado de Supervisora Estratégica firmado por Dirección Grupo Toda. Puedes intentarlo cuantas veces necesites; queda registrado tu mejor score. Si fallas alguna, repasa el módulo correspondiente antes de re-intentar.",
     "preguntas": [
       {
-        "id": "FQ1",
-        "texto": "¿Tu rol dentro del sistema es?",
+        "id": "FQ01",
+        "texto": "¿Cuál es tu rol principal dentro del sistema?",
         "opciones": [
-          "Operar el restaurante",
-          "Revisar el desempeño de Estefanía y cerrar el ciclo estratégico",
-          "Capturar las marcas diarias",
-          "Atender clientes"
+          "Operar el restaurante directamente",
+          "Marcar el checklist diario de los 3 pilares",
+          "Revisar el desempeño de Estefanía y cerrar el ciclo estratégico con dirección",
+          "Sustituir a Estefanía cuando no está"
         ],
-        "correcta": 1,
-        "explicacion": "Tú revisas a la supervisora, no operas."
+        "correcta": 2,
+        "explicacion": "M1. Estefanía vigila la operación; tú revisas a Estefanía. Tu valor está en la conversación estratégica y el reporte a socios."
       },
       {
-        "id": "FQ2",
-        "texto": "Si Estefanía no marcó un ítem, ¿qué haces?",
+        "id": "FQ02",
+        "texto": "El viernes a las 6pm, Estefanía no ha marcado los ítems del día. Tú puedes hacerlo en 10 min. ¿Qué haces?",
         "opciones": [
-          "Lo marco yo",
-          "Le pregunto, documento la conversación y le doy apoyo para que cierre ella",
-          "Le bajo el sueldo",
-          "Lo escalo a Germán inmediatamente"
+          "Los marco yo para que su semáforo no baje",
+          "Le pregunto qué pasó, documento la conversación, y dejo que sea ella quien marque (aunque baje el puntaje esa semana)",
+          "La regaño por WhatsApp y le bajo el sueldo",
+          "Lo ignoro y reviso hasta el lunes"
         ],
         "correcta": 1,
-        "explicacion": "Conversación + apoyo. Sustituirla contamina la medición."
+        "explicacion": "M2. La trampa simétrica: «yo la cubro». Si marcas tú, destruyes la señal del sistema y nunca te enteras si hubo un problema real."
       },
       {
-        "id": "FQ3",
-        "texto": "El semáforo se revisa:",
+        "id": "FQ03",
+        "texto": "Esta semana Estefanía obtuvo puntaje 65 en color amarillo. ¿Cuál es tu conversación correcta?",
         "opciones": [
-          "Diario",
-          "Semanal (viernes)",
-          "Anual",
-          "Nunca"
+          "Felicitarla como si estuviera verde",
+          "Preguntarle qué se está atorando, sin alarmar — está cumpliendo con observaciones",
+          "Conversación seria con plan de mejora y fechas",
+          "Escalarla a Germán inmediatamente"
         ],
         "correcta": 1,
-        "explicacion": "Cada viernes."
+        "explicacion": "M3. Amarillo = «Conforme con observaciones». Conversación de diagnóstico, no de alarma. Reserva el plan formal para naranja/rojo."
       },
       {
-        "id": "FQ4",
-        "texto": "Cobertura mide:",
+        "id": "FQ04",
+        "texto": "La cobertura del Pilar B de Estefanía está en 55% (amarillo) pero la de los otros dos pilares está en 85%. ¿Cuál es la primera causa que verificas?",
         "opciones": [
-          "Profundidad de las observaciones",
-          "Porcentaje de marcas esperadas que la supervisora dejó capturadas",
-          "Cuántas banderas rojas hubo",
-          "El sueldo de Estefanía"
+          "Mala voluntad de Estefanía",
+          "Sobrecarga: Pilar B tiene 31 ítems diarios — es estructuralmente el más pesado",
+          "Bug del sistema",
+          "Falta de capacitación en general"
         ],
         "correcta": 1,
-        "explicacion": "Cobertura = atendidas / esperadas."
+        "explicacion": "M4. Pilar B tiene 31 ítems diarios vs 14 del A y 20 del C. Cuando solo B baja, la sospecha más probable es sobrecarga."
       },
       {
-        "id": "FQ5",
-        "texto": "El certificado de Estefanía lo firma:",
+        "id": "FQ05",
+        "texto": "Estefanía tiene 95% cobertura pero 30% profundidad. ¿Cuál es su puntaje compuesto del semáforo?",
         "opciones": [
-          "El C.P. Germán",
-          "Tú (Mónica Solís · Dirección Grupo Toda)",
-          "El sistema sin firma humana",
-          "Nadie"
+          "95 (cobertura domina)",
+          "69 (amarillo)",
+          "30 (rojo)",
+          "50"
         ],
         "correcta": 1,
-        "explicacion": "Tú firmas el de ella. El tuyo lo firma el sistema como Dirección."
+        "explicacion": "M5. Aplicando 60/40: 95×0.6 + 30×0.4 = 57+12 = 69. Profundidad arrastra el compuesto cuando está baja, aunque cobertura esté alta."
+      },
+      {
+        "id": "FQ06",
+        "texto": "Un hallazgo lleva 22 días abierto y la edad promedio del rango está en naranja. ¿Qué haces?",
+        "opciones": [
+          "Normal, los hallazgos toman tiempo",
+          "Llevarlo a junta semanal con Mónica: «¿lo cierras esta semana o lo escalamos a Germán?» — &gt;15 días es señal estructural",
+          "Cerrarlo por antigüedad",
+          "Dejarlo pasar otro mes"
+        ],
+        "correcta": 1,
+        "explicacion": "M6. Edad &gt;15d = rojo; &gt;30d = alarma. Es señal de proceso atorado o hallazgo olvidado. Requiere intervención estratégica."
+      },
+      {
+        "id": "FQ07",
+        "texto": "Estefanía tiene cobertura alta sostenida y el Pilar A está deteriorándose. ¿Qué lectura es?",
+        "opciones": [
+          "Mejora real, todo bien",
+          "Señal grave: hay algo estructural más allá de la supervisión. Conversación con responsables del avance del pilar (gerente, contralor, dirección)",
+          "Estefanía tiene la culpa",
+          "Bug del sistema"
+        ],
+        "correcta": 1,
+        "explicacion": "M7. Cobertura alta = Estefanía detecta. Pilar deteriorándose = la operación NO responde a sus detecciones. Problema estructural fuera de su alcance."
+      },
+      {
+        "id": "FQ08",
+        "texto": "¿Cuántas secciones tiene el reporte mensual a socios y cuántas son TU juicio vs datos del sistema?",
+        "opciones": [
+          "3 secciones todas de datos",
+          "7 secciones: las primeras 5 son datos del sistema; las últimas 2 (análisis estratégico + recomendaciones) son tu juicio",
+          "1 sola sección con resumen libre",
+          "10 secciones todas inventadas por ti"
+        ],
+        "correcta": 1,
+        "explicacion": "M8. El reporte mezcla datos (autoridad) con juicio (valor estratégico). Sin las últimas 2 secciones, los socios reciben un volcado de números sin guía de decisión."
+      },
+      {
+        "id": "FQ09",
+        "texto": "Si descubres que Estefanía olvidó marcar un ítem, ¿qué haces?",
+        "opciones": [
+          "Marco yo el ítem para resolver el faltante",
+          "Le pregunto qué pasó, documento la conversación y le doy apoyo para que cierre ella misma",
+          "Le pongo una sanción",
+          "Lo ignoro porque no es mi rol"
+        ],
+        "correcta": 1,
+        "explicacion": "M1/M2. Tu valor es la conversación, no sustituir el trabajo. Marcar por ella contamina la medición del semáforo."
+      },
+      {
+        "id": "FQ10",
+        "texto": "¿Cuál es la pregunta central que define tu trabajo cada semana?",
+        "opciones": [
+          "¿El restaurante está bien?",
+          "¿Estefanía está supervisando bien?",
+          "¿Las ventas subieron?",
+          "¿Cuántos clientes hubo hoy?"
+        ],
+        "correcta": 1,
+        "explicacion": "M2/M3. La pregunta operativa es cosa de Estefanía. Tu pregunta es sobre ELLA: ¿está cumpliendo su trabajo de vigilar? Eso responde el semáforo."
+      },
+      {
+        "id": "FQ11",
+        "texto": "Para tu reporte mensual a socios, ¿qué texto usas como encabezado?",
+        "opciones": [
+          "Lo invento yo con base en mi impresión de Estefanía",
+          "Le pido a Estefanía que me lo redacte ella",
+          "Copio tal cual el texto ejecutivo de Supervisión → Calificación + Supervisión → Impacto",
+          "Lo dejo en blanco y mando solo los números"
+        ],
+        "correcta": 2,
+        "explicacion": "M3/M8. Los textos ejecutivos están diseñados para esto: pegables, neutros, con calibración técnica del periodo."
+      },
+      {
+        "id": "FQ12",
+        "texto": "Estefanía lleva 30 días desde supervision_inicio y obtuvo 70. ¿Cómo lo lees con los umbrales adaptativos?",
+        "opciones": [
+          "Verde — al día 30 el umbral de verde es ~67, así que 70 lo supera",
+          "Naranja — le faltó mucho para el estándar maduro",
+          "Hay que comparar con el día 90 que es cuando «cuenta»",
+          "Está reprobada"
+        ],
+        "correcta": 0,
+        "explicacion": "M3. Día 30: factor = 0.33. Umbral verde = 60 + 20×0.33 ≈ 67. El sistema da margen al arranque — úsalo."
+      },
+      {
+        "id": "FQ13",
+        "texto": "La cobertura total de Estefanía es 40% (rojo). Investigas: el gerente la usa de asistente cuando él se atrasa. ¿Cuál es la categoría correcta?",
+        "opciones": [
+          "Problema personal de Estefanía — debe priorizar mejor",
+          "Problema sistémico — requiere intervención estructural (hablar con gerente)",
+          "Bug del sistema de medición",
+          "No es problema relevante"
+        ],
+        "correcta": 1,
+        "explicacion": "M4. Si alguien más le carga trabajo no propio, es problema sistémico. Tratarlo como personal castiga a Estefanía por algo que no controla."
+      },
+      {
+        "id": "FQ14",
+        "texto": "¿Por qué profundidad pesa 40% del puntaje y no menos?",
+        "opciones": [
+          "Es lo más fácil de calcular técnicamente",
+          "Si pesara menos, el sistema premiaría volumen sobre calidad — un mal incentivo: marcar mucho sin pensar",
+          "Mónica lo decidió sin razón técnica",
+          "Hay 12 módulos del SR12"
+        ],
+        "correcta": 1,
+        "explicacion": "M5. El balance 60/40 protege contra «supervisora todoterreno superficial». Si profundidad pesara 20%, ese perfil saldría verde y el negocio perdería la señal de calidad."
+      },
+      {
+        "id": "FQ15",
+        "texto": "Estefanía tiene profundidad crónicamente baja. ¿Qué protocolo aplicas?",
+        "opciones": [
+          "Despedirla y contratar nueva",
+          "Revisión conjunta diaria por 1 semana, cada 2 días la siguiente, semanal después. Si vuelve a caer, regresar a semana 1",
+          "Bajarle el sueldo",
+          "Marcar yo las observaciones por ella"
+        ],
+        "correcta": 1,
+        "explicacion": "M5. Protocolo de 3 semanas convierte «escribir el porqué» en hábito sin sentirse castigo. La primera semana es intensiva, las siguientes son mantenimiento."
+      },
+      {
+        "id": "FQ16",
+        "texto": "¿Cuáles son los 3 criterios necesarios para cerrar un hallazgo?",
+        "opciones": [
+          "Tiempo, paciencia, suerte",
+          "Problema concreto resuelto · ejecutor entendió qué hacer la próxima vez · si era patrón, hay acuerdo de cambio estructural",
+          "Solo que pase el tiempo",
+          "Que Estefanía esté de acuerdo"
+        ],
+        "correcta": 1,
+        "explicacion": "M6. Los 3 son necesarios. Faltar el #3 (cambio estructural cuando era patrón) es la causa #1 de reapertura."
+      },
+      {
+        "id": "FQ17",
+        "texto": "Estefanía detectó que el comprador firmó una recepción (C07, segregación rota). ¿Cuándo escalas a Germán?",
+        "opciones": [
+          "En la junta semanal del viernes",
+          "Cuando el hallazgo cumpla 7 días",
+          "Inmediato — los hallazgos de segregación se escalan sin esperar, igual que las banderas rojas críticas",
+          "No lo escalo, lo cierro yo"
+        ],
+        "correcta": 2,
+        "explicacion": "M6. Segregación C07 y bandera 10 (saltos en folios) son los 2 eventos que se escalan EL MISMO DÍA, no en la junta semanal. Riesgo de fraude = acción inmediata."
+      },
+      {
+        "id": "FQ18",
+        "texto": "En la gráfica del Pilar A en Impacto, la línea sólida muestra «brecha = 100 − promedio del SR12». Que esa línea SUBA significa:",
+        "opciones": [
+          "Mejora del pilar",
+          "Deterioro del pilar — mayor brecha al 100% es peor",
+          "Es indiferente",
+          "No se puede leer"
+        ],
+        "correcta": 1,
+        "explicacion": "M7. Brecha = 100 − promedio. Si el promedio baja (mal), la brecha sube. Es la única gráfica del Impacto donde subir es malo. El sistema lo etiqueta para evitar confusión."
+      },
+      {
+        "id": "FQ19",
+        "texto": "El semáforo de Estefanía está verde sostenido por 3 meses, pero el Pilar A lleva 12 semanas estancado en el mismo porcentaje. ¿Con quién conversas?",
+        "opciones": [
+          "Con Estefanía: es problema de ella aunque el semáforo no lo muestre",
+          "Con los responsables del avance del pilar (gerente, contralor, dirección): Estefanía hace bien su parte pero los ejecutores no avanzan",
+          "Con nadie, el sistema está bien",
+          "Con el auditor para revisar el semáforo"
+        ],
+        "correcta": 1,
+        "explicacion": "M7. El patrón clave del Impacto. Verde + pilares estancados = supervisión sin tracción. La conversación NO es con la supervisora, sino con quienes deben cerrar el ciclo operativo."
+      },
+      {
+        "id": "FQ20",
+        "texto": "¿Cuáles son las 3 preguntas que tu reporte mensual debe responder explícitamente a socios?",
+        "opciones": [
+          "Cuánto vendió · cuántos clientes · cuántas quejas",
+          "¿La supervisión está funcionando? · ¿Los pilares avanzan? · ¿Qué decisión necesito de Dirección?",
+          "¿Quién es responsable? · ¿Cuánto cuesta? · ¿Cuándo termina?",
+          "Solo el resumen del semáforo"
+        ],
+        "correcta": 1,
+        "explicacion": "M8. Esas 3 preguntas estructuran la decisión que socios deben tomar. Tu reporte les ahorra horas — si no responde las 3, falta algo crítico."
+      },
+      {
+        "id": "FQ21",
+        "texto": "¿Cuáles son los 5 criterios obligatorios para certificar a Estefanía cada trimestre?",
+        "opciones": [
+          "Solo que el semáforo esté verde el último mes",
+          "Verde ≥ 9 de 13 semanas · sin 3 rojas consecutivas · % cierre hallazgos ≥ 70% · sin hallazgos C07 · sin patrón sostenido de profundidad &lt; 50%",
+          "Que tenga buena actitud y llegue a tiempo",
+          "Solo el examen final del curso"
+        ],
+        "correcta": 1,
+        "explicacion": "M8. Los 5 criterios cubren rendimiento sostenido, ausencia de fallas críticas, cierre del ciclo de hallazgos, y trabajo no superficial. Los 5 deben cumplirse."
+      },
+      {
+        "id": "FQ22",
+        "texto": "El semáforo del mes está en «No conforme». ¿Cómo lo redactas en el reporte a socios?",
+        "opciones": [
+          "«Con áreas de oportunidad»",
+          "«No conforme» — tal cual, sin suavizar; la autoridad del reporte viene de la integridad del lenguaje del sistema",
+          "Lo omito para no preocupar",
+          "«Excelente con observaciones»"
+        ],
+        "correcta": 1,
+        "explicacion": "M8. Suavizar el lenguaje del sistema introduce subjetividad y debilita la señal. Si los socios reciben «con áreas de oportunidad» y el sistema decía «No conforme», estás disfrazando información crítica."
+      },
+      {
+        "id": "FQ23",
+        "texto": "Estefanía falla 1 de los 5 criterios de certificación trimestral (% cierre de hallazgos al 55%). ¿Qué decisión tomas?",
+        "opciones": [
+          "La descertifico inmediatamente",
+          "La certifico igual porque está cerca",
+          "Abro conversación estructurada con ella + Germán: ¿plan de mejora con seguimiento mensual? ¿re-capacitación de algún módulo? ¿cambio de rol?",
+          "Espero al siguiente trimestre sin acción"
+        ],
+        "correcta": 2,
+        "explicacion": "M8. Un criterio fallado no es automáticamente descertificación. La acción correcta es analizar la causa con Germán y decidir según el diagnóstico (sistémico vs personal)."
+      },
+      {
+        "id": "FQ24",
+        "texto": "Al cerrar los 8 módulos del curso, ¿cuál frase resume mejor tu rol estratégico?",
+        "opciones": [
+          "«Yo opero todo» — controlo cada detalle de la operación diaria",
+          "«Yo la cubro» — protejo a la supervisora de las consecuencias del semáforo",
+          "«Tu valor está en que la conversación incómoda se dé. No en evitarla.»",
+          "«Que se arregle solo» — no me involucro hasta que explote"
+        ],
+        "correcta": 2,
+        "explicacion": "M8. La frase atraviesa todo el curso: las 3 capas del M1 sin invadir, la trampa «yo la cubro» del M2, los criterios estrictos de certificación del M8. El valor de Dirección es facilitar las conversaciones que el sistema muestra."
+      },
+      {
+        "id": "FQ25",
+        "texto": "Estefanía marcó CKBD14 como ✗ porque una cortesía de $850 no tiene autorización válida. Han pasado 5 días sin cerrarse el hallazgo. ¿Qué haces?",
+        "opciones": [
+          "Lo cierro yo para limpiar la lista",
+          "Completo yo el folio para resolver el faltante",
+          "Reviso en junta semanal con Estefanía: «¿qué le falta para cerrarse?»; pido al responsable que documente la autorización; si pasa otra semana sin movimiento, escalo a Germán",
+          "Ignoro porque no es prioritario por monto"
+        ],
+        "correcta": 2,
+        "explicacion": "M2/M6/M7. Aplicación transversal: NO ejecutar la próxima acción tú (trampa «yo la cubro»); usar la junta semanal para dar visibilidad; escalar si no cierra. Tu valor es mantener la lista viva y limpia, no resolverla operativamente."
       }
     ]
   }
