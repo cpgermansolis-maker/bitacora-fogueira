@@ -101,10 +101,89 @@
       "numero": 2,
       "titulo": "Tu rol como jefa de la supervisora",
       "duracion_min": 30,
-      "objetivos": ["Diferenciar revisar a la supervisora vs. operar el restaurante", "Manejar la conversación semanal con Estefanía", "Decidir cuándo escalar a Germán o a socios"],
-      "contenido_html": "<p><em>Contenido completo en preparación.</em></p>",
-      "quiz": { "preguntas": [{"id":"M2Q1","texto":"[Placeholder] ¿Qué haces si Estefanía pide ayuda con un proceso?","opciones":["Lo resuelves tú","La acompañas a resolverlo, no la sustituyes"],"correcta":1,"explicacion":"Acompañar, no sustituir."}] },
-      "disponible": false
+      "objetivos": [
+        "Diferenciar revisar a la supervisora vs. operar el restaurante",
+        "Estructurar la junta semanal con Estefanía (10-15 min con el sistema abierto)",
+        "Decidir cuándo apoyar, cuándo exigir y cuándo escalar a Germán o a socios"
+      ],
+      "contenido_html": "<h2>Las 3 capas de gobierno</h2><p>El sistema funciona porque hay tres capas claras, y cada una tiene un rol exclusivo:</p><ol><li><strong>Ejecutores</strong> — cajera, almacén, compras, cocina, host, gerente. Hacen el trabajo operativo todos los días.</li><li><strong>Supervisora</strong> — Estefanía. Revisa cada día que los ejecutores hicieron bien su trabajo, marca el checklist y abre hallazgos.</li><li><strong>Dirección</strong> — tú. Revisa que la supervisora esté revisando bien. Lee el semáforo, cierra hallazgos, reporta a socios.</li></ol><p>Si una capa hace el trabajo de la otra, el sistema se rompe. Este módulo es sobre cómo te quedas en TU capa.</p><h2>La pregunta que define tu trabajo cada semana</h2><p>Antes de la junta semanal con Estefanía, abre la pestaña Supervisión y mira el semáforo. Tu única pregunta esa semana es:</p><blockquote><strong>«¿Estefanía está supervisando bien?»</strong></blockquote><p>NO es: «¿el restaurante está bien?» Eso lo responde Estefanía con SU trabajo. La pregunta para ti es si ELLA está cumpliendo el suyo. Y el semáforo te lo responde en un número:</p><ul><li><strong>Verde (≥ 80)</strong>: sí, está cumpliendo. Tu conversación es breve — agradecer, preguntar si necesita algo.</li><li><strong>Amarillo (60-79)</strong>: sí, pero con observaciones. Tu conversación es preguntar qué se está atorando.</li><li><strong>Naranja (40-59)</strong>: no suficiente. Tu conversación es identificar la causa raíz y acordar acciones para la próxima semana.</li><li><strong>Rojo (&lt; 40)</strong>: no. Tu conversación es seria — ¿es capacidad, voluntad, herramientas o sobrecarga?</li></ul><h2>Estructura de la junta semanal (10-15 min)</h2><p>Cada viernes después del cierre, abre el sistema con Estefanía y sigue esta secuencia. No improvises — la estructura es lo que evita que la junta se vaya en quejas sin acuerdos.</p><ol><li><strong>El número (1 min)</strong> — Mira el puntaje y color del semáforo. No discutas, solo léelo en voz alta.</li><li><strong>Componentes (2 min)</strong> — Cobertura y profundidad. ¿Cuál de los dos jaló el puntaje hacia abajo?</li><li><strong>Histórico (2 min)</strong> — Mira la línea de evolución. ¿La tendencia sube, baja, o está plana?</li><li><strong>Hallazgos abiertos (3 min)</strong> — ¿Hay pendientes viejos? ¿Cuáles requieren tu intervención?</li><li><strong>Conversación (5 min)</strong> — Basado en todo lo anterior, pregunta concreto: «¿qué necesitas para la próxima semana?»</li><li><strong>Acuerdos (2 min)</strong> — Apunta 1-3 acciones concretas que tomarán las dos hasta el próximo viernes.</li></ol><h2>Apoyar vs. exigir — la diferencia</h2><p>Cuando el semáforo baja, la tentación es elegir un solo modo: o «apoyas» (haces las cosas más fáciles, le quitas trabajo) o «exiges» (le subes la presión). El supervisor estratégico hace ambos a la vez, pero por razones distintas. La regla es: <strong>la causa decide la acción</strong>.</p><table><thead><tr><th>Causa del problema</th><th>Acción tuya</th></tr></thead><tbody><tr><td>Falta capacitación («no supe cómo»)</td><td>Apoyar: agendar tiempo de capacitación, dar ejemplos</td></tr><tr><td>Falta tiempo («no me alcanza el día»)</td><td>Diagnosticar carga real, ajustar prioridades o agregar manos</td></tr><tr><td>Falla la herramienta («el SR12 estaba caído»)</td><td>Apoyar: escalar el problema técnico, absolver el periodo</td></tr><tr><td>Decisión personal («simplemente no me dio»)</td><td>Exigir: conversación seria, acuerdo de mejora con fechas</td></tr><tr><td>Sobrecarga real (mil pedidos, evento atípico)</td><td>Apoyar y absolver: el rango pierde validez ese periodo</td></tr></tbody></table><p>Tu valor está en distinguir cuál es cuál. No todos los problemas se resuelven exigiendo más, ni todos se resuelven dando palmaditas.</p><h2>Cuándo escalar a Germán o a socios</h2><p>El 90% del tiempo, los problemas los resuelves tú con Estefanía. El otro 10% requiere subir un escalón. Estas son las señales:</p><ul><li><strong>Hallazgos &gt; $5,000 sin resolver en 2 semanas</strong> — fuga material que requiere auditoría</li><li><strong>Bandera roja recurrente</strong> (la misma tres veces en un mes) — patrón estructural, no incidente</li><li><strong>Cortesías concentradas en una sola persona</strong> — sospecha de uso indebido</li><li><strong>Diferencias de arqueo &gt; $1,000 sin explicación</strong> — anomalía contable</li><li><strong>Semáforo rojo 3 semanas seguidas</strong> — el sistema operativo no está funcionando, requiere decisión a nivel dirección</li></ul><p>Para escalar a Germán: mándale por WhatsApp el texto ejecutivo que genera la sub-pestaña Calificación más la pregunta concreta que necesitas resolver. No le mandes el problema abierto.</p><h2>La trampa simétrica de Dirección</h2><p>Hay una trampa parecida a la de Estefanía pero al revés. Si Estefanía cae en «yo lo arreglo» (M2 de su curso), tú puedes caer en «yo la cubro».</p><p>Ejemplos:</p><ul><li>Estefanía no marcó algo → tú lo marcas en su lugar para que el semáforo no baje</li><li>Estefanía no abrió un hallazgo evidente → tú lo abres por ella</li><li>Estefanía no envió el reporte semanal → tú lo redactas y se lo mandas a Germán como si lo hubiera mandado ella</li></ul><p>Cada vez que haces esto, <strong>destruyes la señal que el sistema te dio</strong>. El semáforo está ahí para decirte la verdad sobre el desempeño de Estefanía. Si la encubres, te quedas sin información — y el negocio se queda sin gobierno operativo.</p><blockquote><strong>Tu valor está en que la conversación incómoda se dé. No en evitarla.</strong></blockquote>",
+      "quiz": {
+        "preguntas": [
+          {
+            "id": "M2Q1",
+            "texto": "El viernes a las 6pm, Estefanía no ha marcado los ítems del día. Tú entras al sistema y puedes hacerlo en 10 minutos. ¿Qué haces?",
+            "opciones": [
+              "Los marco yo para que su semáforo no baje",
+              "Le pregunto qué pasó, documento la conversación, y dejo que sea ella quien marque (aunque baje el puntaje esa semana)",
+              "La regaño por WhatsApp y le bajo el sueldo",
+              "Lo ignoro y reviso hasta el lunes"
+            ],
+            "correcta": 1,
+            "explicacion": "La trampa simétrica: «yo la cubro». Si marcas tú, destruyes la señal del sistema y nunca te enteras si hubo un problema real. La conversación incómoda es el valor."
+          },
+          {
+            "id": "M2Q2",
+            "texto": "El semáforo de Estefanía está naranja desde hace 2 semanas. Investigas y descubres que el almacenista la sobrecarga con tareas extra que no le tocan. ¿Qué priorizas?",
+            "opciones": [
+              "Exigirle más a Estefanía",
+              "Resolver el conflicto operativo con almacén y reajustar la carga real de Estefanía",
+              "Sustituir a Estefanía",
+              "Ignorarlo si los pilares parecen estar bien"
+            ],
+            "correcta": 1,
+            "explicacion": "Antes de exigir, diagnostica la causa. Si la sobrecarga es real y no atribuible a Estefanía, la acción correcta es estructural (ajustar carga), no personal (exigirle más a ella)."
+          },
+          {
+            "id": "M2Q3",
+            "texto": "¿Cuál es la pregunta central que define tu trabajo cada semana?",
+            "opciones": [
+              "¿El restaurante está bien?",
+              "¿Estefanía está supervisando bien?",
+              "¿Las ventas subieron?",
+              "¿Cuántos clientes hubo?"
+            ],
+            "correcta": 1,
+            "explicacion": "La pregunta operativa es cosa de Estefanía. Tu pregunta es sobre ELLA: ¿está cumpliendo su trabajo de vigilar? Eso es lo que el semáforo responde."
+          },
+          {
+            "id": "M2Q4",
+            "texto": "Las cortesías del mes están concentradas en una sola hostess (60% son suyas). ¿Qué haces?",
+            "opciones": [
+              "La felicito por ser amable con los clientes",
+              "La ignoro porque todas las cortesías tienen mi firma",
+              "Escalo a Germán porque es señal de uso potencialmente indebido y requiere auditoría",
+              "Le pido al gerente que la cambie de área"
+            ],
+            "correcta": 2,
+            "explicacion": "Concentración inusual = patrón sospechoso. Es uno de los disparadores estructurales que justifican escalar a Germán para auditoría, no un asunto operativo del día."
+          },
+          {
+            "id": "M2Q5",
+            "texto": "La estructura recomendada de la junta semanal con Estefanía es:",
+            "opciones": [
+              "Reunión de 2 horas con análisis exhaustivo cada viernes",
+              "Mensaje informal por WhatsApp sin agenda",
+              "10-15 min con el sistema abierto, siguiendo una secuencia: número, componentes, histórico, hallazgos, conversación, acuerdos",
+              "Solo cuando hay problemas — si todo está bien, no hace falta"
+            ],
+            "correcta": 2,
+            "explicacion": "La estructura corta y disciplinada es lo que produce acuerdos. Sin agenda se va en quejas; demasiado larga se vuelve carga; saltarla cuando todo está bien rompe la disciplina semanal."
+          },
+          {
+            "id": "M2Q6",
+            "texto": "¿Cuál frase resume mejor tu rol estratégico?",
+            "opciones": [
+              "«Yo la cubro» — protejo a la supervisora de las consecuencias del semáforo",
+              "«Tu valor está en que la conversación incómoda se dé. No en evitarla.»",
+              "«Que se arregle solo» — no me involucro hasta que explote",
+              "«Yo opero todo» — controlo cada detalle de la operación diaria"
+            ],
+            "correcta": 1,
+            "explicacion": "Cubrirla destruye la señal. No involucrarte deja el negocio sin gobierno. Operar todo te roba la capa estratégica. La conversación honesta semanal es el centro del rol."
+          }
+        ]
+      },
+      "disponible": true
     },
     {
       "id": "M3",

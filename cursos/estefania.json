@@ -104,24 +104,86 @@
       "objetivos": [
         "Distinguir las tareas que SÍ son tuyas vs. las que NO",
         "Aprender a delegar y dar seguimiento sin tomar el control",
-        "Practicar el lenguaje supervisor (revisar, validar, escalar)"
+        "Identificar la trampa del «yo lo arreglo» y por qué destruye la medición"
       ],
-      "contenido_html": "<p><em>Contenido completo en preparación. Por ahora, repasa el M1 hasta que el sistema marque este módulo como disponible.</em></p>",
+      "contenido_html": "<h2>Repaso del M1 en una frase</h2><blockquote><strong>Tú no ejecutas. Tú vigilas.</strong> Los operativos (cajera, almacén, compras, cocina, host, gerente) hacen el trabajo. Tu trabajo es asegurarte de que ellos lo hagan bien y dejar evidencia diaria.</blockquote><p>Este módulo te enseña <em>exactamente</em> cómo se ve eso en tu día a día — qué tareas sí son tuyas, cuáles no, y por qué la línea importa.</p><h2>Las 4 acciones del supervisor</h2><p>Todo tu trabajo se resume en 4 verbos. Cuando algo pase en el restaurante, tu pregunta debe ser: «¿cuál de los 4 me toca?»</p><ol><li><strong>Revisar</strong> — Mirar el trabajo del ejecutor. ¿Hizo la tarea? ¿Cómo quedó? Es el primer paso de todos.</li><li><strong>Validar</strong> — Marcar ✓ si está bien o ✗ si está mal. Tu firma digital queda en el sistema.</li><li><strong>Documentar</strong> — Si marcaste ✗, escribir en la observación qué falló y qué se necesita para arreglarlo.</li><li><strong>Escalar</strong> — Si requiere acción más allá del día, abrir un hallazgo. Si requiere decisión, hablarlo con Mónica o el gerente.</li></ol><p>Esos 4 verbos NO incluyen «hacer la tarea». Esa la hace el ejecutor.</p><h2>Esto sí · Esto no</h2><p>Una matriz para que no haya duda:</p><table><thead><tr><th>Situación</th><th>Tú haces</th><th>Tú NO haces</th></tr></thead><tbody><tr><td>El Corte Z no se imprimió</td><td>Marcar ✗, escribir «Cajera X no imprimió Corte Z porque Y», abrir hallazgo</td><td>Imprimirlo tú</td></tr><tr><td>Faltó capturar una merma</td><td>Marcar ✗, escribir el detalle, pedir a almacén que la capture</td><td>Capturarla tú en el SR12</td></tr><tr><td>Bandera roja en arqueo (diferencia $1,200)</td><td>NO firmar el cierre, escribir el monto y la conversación con la cajera</td><td>Reponer la diferencia del fondo de cambio</td></tr><tr><td>Cortesía sin folio o sin autorización válida</td><td>Marcar ✗, pedir la firma o folio faltantes a quien corresponde</td><td>Firmar tú la cortesía o inventar un folio</td></tr><tr><td>Una requisición lleva 3 días bloqueada</td><td>Documentar el motivo del bloqueo, escalar a compras, abrir hallazgo</td><td>Tú comprar el insumo</td></tr></tbody></table><h2>La trampa del «yo lo arreglo»</h2><p>Esta es la tentación más peligrosa de tu rol, y vamos a hablar de ella directo.</p><p>Cuando ves que algo no se hizo y tú <em>sí puedes hacerlo</em>, el instinto natural es resolverlo. «¿Para qué pelearme con la cajera? Yo imprimo el Corte Z y sigo». Parece eficiente. Parece servicial. <strong>Pero contamina todo el sistema.</strong></p><ul><li><strong>Pierdes la medición.</strong> Si tú lo haces, la actividad queda como cumplida. Mónica revisa el semáforo el viernes y no ve el problema. La cajera nunca aprende que se le exige hacerlo.</li><li><strong>Te conviertes en cuello de botella.</strong> El próximo día también lo harás tú. Y el siguiente. En un mes, ya no eres supervisora — eres asistente de la cajera.</li><li><strong>Pierdes autoridad.</strong> Si haces el trabajo de otros, pierdes el derecho a exigirles que lo hagan.</li></ul><blockquote>El problema NO es que la tarea no se haga ese día. El problema es que <strong>nadie nunca se entera que no se hizo</strong>. Tu trabajo es asegurar que se entere.</blockquote><h2>Lenguaje supervisor</h2><p>Cómo hablas con los ejecutores también vigila. Frases que funcionan:</p><ul><li>«Vi que falta el Corte Z. ¿Pasó algo?» — abierto, no acusatorio</li><li>«El sistema marca tu cierre como pendiente. ¿Cuándo lo cierras?» — pone al sistema como autoridad, no a ti</li><li>«Voy a documentar que la cortesía no tiene la firma de Mónica. ¿Quieres llamarle antes de que cierre el día?» — da una salida sin perdonar la falta</li></ul><p>Frases que NO funcionan:</p><ul><li>«No hiciste tu trabajo» — confronta, no resuelve</li><li>«Yo te lo hago, no te preocupes» — la trampa de arriba</li><li>«Mejor avísale tú a Mónica» — escapas de tu rol</li></ul><h2>El círculo virtuoso</h2><p>Cuando haces tu rol bien, ocurre esto:</p><ol><li>Marcas ✗ con observación clara → la falla queda documentada</li><li>Abres hallazgo → el responsable sabe que tiene que cerrarlo</li><li>Reportas a Mónica el viernes → la conversación se da al nivel jerárquico correcto</li><li>Mónica habla con la persona → la conducta cambia</li><li>La siguiente semana, esa falla ya no se repite → tu cobertura sube, tu profundidad sube, semáforo verde</li></ol><p>Eso es lo que <em>realmente</em> mide el sistema. No qué tan «servicial» eres tapando huecos, sino qué tan bien cierras los ciclos sin meter las manos donde no van.</p><blockquote><strong>Tu valor está en la conversación que provocas, no en las tareas que tapas.</strong></blockquote>",
       "quiz": {
         "preguntas": [
           {
             "id": "M2Q1",
-            "texto": "[Placeholder] Si encuentras un problema en cocina, ¿qué haces?",
+            "texto": "Son las 9 pm. La cajera te pide que le ayudes a imprimir el Corte Z porque está saturada con clientes. ¿Qué haces?",
             "opciones": [
-              "Lo resuelvo yo misma",
-              "Lo documento, escalo al gerente, doy seguimiento"
+              "Imprimo el Corte Z yo misma para ayudarla",
+              "Le pregunto qué la tiene saturada, documento la situación, y marco el ítem como pendiente si no logra imprimirlo antes del cierre",
+              "Le digo que ese es su trabajo y la dejo sola",
+              "Le aviso a Mónica que la cajera no quiere trabajar"
             ],
             "correcta": 1,
-            "explicacion": "Vigilar = documentar + escalar + dar seguimiento. No ejecutar."
+            "explicacion": "Las 4 acciones: revisar (¿qué pasa?), validar (¿está hecho?), documentar (escribir el detalle), escalar si requiere. Ayudarla a imprimir te convierte en cuello de botella y elimina la señal del sistema. Negarte sin entender no resuelve nada."
+          },
+          {
+            "id": "M2Q2",
+            "texto": "Almacén olvidó capturar una merma de carne de $800. Tú sabes exactamente cómo capturarla en el SR12. ¿Qué haces?",
+            "opciones": [
+              "La capturo yo en el SR12 para resolver el faltante",
+              "Marco ✗ con observación «Merma carne $800 sin capturar, almacenista X», y pido al almacenista que la capture antes del cierre",
+              "La ignoro porque $800 no es tanto",
+              "Llamo a Germán inmediatamente"
+            ],
+            "correcta": 1,
+            "explicacion": "Tu rol es vigilar que se capture, no capturarla. Si tú la capturas, el almacenista no aprende y el sistema pierde la señal de que hubo un olvido."
+          },
+          {
+            "id": "M2Q3",
+            "texto": "¿Cuáles son las 4 acciones del supervisor?",
+            "opciones": [
+              "Marcar, firmar, archivar, olvidar",
+              "Revisar, validar, documentar, escalar",
+              "Cocinar, cobrar, comprar, contar",
+              "Felicitar, regañar, despedir, contratar"
+            ],
+            "correcta": 1,
+            "explicacion": "Revisar (mirar el trabajo), validar (✓ o ✗), documentar (el porqué), escalar (hallazgo o conversación). Esos 4 verbos NO incluyen «hacer la tarea»."
+          },
+          {
+            "id": "M2Q4",
+            "texto": "La cortesía del día tiene la firma de Mónica pero le falta el folio. ¿Qué haces?",
+            "opciones": [
+              "Le pongo yo un folio que parezca razonable",
+              "Marco ✓ porque ya tiene la firma — el folio es detalle menor",
+              "Marco ✗, escribo «Cortesía con firma de Mónica pero sin folio», y pido a quien la capturó que complete el folio antes del cierre",
+              "Tacho la cortesía y la elimino del registro"
+            ],
+            "correcta": 2,
+            "explicacion": "Una cortesía sin folio es trabajo incompleto. Marcar ✓ porque «casi» está bien deja pasar la falla y la próxima vez será peor. Inventar el folio es falsificar. Lo correcto es documentar y pedir que se complete."
+          },
+          {
+            "id": "M2Q5",
+            "texto": "¿Cuál frase resume mejor tu rol como supervisora?",
+            "opciones": [
+              "«Yo lo arreglo» — soluciono cualquier problema operativo que aparezca",
+              "«No es mi trabajo» — me limito a marcar y nada más",
+              "«Tu valor está en la conversación que provocas, no en las tareas que tapas»",
+              "«Mañana lo veo» — pospongo lo que no sé resolver"
+            ],
+            "correcta": 2,
+            "explicacion": "La frase resume todo el módulo: el círculo virtuoso del supervisor es documentar y escalar para que la conversación correcta se dé, no taparlo todo."
+          },
+          {
+            "id": "M2Q6",
+            "texto": "Si tomas la tarea del ejecutor para ahorrarle problemas, ¿qué efecto tiene en la medición del sistema?",
+            "opciones": [
+              "Mejora la cobertura porque la tarea quedó hecha",
+              "No tiene efecto, da lo mismo quién la haga",
+              "Contamina la medición: la actividad queda como cumplida, nadie ve el problema, el ejecutor no aprende y tú te conviertes en cuello de botella",
+              "Mejora la profundidad porque ya hay observación"
+            ],
+            "correcta": 2,
+            "explicacion": "Este es el daño invisible del «yo lo arreglo»: la señal del sistema se pierde, el ejecutor no aprende, tú te saturas y Mónica no se entera. El sistema necesita la verdad, no la cobertura aparente."
           }
         ]
       },
-      "disponible": false
+      "disponible": true
     },
     {
       "id": "M3",
