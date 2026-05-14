@@ -279,10 +279,89 @@
       "numero": 4,
       "titulo": "Pilar A · Soft Restaurant 12 — qué reviso",
       "duracion_min": 45,
-      "objetivos": ["Conocer los 12 módulos del SR12", "Identificar las 36 actividades del checklist Pilar A", "Reconocer las frecuencias D/S/M"],
-      "contenido_html": "<p><em>Contenido completo en preparación.</em></p>",
-      "quiz": { "preguntas": [{"id":"M4Q1","texto":"[Placeholder] ¿Cuántos módulos tiene el SR12?","opciones":["10","12","14"],"correcta":1,"explicacion":"12 módulos del SR12."}] },
-      "disponible": false
+      "objetivos": [
+        "Conocer los 12 módulos del SR12 y quién los opera",
+        "Identificar las 36 actividades del checklist Pilar A (14 D + 11 S + 11 M)",
+        "Tener una rutina diaria clara para revisar el Pilar A en 30-45 min"
+      ],
+      "contenido_html": "<h2>El Pilar A en una frase</h2><blockquote>El SR12 (Soft Restaurant 12) es el sistema digital que sostiene todo el restaurante. Si está bien usado, el negocio se puede medir. Si está mal usado, el restaurante opera a ciegas.</blockquote><p>Tu rol no es CONFIGURAR el SR12 — eso lo hacen el auditor, el contralor y los ejecutores de cada módulo. Tu rol es VIGILAR que cada día se opere correctamente. Este módulo te enseña qué revisar y cómo.</p><h2>Los 12 módulos del SR12</h2><p>El SR12 está dividido en 12 módulos. Cada uno tiene un % de avance (qué tan bien está configurado y operado) y una meta de 100%. El estado típico al arranque es:</p><table><thead><tr><th>#</th><th>Módulo</th><th>Estado</th><th>Quién lo opera</th></tr></thead><tbody><tr><td>1</td><td>Configuración base del sistema</td><td>80%</td><td>contralor/auditor</td></tr><tr><td>2</td><td>Catálogo de insumos y almacenes</td><td>95%</td><td>almacén</td></tr><tr><td>3</td><td>Catálogo de productos para venta</td><td>70%</td><td>cocina/gerente</td></tr><tr><td>4</td><td>Recetas y descarga automática</td><td>40% (atorado)</td><td>cocina</td></tr><tr><td>5</td><td>Compras y proveedores</td><td>85%</td><td>compras</td></tr><tr><td>6</td><td>POS · Servicio Comedor / Rápido</td><td>80%</td><td>cajera</td></tr><tr><td>7</td><td>Caja, propinas y cortes</td><td>80%</td><td>cajera</td></tr><tr><td>8</td><td>Facturación electrónica CFDI</td><td>90%</td><td>caja/contralor</td></tr><tr><td>9</td><td>Inventarios físicos y conciliación</td><td>50%</td><td>almacén/cocina</td></tr><tr><td>10</td><td>Reportes y análisis</td><td>30% (débil)</td><td>gerente</td></tr><tr><td>11</td><td>Seguridad y perfiles de usuario</td><td>30% (débil)</td><td>contralor</td></tr><tr><td>12</td><td>Funciones avanzadas (CRM, KDS, e-Delivery)</td><td>10% (futuro)</td><td>—</td></tr></tbody></table><p>Esos % los actualiza el auditor cuando hace su revisión de configuración. <strong>Tú NO los actualizas.</strong> Solo los miras para entender el contexto: si el módulo 4 (Recetas) está en 40%, probablemente vas a encontrar platos sin receta cargada cuando revises CKD12.</p><h2>El checklist Pilar A — 36 ítems</h2><p>El checklist Pilar A tiene 36 actividades operativas que tú revisas cada día, semana o mes. Se divide así:</p><ul><li><strong>14 diarios</strong> (CKD01-CKD14) — los marcas cada día laboral</li><li><strong>11 semanales</strong> (CKS01-CKS11) — los marcas el viernes de cada semana</li><li><strong>11 mensuales</strong> (CKM01-CKM11) — los marcas el último viernes del mes</li></ul><h2>Los 14 ítems diarios</h2><p>Distribuidos por área operativa:</p><ul><li><strong>Cajera (CKD01-CKD04)</strong>: Corte Z impreso · cuadre de efectivo · cuentas cerradas · cancelaciones justificadas</li><li><strong>Almacén (CKD05-CKD08)</strong>: entradas capturadas · salidas registradas · mermas del día · temperaturas refrigeradores</li><li><strong>Compras (CKD09-CKD10)</strong>: facturas capturadas con orden de compra · precios actualizados en catálogo</li><li><strong>Cocina (CKD11-CKD12)</strong>: mermas con foto/firma · platos vendidos sin receta = 0</li><li><strong>Gerente (CKD13-CKD14)</strong>: reporte ventas firmado · descuentos/cortesías revisados</li></ul><h2>Los 11 ítems semanales (viernes)</h2><ul><li><strong>Almacén (CKS01-CKS03)</strong>: conteo cíclico · top 10 críticos vs físico · inventario teórico de bar</li><li><strong>Compras (CKS04-CKS05)</strong>: 3-way match (factura/OC/entrada) · precios críticos actualizados</li><li><strong>Cocina (CKS06-CKS07, CKS09)</strong>: top 20 platos con receta · cargar recetas nuevas · análisis de mermas por categoría</li><li><strong>Cajera (CKS08)</strong>: descuentos/cancelaciones validados con autorización</li><li><strong>Gerente (CKS10-CKS11)</strong>: reunión KPIs · margen bruto vs meta</li></ul><h2>Los 11 ítems mensuales (último viernes)</h2><ul><li><strong>Almacén (CKM01, CKM02, CKM06)</strong>: inventario físico completo · diferencias &gt;2% justificadas · productos sin movimiento</li><li><strong>Compras (CKM03-CKM04)</strong>: conciliación CxP vs proveedor · catálogo de proveedores actualizado</li><li><strong>Cajera (CKM05)</strong>: conciliación POS vs caja chica</li><li><strong>Cocina (CKM07-CKM08)</strong>: análisis mensual de mermas con plan · re-costeo de recetas</li><li><strong>Gerente (CKM09-CKM11)</strong>: cierre mensual SR12 · reporte gerencial firmado · junta de plan de remediación</li></ul><h2>Tu rutina diaria del Pilar A (30-45 min)</h2><p>Esta es la secuencia que recomendamos. Optimiza tu tiempo y minimiza ir y venir:</p><ol><li><strong>Antes del cierre (10 min)</strong> — Pasa por cocina y almacén. Pregunta cómo van las mermas del día y la captura de entradas. Anota mentalmente.</li><li><strong>Cierre cajera (10 min)</strong> — Mira el Corte Z, cuadra contra POS, revisa que las cancelaciones tengan autorización. Marca CKD01-CKD04.</li><li><strong>Bitácora almacén (5 min)</strong> — Confirma entradas / salidas / mermas / temperaturas del día. Marca CKD05-CKD08.</li><li><strong>Compras y cocina (5 min)</strong> — Confirma las facturas capturadas y las mermas con foto. Marca CKD09-CKD12.</li><li><strong>Cierre del gerente (5 min)</strong> — Verifica que el reporte de ventas esté firmado y las cortesías revisadas. Marca CKD13-CKD14.</li></ol><p><strong>Si es viernes</strong>: agrega 15-20 min para los 11 ítems semanales.<br><strong>Si es último viernes del mes</strong>: agrega 30-45 min para los 11 ítems mensuales (el inventario físico es el más pesado — conviene avisar al almacén con 2-3 días de anticipación para preparar el conteo).</p><h2>El ítem más crítico del Pilar A</h2><blockquote><strong>CKD12 — Platos vendidos sin receta cargada en SR12 = CERO.</strong></blockquote><p>Este ítem es el corazón del Pilar A. Cada plato vendido tiene que descargar receta del SR12 para que el inventario teórico tenga sentido. Si hay platos sin receta, todo el control de inventarios se rompe.</p><p>Hoy el módulo 4 (Recetas) está en 40% — eso significa que probablemente hay platos sin receta cargada. Tu trabajo es DETECTARLOS y reportarlos, no cargarlos tú. Cada vez que encuentres un plato sin descarga, marca ✗ y abre hallazgo a cocina.</p><h2>Casos típicos</h2><p><strong>Caso 1</strong>: La cajera no imprimió el Corte Z hoy porque se acabó el papel de la impresora.<br>Acción: marca CKD01 como ✗, observación «No imprimió Corte Z, papel terminado en impresora — cajera X». Abre hallazgo si se repite 2 veces seguidas. NO sales a comprar papel tú.</p><p><strong>Caso 2</strong>: Almacén sí recibió mercancía hoy ($12,500 de proveedor X) pero no la capturó en SR12.<br>Acción: marca CKD05 como ✗, observación «Recepción de proveedor X sin capturar, $12,500». Hallazgo prioritario a almacén. Si tú la capturas, nadie aprende y mañana habrá otra sin capturar.</p><p><strong>Caso 3</strong>: Se vendieron 8 hamburguesas pero solo 5 descargaron receta.<br>Acción: marca CKD12 como ✗, observación «3 hamburguesas sin descarga de receta. Falta receta vigente en SR12». Hallazgo a cocina con CC al contralor (afecta inventario teórico).</p><h2>Lo que NO haces en el Pilar A</h2><ul><li>NO actualizas los % de los 12 módulos del SR12 (eso lo hace el auditor)</li><li>NO cargas recetas tú misma — eso le toca a cocina</li><li>NO imprimes Cortes Z tú — eso le toca a cajera</li><li>NO capturas entradas de almacén tú — eso le toca a almacén</li><li><strong>SÍ marcas, documentas, escalas, das seguimiento.</strong> Las 4 acciones del M2.</li></ul>",
+      "quiz": {
+        "preguntas": [
+          {
+            "id": "M4Q1",
+            "texto": "¿Cuántos ítems totales tiene el checklist Pilar A?",
+            "opciones": [
+              "14",
+              "25",
+              "36",
+              "50"
+            ],
+            "correcta": 2,
+            "explicacion": "14 diarios + 11 semanales + 11 mensuales = 36 ítems totales. Los diarios son los que marcas cada día laboral; los semanales el viernes; los mensuales el último viernes del mes."
+          },
+          {
+            "id": "M4Q2",
+            "texto": "La cajera no imprimió el Corte Z porque se acabó el papel de la impresora. ¿Qué haces?",
+            "opciones": [
+              "Voy a comprar papel y se lo entrego para que pueda imprimir",
+              "Marco CKD01 como ✗ con observación detallada del motivo, y abro hallazgo si se repite 2 veces seguidas",
+              "Imprimo yo el Corte Z desde otro lugar",
+              "Espero a que ella resuelva sola sin marcar nada"
+            ],
+            "correcta": 1,
+            "explicacion": "Vigilar, no ejecutar (M2). Documentar el porqué (papel terminado) y dar seguimiento mediante hallazgo si es patrón. Comprar papel tú te convierte en cuello de botella."
+          },
+          {
+            "id": "M4Q3",
+            "texto": "¿Cuál es el ítem MÁS crítico del Pilar A?",
+            "opciones": [
+              "CKD01 — Corte Z impreso",
+              "CKD08 — temperatura refrigeradores",
+              "CKD12 — Platos vendidos sin receta cargada en SR12 = CERO",
+              "CKD13 — reporte de ventas firmado"
+            ],
+            "correcta": 2,
+            "explicacion": "Si hay platos sin receta, el inventario teórico del SR12 se rompe. Por eso el módulo 4 (Recetas) en 40% es el más urgente de atender. CKD12 es la línea de defensa diaria."
+          },
+          {
+            "id": "M4Q4",
+            "texto": "Los ítems semanales del Pilar A se marcan:",
+            "opciones": [
+              "Todos los días",
+              "Los lunes",
+              "Los viernes",
+              "Cualquier día de la semana"
+            ],
+            "correcta": 2,
+            "explicacion": "Frecuencia S = semanal, marcados los viernes. Los mensuales (frecuencia M) se marcan el último viernes del mes."
+          },
+          {
+            "id": "M4Q5",
+            "texto": "Si los 12 módulos del SR12 marcan 60% promedio, ¿qué te toca hacer?",
+            "opciones": [
+              "Actualizar yo los porcentajes para que suban",
+              "Cargar las recetas faltantes para que el módulo 4 mejore",
+              "Nada en los % — los actualiza el auditor; tu trabajo es operar el checklist diario, que es lo que SÍ te toca",
+              "Reportar a Mónica que tengo que reconfigurar el SR12"
+            ],
+            "correcta": 2,
+            "explicacion": "Los % de los 12 módulos los maneja el auditor en su ciclo de revisión de configuración. Tú no los tocas. Tu trabajo del Pilar A es marcar el checklist de los 36 ítems."
+          },
+          {
+            "id": "M4Q6",
+            "texto": "La cocina vendió 10 hamburguesas pero el SR12 solo descargó 7 recetas. ¿Qué haces?",
+            "opciones": [
+              "Cargo yo las 3 recetas faltantes en el SR12",
+              "Marco CKD12 como ✗, observación «3 hamburguesas sin descarga de receta», hallazgo a cocina con CC al contralor",
+              "Lo ignoro porque las hamburguesas se cobraron correctamente",
+              "Bajo las ventas del POS para que cuadre con las recetas descargadas"
+            ],
+            "correcta": 1,
+            "explicacion": "Detectar y reportar, no cargar. Las recetas las carga cocina. Tu valor es asegurar que se enteren del problema y se cierre el ciclo — no taparlo cargando recetas tú."
+          }
+        ]
+      },
+      "disponible": true
     },
     {
       "id": "M5",
