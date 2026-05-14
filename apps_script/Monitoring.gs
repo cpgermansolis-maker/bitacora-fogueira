@@ -850,32 +850,43 @@ function getDesempenoSupervisor(user, payload) {
   }
   if (desde > hasta) throw new Error('"desde" debe ser anterior o igual a "hasta"');
 
-  // Identificar a la supervisora. Si el payload trae email, usar ese; si no,
-  // el primer usuario activo con rol='administracion' (modelo confirmado:
-  // Estefanía es la única que captura marcas).
+  // Identificar a la supervisora. El usuario operativo que captura marcas
+  // puede tener distintos roles según el setup:
+  //   - 'administracion' → modelo por rol (rol del item = rol del usuario)
+  //   - 'auxiliar'       → modo "auxiliar_unica" en Config
+  //   - cualquier otro   → instalación atípica, usamos el primer operativo
+  // Si el payload trae email explícito, ese gana. Comparación case-insensitive.
   const usuarios = sheetData(SHEETS.USUARIOS);
+  const normRol = (r) => String(r || '').toLowerCase().trim();
+  const activos = usuarios.filter(u => String(u.activo).toUpperCase() === 'TRUE');
+  // Operativos = todos los activos que NO son auditor ni gerente (esos son
+  // los roles "que revisan", no los que capturan).
+  const operativos = activos.filter(u => normRol(u.rol) !== 'auditor' && normRol(u.rol) !== 'gerente');
+
   let email = String(payload.email || '').toLowerCase().trim();
   if (!email) {
-    const sup = usuarios.find(u =>
-      String(u.rol) === 'administracion' &&
-      String(u.activo).toUpperCase() === 'TRUE'
-    );
-    if (!sup) throw new Error('No hay usuario con rol "administracion" activo');
-    email = String(sup.email).toLowerCase().trim();
+    const fallback =
+      operativos.find(u => normRol(u.rol) === 'administracion') ||
+      operativos.find(u => normRol(u.rol) === 'auxiliar') ||
+      operativos[0];
+    if (!fallback) {
+      throw new Error('No hay usuario operativo activo para evaluar. Registra a la supervisora en la pestaña Usuarios.');
+    }
+    email = String(fallback.email).toLowerCase().trim();
   }
   const persona = usuarios.find(u =>
     String(u.email).toLowerCase().trim() === email
   );
   if (!persona) throw new Error('Persona no encontrada en Usuarios: ' + email);
 
-  // Lista de candidatas (todas las "administracion" activas) — útil al
-  // frontend si en el futuro hay más de una supervisora.
-  const candidatas = usuarios
-    .filter(u => String(u.rol) === 'administracion' && String(u.activo).toUpperCase() === 'TRUE')
-    .map(u => ({
-      email: String(u.email).toLowerCase().trim(),
-      nombre: String(u.nombre || '')
-    }));
+  // Lista de candidatas para el selector del frontend: todos los operativos
+  // activos (no solo administracion). El auditor puede así evaluar a quien
+  // realmente captura marcas, sin importar el rol exacto registrado.
+  const candidatas = operativos.map(u => ({
+    email: String(u.email).toLowerCase().trim(),
+    nombre: String(u.nombre || ''),
+    rol: String(u.rol || '')
+  }));
 
   // ---------- Carga única de datos ----------
   const itemsA = sheetData(SHEETS.PILAR_A_CK_ITEMS).filter(it => String(it.activo).toUpperCase() === 'TRUE');

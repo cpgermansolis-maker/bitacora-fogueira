@@ -1761,7 +1761,8 @@ const State = {
   // Supervisión — desempeño de la supervisora en rango libre
   supervisionSubview: 'cobertura',
   supervisionEmail: null,
-  supervisionUltimo: null
+  supervisionUltimo: null,
+  supervisionCandidatas: null  // [{email,nombre,rol}] activos no-auditor/gerente
 };
 
 /* =========================================================
@@ -4376,6 +4377,23 @@ const App = {
       c.innerHTML = `<div class="empty-state"><p>Solo el auditor o el gerente pueden ver este tablero.</p></div>`;
       return;
     }
+
+    // Si todavía no tenemos la lista de candidatas, traerla (reutiliza el
+    // endpoint que ya existe para Mi Día). El filtro a operativos lo hacemos
+    // en frontend para no añadir endpoint nuevo.
+    if (!State.supervisionCandidatas) {
+      c.innerHTML = `<div class="empty-state"><div class="spinner"></div></div>`;
+      try {
+        const personas = await apiCall('getPersonasDia', {});
+        State.supervisionCandidatas = personas.filter(p =>
+          p.rol !== 'auditor' && p.rol !== 'gerente'
+        );
+      } catch (err) {
+        c.innerHTML = `<div class="empty-state"><p>${escapeHtml(err.message)}</p></div>`;
+        return;
+      }
+    }
+
     const sub = State.supervisionSubview || 'cobertura';
     const today = todayInputValue();
     const monthAgo = new Date(); monthAgo.setMonth(monthAgo.getMonth() - 1);
@@ -4383,17 +4401,34 @@ const App = {
     const last = State.supervisionUltimo;
     const desdeVal = last ? last.desde : desdeDefault;
     const hastaVal = last ? last.hasta : today;
-    const cands = last && last.candidatas ? last.candidatas : [];
-    const emailSel = State.supervisionEmail || (last && last.persona ? last.persona.email : '');
+    const cands = State.supervisionCandidatas || [];
+    // Email seleccionado: el explícito del State, o el de la última carga, o
+    // el primero de la lista (en práctica solo hay una persona operativa).
+    const emailSel = State.supervisionEmail
+      || (last && last.persona ? last.persona.email : '')
+      || (cands[0] ? cands[0].email : '');
 
-    // Selector de supervisora solo si hay >1 candidata (en práctica habrá 1).
-    const selector = cands.length > 1 ? `
+    if (cands.length === 0) {
+      c.innerHTML = `
+        <div class="section-head">
+          <h1><span class="badge">Supervisión</span> Desempeño de la supervisora</h1>
+        </div>
+        <div class="empty-state">
+          <p>No hay usuarios operativos activos en la pestaña <strong>Usuarios</strong>. Registra primero a la persona que captura las marcas.</p>
+        </div>`;
+      return;
+    }
+
+    // Selector siempre visible: aunque haya 1 sola persona, queremos que el
+    // auditor confirme a quién está midiendo (y si más adelante se agregan,
+    // ya está el control).
+    const selector = `
       <div class="form-group">
         <label>Supervisora</label>
         <select id="sup-email">
-          ${cands.map(c => `<option value="${escapeHtml(c.email)}" ${c.email === emailSel ? 'selected' : ''}>${escapeHtml(c.nombre || c.email)}</option>`).join('')}
+          ${cands.map(p => `<option value="${escapeHtml(p.email)}" ${p.email === emailSel ? 'selected' : ''}>${escapeHtml(p.nombre || p.email)}${p.rol ? ' · ' + escapeHtml(p.rol) : ''}</option>`).join('')}
         </select>
-      </div>` : '';
+      </div>`;
 
     c.innerHTML = `
       <div class="section-head">
