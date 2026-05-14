@@ -368,10 +368,89 @@
       "numero": 5,
       "titulo": "Profundidad — ¿superficial o exhaustiva?",
       "duracion_min": 30,
-      "objetivos": ["Entender por qué una ✗ sin observación es trabajo a medias", "Leer profundidad por módulo/etapa", "Conversación con Estefanía cuando profundidad baja"],
-      "contenido_html": "<p><em>Contenido completo en preparación.</em></p>",
-      "quiz": { "preguntas": [{"id":"M5Q1","texto":"[Placeholder] Profundidad 100% significa:","opciones":["No tiene X","Todas sus X tienen observación"],"correcta":1,"explicacion":"Profundidad = % de no-cumplidos con observación. 100% = trabajo completo."}] },
-      "disponible": false
+      "objetivos": [
+        "Entender por qué profundidad pesa 40% y no menos",
+        "Leer la sub-pestaña Profundidad por bloque y detectar dónde Estefanía es superficial",
+        "Aplicar el protocolo de 3 semanas para reconstruir disciplina de observaciones"
+      ],
+      "contenido_html": "<h2>Profundidad — la mitad menos visible del puntaje</h2><p>El M3 te enseñó la fórmula: cobertura × 0.60 + profundidad × 0.40. La gente tiende a fijarse en cobertura porque es el número grande, pero <strong>profundidad es donde se nota la diferencia entre una supervisora profesional y una que solo marca por marcar</strong>.</p><p>Este módulo te enseña cómo leer profundidad fino y cómo intervenir cuando está baja.</p><h2>Repaso rápido de la fórmula</h2><blockquote><strong>Profundidad % = no-cumplidos con observación / total de no-cumplidos × 100</strong></blockquote><p>De las marcas que Estefanía puso como ✗, ¿cuántas traen texto explicativo en la observación? Una ✗ sin observación es trabajo a medias: detectaste algo, pero no documentaste qué.</p><p>Caso especial: si Estefanía marcó 0 no-cumplidos en el rango, profundidad no aplica y cobertura toma 100% del peso del puntaje.</p><h2>Por qué pesa 40% y no menos</h2><p>Considera dos supervisoras hipotéticas:</p><ul><li><strong>Supervisora A</strong>: 95% cobertura, 30% profundidad. Marca todo lo que toca, pero sus ✗ no traen texto. Puntaje = 95×0.6 + 30×0.4 = <strong>69</strong> → amarillo.</li><li><strong>Supervisora B</strong>: 75% cobertura, 90% profundidad. Marca un poco menos, pero cada ✗ tiene contexto y plan de acción. Puntaje = 75×0.6 + 90×0.4 = <strong>81</strong> → verde.</li></ul><p>La supervisora B es más útil para el negocio. Por eso profundidad pesa 40% y no menos. Si pesara solo 20%, el sistema premiaría volumen sobre calidad — y eso sería un mal incentivo.</p><h2>La sub-pestaña Profundidad</h2><p>Cuando entras a Supervisión → Profundidad ves:</p><ul><li>Una tarjeta grande con el % global del rango</li><li>3 bloques (Pilar A · B · C) con tabla por módulo o etapa</li><li>Cada fila muestra: grupo · # no-cumplidos · # con observación · % de profundidad</li></ul><p>El bloque por pilar te dice EN QUÉ ÁREA Estefanía es superficial. No es lo mismo profundidad baja porque deja en blanco las ✗ de cocina, que profundidad baja porque deja en blanco las ✗ de cajera. Cada caso requiere conversación distinta.</p><h2>Lectura por bloque</h2><p>Patrones que importan:</p><table><thead><tr><th>Patrón</th><th>Interpretación</th><th>Tu conversación</th></tr></thead><tbody><tr><td>Alta en A, baja en B</td><td>Detalla cuando revisa cocina/almacén, pero al cierre nocturno (B) ya está cansada</td><td>«¿El cierre te agarra agotada? Vamos a ver el horario»</td></tr><tr><td>Alta en B, baja en C</td><td>Se enfoca en cierre porque hay banderas rojas; las requisiciones se le pasan</td><td>«Cuando marques ✗ en una requisición, escribe qué bloqueo viste»</td></tr><tr><td>Baja parejo en los 3</td><td>Patrón general: marca rápido sin pensar</td><td>«Revisemos 3 ejemplos juntas — qué debería decir cada observación»</td></tr><tr><td>Alta global pero baja en un módulo específico</td><td>Ese módulo tiene falla técnica o no entiende qué medir</td><td>Capacitación específica de ese módulo</td></tr></tbody></table><h2>Las 3 causas típicas de profundidad baja</h2><p>Por orden de frecuencia:</p><ol><li><strong>Prisa al cierre</strong> (~60% de los casos) — Estefanía marca rápido porque quiere irse a casa. Las primeras ✗ del día tienen observación; las últimas no. Solución: revisar horario o redistribuir carga.</li><li><strong>No sabe qué escribir</strong> (~25%) — Marca ✗ porque «algo está mal» pero no sabe articular qué. Solución: capacitación específica + ejemplos de su propio histórico.</li><li><strong>Le falta información del ejecutor</strong> (~15%) — Marca ✗ porque encontró un problema pero el ejecutor no estaba para explicar qué pasó. Solución: «antes de marcar ✗, busca al ejecutor 30 segundos para preguntar».</li></ol><p>Diagnóstico: revisa 5-10 ✗ recientes con ella. Pregunta «¿qué pasó aquí?» en cada una. Si responde con detalle, el problema es <em>no escribir lo que sabe</em>. Si no recuerda, el problema es <em>marca sin investigar</em>. Cada caso tiene acción distinta.</p><h2>Protocolo de 3 semanas para reconstruir disciplina</h2><p>Si la profundidad de Estefanía está crónicamente baja, prueba esta secuencia:</p><ol><li><strong>Semana 1</strong>: revisión conjunta diaria de 5 min con sus ✗ del día. «¿Qué pasó aquí?» Si no escribió, escríbela junto con ella. Repite con cada ✗.</li><li><strong>Semana 2</strong>: revisión cada 2 días. Le señalas las ✗ sin observación y ella las completa antes de salir.</li><li><strong>Semana 3</strong>: revisión semanal en la junta del viernes. Si volvió a caer, regresa a semana 1.</li></ol><p>Este protocolo funciona porque convierte «escribir el porqué» en hábito sin sentirse castigo. La primera semana es la más pesada para ti, pero las siguientes son mantenimiento.</p><h2>Casos típicos</h2><p><strong>Caso 1</strong>: Profundidad global 35%. De 30 no-cumplidos, los 18 sin observación están todos en Pilar B sección «Cierre profundo».<br>Lectura: prisa al cierre. Estefanía marca el último tramo del día sin escribir.<br>Acción: revisar horario del cierre, posiblemente correr 30 min antes para que tenga tiempo.</p><p><strong>Caso 2</strong>: Profundidad 50% pero el patrón es: 10 ✗ con observación, 10 sin, alternados al azar.<br>Lectura: no es prisa, es disciplina inconsistente.<br>Acción: protocolo de 3 semanas.</p><p><strong>Caso 3</strong>: Profundidad alta (85%) pero las 3 ✗ sin observación están todas en CKD12 (recetas).<br>Lectura: no entiende qué escribir en ese ítem específico.<br>Acción: 10 min de capacitación con un caso real.</p><h2>El círculo virtuoso</h2><p>Profundidad alta = aprendizaje continuo. Cuando cada ✗ tiene observación clara:</p><ul><li>El ejecutor responsable se entera del porqué exacto</li><li>El hallazgo abierto tiene contexto, no solo «algo falló»</li><li>Tú (Dirección) puedes leer el patrón del mes sin pedir explicaciones</li><li>Germán puede auditar el papel de trabajo sin reuniones extra</li><li>El restaurante mejora porque las causas raíz salen a la luz</li></ul><blockquote><strong>Profundidad no es burocracia. Es la diferencia entre supervisar y solo marcar.</strong></blockquote>",
+      "quiz": {
+        "preguntas": [
+          {
+            "id": "M5Q1",
+            "texto": "Una supervisora tiene 95% cobertura pero 30% profundidad. ¿Cuál es su puntaje compuesto del semáforo?",
+            "opciones": [
+              "95 (excelente, cobertura domina)",
+              "69 (amarillo)",
+              "30 (rojo)",
+              "50 (promedio simple)"
+            ],
+            "correcta": 1,
+            "explicacion": "Aplicando 60/40: 95×0.6 + 30×0.4 = 57+12 = 69. Eso cae en amarillo, no en verde. Profundidad arrastra el compuesto cuando está baja, aunque cobertura esté alta."
+          },
+          {
+            "id": "M5Q2",
+            "texto": "Profundidad global de Estefanía es 35% y casi todas las ✗ sin observación están concentradas en la sección «Cierre profundo» del Pilar B. ¿Cuál es la causa más probable?",
+            "opciones": [
+              "No sabe qué escribir en general",
+              "Prisa al cierre — empieza el día con observaciones detalladas pero las últimas ✗ del día no llevan texto",
+              "El sistema tiene bug en esa sección",
+              "Mala voluntad personal"
+            ],
+            "correcta": 1,
+            "explicacion": "Concentración geográfica en una etapa específica del día (el cierre nocturno) es la firma típica de la causa #1: prisa al cierre. La acción correcta es revisar horario y carga, no exigirle más voluntad."
+          },
+          {
+            "id": "M5Q3",
+            "texto": "¿Cuáles son las 3 causas típicas de profundidad baja, por orden de frecuencia?",
+            "opciones": [
+              "Prisa al cierre (~60%) · no sabe qué escribir (~25%) · le falta información del ejecutor (~15%)",
+              "Mala voluntad · ignorancia · sabotaje",
+              "Sobrecarga · asistencia · herramientas rotas",
+              "Cocina · almacén · compras"
+            ],
+            "correcta": 0,
+            "explicacion": "Cada causa tiene acción distinta: prisa → revisar horario; no sabe qué escribir → capacitación con ejemplos; falta info → política de hablar con el ejecutor antes de marcar."
+          },
+          {
+            "id": "M5Q4",
+            "texto": "¿Por qué profundidad pesa 40% del puntaje y no menos?",
+            "opciones": [
+              "Porque es lo más fácil de calcular técnicamente",
+              "Porque si pesara menos, el sistema premiaría volumen sobre calidad — y eso sería un mal incentivo (marcar mucho sin pensar)",
+              "Porque Mónica lo decidió sin razón técnica",
+              "Porque hay 12 módulos del SR12"
+            ],
+            "correcta": 1,
+            "explicacion": "El balance 60/40 protege contra una supervisora «todoterreno superficial»: la que cubre todo pero no documenta nada. Si profundidad pesara 20%, ese perfil saldría verde, y el negocio perdería la señal de calidad."
+          },
+          {
+            "id": "M5Q5",
+            "texto": "Estefanía tiene profundidad crónicamente baja. ¿Qué protocolo funciona para reconstruir disciplina?",
+            "opciones": [
+              "Despedirla y contratar nueva",
+              "Revisión conjunta diaria por 1 semana, cada 2 días por la 2ª semana, semanal después. Si vuelve a caer, regresar a semana 1",
+              "Bajarle el sueldo hasta que mejore",
+              "Marcar tú las observaciones por ella"
+            ],
+            "correcta": 1,
+            "explicacion": "Protocolo de 3 semanas convierte «escribir el porqué» en hábito sin sentirse castigo. La primera semana es intensiva, las siguientes son mantenimiento. Marcar por ella destruye la medición (trampa «yo la cubro» del M2)."
+          },
+          {
+            "id": "M5Q6",
+            "texto": "¿Qué muestra la sub-pestaña Profundidad?",
+            "opciones": [
+              "Solo el número global del rango",
+              "Tarjeta global + 3 bloques (Pilar A · B · C) con tabla por módulo/etapa, mostrando dónde Estefanía es superficial",
+              "Las ventas del día",
+              "La asistencia de Estefanía y faltas"
+            ],
+            "correcta": 1,
+            "explicacion": "El desglose por bloque te dice EN QUÉ ÁREA es superficial. Esa información cambia la conversación: profundidad baja en cierre nocturno vs profundidad baja en cocina vs profundidad baja en requisiciones — son 3 problemas distintos."
+          }
+        ]
+      },
+      "disponible": true
     },
     {
       "id": "M6",
