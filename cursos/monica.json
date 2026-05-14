@@ -457,10 +457,89 @@
       "numero": 6,
       "titulo": "Hallazgos — qué cerrar y cuándo escalar",
       "duracion_min": 35,
-      "objetivos": ["Saber cuándo cerrar tú un hallazgo", "Identificar hallazgos que se deben escalar a Germán/socios", "Manejar la edad de pendientes"],
-      "contenido_html": "<p><em>Contenido completo en preparación.</em></p>",
-      "quiz": { "preguntas": [{"id":"M6Q1","texto":"[Placeholder] Un hallazgo de más de 30 días:","opciones":["Es normal","Es señal de proceso atorado, requiere intervención"],"correcta":1,"explicacion":"Edad > 30d es alerta de proceso atorado."}] },
-      "disponible": false
+      "objetivos": [
+        "Distinguir qué hallazgos cierras tú vs cuáles requieren Germán/socios",
+        "Leer la sub-pestaña Hallazgos: KPIs, tendencia semanal, edad de pendientes",
+        "Manejar la edad de pendientes — cuándo es normal y cuándo es alarma"
+      ],
+      "contenido_html": "<h2>Qué es un hallazgo y de dónde viene</h2><p>Un hallazgo es un problema detectado por Estefanía que requiere seguimiento más allá del día. Se abre automáticamente cada vez que ella marca un ítem como ✗ (no cumplido) en cualquier pilar.</p><p>Estefanía abre. Tú (o Germán) cierras. Esa es la asimetría del sistema: la supervisora detecta; la dirección resuelve y cierra el ciclo.</p><h2>La sub-pestaña Hallazgos</h2><p>Cuando entras a Supervisión → Hallazgos ves 4 KPIs grandes + 1 gráfica + 1 tabla:</p><ul><li><strong>Abiertos en rango</strong> — cuántos hallazgos se abrieron en el periodo</li><li><strong>Cerrados en rango</strong> — cuántos se cerraron</li><li><strong>% de cierre</strong> — cerrados/abiertos del rango</li><li><strong>Pendientes al cierre</strong> — los que quedaron abiertos al final del rango, con edad promedio</li><li><strong>Gráfica de tendencia semanal</strong> — barras pareadas abiertos vs cerrados por semana</li><li><strong>Tabla de pendientes</strong> ordenados por edad descendente (los más viejos arriba)</li></ul><p>Los 4 KPIs tienen color de semáforo aplicado. La edad promedio de pendientes usa banda invertida: menos días = mejor (verde &lt; 3d, amarillo &lt; 7d, naranja &lt; 15d, rojo &gt; 15d).</p><h2>Tu rol: cerrar lo que SÍ está resuelto</h2><p>Tu trabajo en hallazgos es <strong>cerrar el ciclo</strong>. Cuando el problema operativo se resolvió, marcas el hallazgo como atendido con una nota corta del cómo se cerró. El sistema guarda timestamp y quién cerró.</p><p>Criterios para cerrar tú un hallazgo:</p><ol><li>El problema concreto que originó el ✗ ya no aplica (la mercancía se capturó, la receta se cargó, la cortesía se justificó)</li><li>Hablaste con el ejecutor responsable y entendió qué hacer la próxima vez</li><li>Si era patrón, ya hay acuerdo de cambio (no solo «no se repitió esta semana»)</li></ol><p>Estos 3 criterios son todos necesarios. Cerrar sin el #3 cuando había patrón vuelve a abrir el hallazgo en pocos días con peor lectura.</p><h2>Cuándo NO cerrar (aunque parezca resuelto)</h2><ul><li>El ejecutor «dijo que no volverá a pasar» pero no hubo cambio en proceso/horario/herramienta</li><li>Es el tercer hallazgo del mismo tipo en el mes — escalar antes de cerrar</li><li>Hay diferencia de monto sin explicación documentada</li><li>El problema lo «resolviste tú» tapándolo (la trampa simétrica del M2)</li><li>Estefanía marcó ✗ por un caso que tú aún no entiendes completamente</li></ul><p>Cuando hay duda, mejor dejar abierto. Un hallazgo viejo en sub-pestaña Hallazgos te recuerda que falta algo; uno cerrado mal desaparece del radar y ese problema vuelve más caro.</p><h2>Edad de pendientes — qué te dice cada banda</h2><table><thead><tr><th>Edad</th><th>Color</th><th>Lectura</th></tr></thead><tbody><tr><td>≤ 3 días</td><td>Verde</td><td>Normal — están en el flujo natural de resolución</td></tr><tr><td>4-7 días</td><td>Amarillo</td><td>Atención: el responsable necesita recordatorio</td></tr><tr><td>8-15 días</td><td>Naranja</td><td>Proceso atorado — intervienes con conversación específica</td></tr><tr><td>&gt; 15 días</td><td>Rojo</td><td>Patrón estructural — escala a Germán o reabre con la persona responsable</td></tr><tr><td>&gt; 30 días</td><td>Rojo + alarma</td><td>El hallazgo está olvidado o nadie sabe cómo cerrarlo. Decisión necesaria.</td></tr></tbody></table><p>El sistema te muestra los pendientes ordenados por edad descendente — los más viejos arriba. Eso es a propósito: los rojos exigen acción esta semana.</p><h2>Cuándo escalar a Germán o socios</h2><p>Repasando los 5 disparadores del M2 + agregando criterios específicos de hallazgos:</p><ol><li><strong>Hallazgos &gt; $5,000 sin resolver en 2 semanas</strong> — fuga material que requiere auditoría externa</li><li><strong>Bandera roja recurrente</strong> (la misma 3 veces en un mes)</li><li><strong>Cortesías concentradas en una persona</strong></li><li><strong>Diferencias de arqueo &gt; $1,000 sin explicación</strong></li><li><strong>Hallazgos de segregación de funciones (C07)</strong> — el comprador firmando recepción es escalación inmediata, sin esperar a la junta semanal</li><li><strong>Concentración &gt; 70% en un proveedor</strong> durante un mes (CKCM04)</li><li><strong>Pendientes &gt; 30 días sin movimiento</strong> — algo en el proceso interno no funciona</li></ol><p>Para escalar a Germán: usa el patrón del M2. WhatsApp con el texto ejecutivo del semáforo + la pregunta concreta + referencia al hallazgo en la bitácora.</p><h2>Patrones que debes observar</h2><table><thead><tr><th>Patrón en sub-pestaña Hallazgos</th><th>Lectura</th></tr></thead><tbody><tr><td>Muchos abiertos, pocos cerrados</td><td>Estefanía detecta bien, tú no estás cerrando. ¿Te falta tiempo o falta criterio de cierre?</td></tr><tr><td>Pocos abiertos, pocos cerrados</td><td>Operación tranquila O Estefanía no está detectando lo suficiente. Cruza con cobertura/profundidad.</td></tr><tr><td>Muchos abiertos, muchos cerrados</td><td>Sistema sano — detección + resolución funcionan</td></tr><tr><td>Pocos abiertos, muchos cerrados (de stock viejo)</td><td>Estás limpiando inventario histórico, bien</td></tr><tr><td>Edad promedio creciente semana a semana</td><td>Acumulación: cierras menos de lo que se abre. Patrón a corregir.</td></tr></tbody></table><h2>El equilibrio</h2><blockquote><strong>Hallazgos no es un buzón de quejas. Es la lista pendiente del negocio.</strong></blockquote><p>Tu rol estratégico es mantener esa lista limpia: cerrar lo cerrado, mantener abierto lo no resuelto, escalar lo grande. Si la lista crece sin control, el negocio está perdiendo capacidad de respuesta. Si la lista se vacía artificialmente (cerrando sin resolver), pierdes la señal del sistema.</p><p>El indicador sano: % de cierre &gt; 70% mensual, edad promedio &lt; 7 días, sin pendientes &gt; 30 días.</p>",
+      "quiz": {
+        "preguntas": [
+          {
+            "id": "M6Q1",
+            "texto": "El ejecutor te dice que un problema ya «no se repetirá» pero no hubo cambio en proceso, horario o herramienta. ¿Cierras el hallazgo?",
+            "opciones": [
+              "Sí, su palabra es suficiente",
+              "No, sin cambio estructural el problema vuelve. Mantén abierto hasta que haya acuerdo concreto de cambio",
+              "Sí, le doy el beneficio de la duda",
+              "No, lo escalo a Germán directamente"
+            ],
+            "correcta": 1,
+            "explicacion": "Uno de los 5 criterios para NO cerrar es exactamente este: promesas verbales sin cambio estructural producen recurrencia. Mejor mantener abierto que tener que reabrirlo en 2 semanas con peor lectura."
+          },
+          {
+            "id": "M6Q2",
+            "texto": "Un hallazgo lleva 22 días sin cerrar y la edad promedio del rango está en naranja. ¿Cómo lo lees?",
+            "opciones": [
+              "Normal, los hallazgos toman tiempo",
+              "Patrón estructural — escala a Germán o reabre conversación con el responsable; algo del proceso interno no está funcionando",
+              "Cierro por antigüedad",
+              "Lo dejo pasar"
+            ],
+            "correcta": 1,
+            "explicacion": "&gt; 15 días = rojo; &gt; 30 días = alarma. Es señal de que nadie sabe cómo cerrarlo o está olvidado. Requiere intervención estratégica, no esperar más."
+          },
+          {
+            "id": "M6Q3",
+            "texto": "La sub-pestaña Hallazgos muestra: muchos hallazgos abiertos, pocos cerrados. ¿Qué te dice este patrón?",
+            "opciones": [
+              "Estefanía detecta mal",
+              "Estefanía detecta bien pero TÚ no estás cerrando lo suficiente — ¿te falta tiempo dedicado a hallazgos o claridad sobre criterios de cierre?",
+              "El sistema tiene bug",
+              "Operación tranquila"
+            ],
+            "correcta": 1,
+            "explicacion": "Muchos abiertos + pocos cerrados = la entrada al sistema funciona pero el ciclo de resolución no. Eso es de TU lado (cerrar es tu rol). Revisa si el problema es tiempo o criterio."
+          },
+          {
+            "id": "M6Q4",
+            "texto": "Estefanía detectó que el comprador firmó una recepción (C07, segregación rota). ¿Cuándo escalas?",
+            "opciones": [
+              "Espero a la junta semanal del viernes",
+              "Espero a que el hallazgo cumpla 7 días",
+              "Inmediato — los hallazgos de segregación se escalan sin esperar, igual que las banderas rojas críticas",
+              "No lo escalo, lo cierro yo"
+            ],
+            "correcta": 2,
+            "explicacion": "C07 (segregación) y la bandera 10 (saltos en folios POS) son los dos eventos que se escalan EL MISMO DÍA, no en la junta semanal. Riesgo de fraude potencial = acción inmediata."
+          },
+          {
+            "id": "M6Q5",
+            "texto": "¿Cuáles son los 3 criterios necesarios para cerrar un hallazgo?",
+            "opciones": [
+              "Tiempo, paciencia, suerte",
+              "Problema concreto resuelto · ejecutor entendió qué hacer la próxima vez · si era patrón, hay acuerdo de cambio estructural",
+              "Solo que pase el tiempo",
+              "Que Estefanía esté de acuerdo"
+            ],
+            "correcta": 1,
+            "explicacion": "Los 3 son necesarios. Faltar el #3 (cambio estructural cuando era patrón) es la causa #1 de reapertura. Si el problema era único y aislado, el #3 no aplica."
+          },
+          {
+            "id": "M6Q6",
+            "texto": "¿Cuál es el indicador sano de la sub-pestaña Hallazgos al mes?",
+            "opciones": [
+              "% de cierre 100% siempre",
+              "% de cierre &gt; 70% · edad promedio &lt; 7 días · sin pendientes &gt; 30 días",
+              "Cero hallazgos abiertos",
+              "Cero hallazgos cerrados (todo abierto)"
+            ],
+            "correcta": 1,
+            "explicacion": "100% de cierre puede indicar cierres artificiales; cero abiertos puede indicar Estefanía no detecta. El indicador sano permite que el sistema viva: detección continua + resolución mayoritaria + sin acumulación de muy viejos."
+          }
+        ]
+      },
+      "disponible": true
     },
     {
       "id": "M7",

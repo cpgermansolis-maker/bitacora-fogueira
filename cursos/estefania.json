@@ -457,10 +457,89 @@
       "numero": 6,
       "titulo": "Pilar C · Inventarios — segregación de funciones",
       "duracion_min": 40,
-      "objetivos": ["Aprender el flujo C01→C11", "Entender el control crítico de segregación", "Detectar bloqueos y escalarlos"],
-      "contenido_html": "<p><em>Contenido completo en preparación.</em></p>",
-      "quiz": { "preguntas": [{"id":"M6Q1","texto":"[Placeholder] ¿Quién recibe físicamente la mercancía?","opciones":["El comprador","El almacenista","El gerente"],"correcta":1,"explicacion":"El comprador NUNCA recibe. Recibe el almacenista (segregación de funciones)."}] },
-      "disponible": false
+      "objetivos": [
+        "Conocer las 11 etapas del flujo de inventarios (C01-C11)",
+        "Dominar el control crítico de segregación: el comprador NUNCA recibe",
+        "Detectar requisiciones bloqueadas y escalarlas con criterio"
+      ],
+      "contenido_html": "<h2>El Pilar C en una frase</h2><blockquote>El Pilar C es la <strong>arteria</strong> que mueve los insumos del proveedor al plato del cliente. Si se atora, la cocina trabaja sin materia prima. Si se opera mal, ahí entran fugas: facturas infladas, mercancía fantasma, segregación rota.</blockquote><p>Tu trabajo en Pilar C es vigilar que el flujo C01→C11 corra limpio. 35 ítems totales: 20 diarios + 6 semanales + 9 mensuales.</p><h2>Las 11 etapas del flujo (C01-C11)</h2><table><thead><tr><th>#</th><th>Etapa</th><th>Quién la ejecuta</th><th>Control clave</th></tr></thead><tbody><tr><td>C01</td><td>Solicitud de insumos</td><td>Área usuaria</td><td>Descripción, cantidad y área completas</td></tr><tr><td>C02</td><td>Revisión de existencias</td><td>Almacén</td><td>NO escalar a compras sin verificar stock</td></tr><tr><td>C03</td><td>Solicitud a Compras</td><td>Almacén</td><td>Solo si stock = 0 o &lt; mínimo</td></tr><tr><td>C04</td><td>Cotizaciones x3</td><td>Compras</td><td>3 proveedores distintos, no consanguíneos</td></tr><tr><td>C05</td><td>VoBo / Autorización</td><td>Administración</td><td>Firma ANTES de emitir orden</td></tr><tr><td>C06</td><td>Compra al proveedor</td><td>Compras</td><td>Datos fiscales completos</td></tr><tr><td>C07</td><td><strong>Recepción física</strong></td><td><strong>Almacén</strong> (NUNCA comprador)</td><td><strong>SEGREGACIÓN CRÍTICA</strong></td></tr><tr><td>C08</td><td>Inspección de calidad</td><td>Área usuaria</td><td>Carnes/pescados los valida cocina</td></tr><tr><td>C09</td><td>Verificación e ingreso al sistema</td><td>Almacén</td><td>3-way match (factura = OC = recepción)</td></tr><tr><td>C10</td><td>Surtimiento en sistema</td><td>Almacén</td><td>Folio capturado en SR12</td></tr><tr><td>C11</td><td>Recepción física por área</td><td>Área usuaria</td><td>Firma responsable del área</td></tr></tbody></table><h2>El control crítico · C07 · segregación de funciones</h2><blockquote><strong>Quien compra NUNCA recibe. Quien recibe NUNCA compra.</strong></blockquote><p>Este es el control más importante del Pilar C y uno de los más importantes del restaurante. ¿Por qué?</p><p>Si la misma persona compra Y recibe, puede:</p><ul><li>Inventar mercancía «recibida» que nunca llegó (factura fantasma)</li><li>Recibir menos de lo facturado y quedarse con la diferencia</li><li>Cambiar la mercancía por una de menor calidad y embolsarse el ahorro</li></ul><p>Separar las dos funciones cierra ese riesgo: el comprador emite la orden y el almacenista (que NO compra) verifica que lo que llega coincide con lo pedido y facturado.</p><p>Tu rol como supervisora: cada día revisas CKCD11 — <strong>«Crítico: quien recibe físicamente NO es quien compró»</strong>. Si encuentras que el comprador firmó la recepción, marca ✗ inmediatamente, hallazgo prioritario, WhatsApp esa misma noche. Esto NO es negociable.</p><h2>Cotizaciones x3 — qué vigilar</h2><p>CKCD06: cada compra debe tener 3 cotizaciones de proveedores distintos. Pero el control real es más sutil — el ítem CKCS02 (semanal) pregunta: <strong>«¿se repite siempre el mismo proveedor sugerido?»</strong></p><p>Si el mismo proveedor «gana» casi siempre, hay dos posibilidades:</p><ol><li>Es legítimamente el mejor (precio + calidad + plazo)</li><li>Hay favoritismo, comisión oculta o las otras 2 cotizaciones son de fachada</li></ol><p>Tu trabajo no es decidir cuál es. Es <strong>documentar el patrón</strong>. Cuando notes concentración &gt; 70% en un proveedor durante un mes, eso es lo que reporta el ítem mensual CKCM04 («concentración de compra por proveedor — riesgo de dependencia»). Lo escalas a Mónica/Germán para auditoría externa de las cotizaciones.</p><h2>3-way match · CKCD14 y CKCS04</h2><p>El 3-way match es la verificación de que tres documentos coinciden:</p><ol><li><strong>Orden de compra</strong> (lo que se pidió)</li><li><strong>Factura del proveedor</strong> (lo que se facturó)</li><li><strong>Recepción física en almacén</strong> (lo que llegó)</li></ol><p>Si los 3 no cuadran en cantidad o precio, hay un problema. CKCD14 lo verifica cada día; CKCS04 lo verifica a fondo cada semana.</p><p>Casos típicos:</p><ul><li>OC pide 50 kg, factura 50 kg, recepción 47 kg → diferencia de 3 kg. ✗ + hallazgo.</li><li>OC pide 50 kg, factura 55 kg, recepción 50 kg → factura inflada. ✗ + hallazgo prioritario.</li><li>OC pide $100/kg, factura $120/kg → cambio de precio sin avisar. ✗ + hallazgo.</li></ul><h2>Requisiciones bloqueadas — cuándo escalar</h2><p>Una requisición puede atorarse en cualquiera de las 11 etapas. CKCD19-CKCD20 te piden documentar bloqueos diarios. Criterios para escalar:</p><table><thead><tr><th>Tiempo bloqueada</th><th>Tu acción</th></tr></thead><tbody><tr><td>&lt; 24h</td><td>Documentar el motivo, esperar al siguiente día</td></tr><tr><td>24-48h</td><td>Marcar CKCD20, hablar con el responsable de la etapa actual</td></tr><tr><td>48-72h</td><td>Abrir hallazgo, escalar a Mónica</td></tr><tr><td>&gt; 72h</td><td>Hallazgo prioritario, escalar a Germán si afecta operación</td></tr></tbody></table><h2>Inspección de calidad · C08</h2><p>Para insumos especiales (carnes, pescados, productos perecederos), CKCD13 pide que <strong>el área usuaria (cocina)</strong> inspeccione antes de aceptar la recepción. NO es el almacenista — almacén cuenta y captura; cocina valida que el producto sirve.</p><p>Si encuentras que cocina no inspeccionó una recepción de carne y la firmó solo almacén:</p><ul><li>Marca CKCD13 como ✗</li><li>Observación: «Recepción de [proveedor] de [producto] firmada solo por almacén; cocina no inspeccionó calidad»</li><li>Si la carne ya se usó, el problema es retrospectivo — solo documenta para evitar repetición. Si está fresca, pide que cocina la revise antes de moverla.</li></ul><h2>Tu rutina diaria del Pilar C (15-20 min)</h2><ol><li><strong>Mañana (5 min)</strong> — Revisa requisiciones nuevas del día. ¿Datos completos? CKCD01.</li><li><strong>Antes del cierre (5 min)</strong> — Pasa por almacén. ¿Cuántas recepciones hoy? ¿Quién firmó cada una? CKCD11 (segregación) + CKCD12 + CKCD13.</li><li><strong>Cierre (5-10 min)</strong> — 3-way match del día. Bloqueos. Surtimientos al área. CKCD14-CKCD20.</li></ol><h2>Casos típicos</h2><p><strong>Caso 1</strong>: El comprador (Juan) firmó la recepción de la carne porque «no estaba el almacenista».<br>Acción: marca CKCD11 ✗, observación detallada, hallazgo prioritario, WhatsApp esa noche. Segregación rota = riesgo grave.</p><p><strong>Caso 2</strong>: La factura del proveedor X muestra 50 kg de pollo pero la recepción solo capturó 47 kg.<br>Acción: marca CKCD14 ✗, observación con los 3 kg de diferencia. Hallazgo. NO ajustes la captura tú — pide al almacén que documente la merma o devuelva la factura.</p><p><strong>Caso 3</strong>: Una requisición lleva 4 días sin avanzar de C04 (cotizaciones).<br>Acción: marca CKCD20, observación con motivo del bloqueo si lo conoces. Hallazgo prioritario a Mónica/Germán. Compras necesita intervención.</p><h2>Lo que NO haces en el Pilar C</h2><ul><li>NO consigues tú las cotizaciones</li><li>NO firmas recepciones físicas</li><li>NO ajustas cantidades capturadas en el SR12</li><li>NO compras tú lo que falta</li><li><strong>SÍ marcas, documentas, escalas, das seguimiento.</strong> Especialmente la bandera de segregación.</li></ul>",
+      "quiz": {
+        "preguntas": [
+          {
+            "id": "M6Q1",
+            "texto": "¿Quién recibe físicamente la mercancía en C07 según el control crítico de segregación?",
+            "opciones": [
+              "El comprador (porque sabe qué pidió)",
+              "El almacenista — el comprador NUNCA recibe (separación de funciones)",
+              "Cualquier persona que esté disponible",
+              "La supervisora (tú)"
+            ],
+            "correcta": 1,
+            "explicacion": "Si el mismo recibe que compra, puede inventar mercancía fantasma o cambiarla por menor calidad. La separación es uno de los controles más importantes del restaurante y NO es negociable."
+          },
+          {
+            "id": "M6Q2",
+            "texto": "Descubres que el comprador firmó la recepción de la carne porque «no estaba el almacenista». ¿Qué haces?",
+            "opciones": [
+              "Lo dejo pasar porque era una emergencia",
+              "Marco CKCD11 ✗ con observación detallada, abro hallazgo prioritario y mando WhatsApp a Mónica/Germán esa misma noche",
+              "Pido al comprador que firme también el siguiente día para «compensar»",
+              "Firmo yo la recepción retroactivamente"
+            ],
+            "correcta": 1,
+            "explicacion": "Segregación rota = riesgo grave de fuga, sin excepciones por emergencia. Documentar y escalar esa misma noche para que se investigue el contexto y se prevenga repetición."
+          },
+          {
+            "id": "M6Q3",
+            "texto": "El mismo proveedor «gana» las cotizaciones 8 de 10 veces durante un mes. ¿Cómo lo lees y qué haces?",
+            "opciones": [
+              "Excelente, ese proveedor es el mejor automáticamente",
+              "Puede ser legítimo (mejor precio/calidad) o puede ser favoritismo / comisión oculta — tu trabajo es documentar el patrón y escalarlo (CKCM04) para auditoría",
+              "Bloqueo a ese proveedor sin más",
+              "Compro yo de otro proveedor para diversificar"
+            ],
+            "correcta": 1,
+            "explicacion": "Concentración &gt;70% es señal a investigar, no a juzgar tú directamente. Tu valor es el reporte mensual: documentas el patrón y escalas para que Germán/Mónica audita las cotizaciones."
+          },
+          {
+            "id": "M6Q4",
+            "texto": "Una requisición lleva 4 días bloqueada en C04 (cotizaciones). ¿Qué haces?",
+            "opciones": [
+              "Esperar otro día sin marcar nada",
+              "Hallazgo prioritario y escalar a Mónica/Germán (&gt; 72h en bloqueo afecta operación)",
+              "Conseguir yo las cotizaciones para desbloquear",
+              "Cancelar la requisición"
+            ],
+            "correcta": 1,
+            "explicacion": "&gt; 72h es el umbral para hallazgo prioritario + escalación a Germán si afecta operación. Tú documentas y escalas, no resuelves operativamente."
+          },
+          {
+            "id": "M6Q5",
+            "texto": "El 3-way match consiste en verificar que coinciden:",
+            "opciones": [
+              "Cocina, almacén, caja",
+              "Orden de compra · factura del proveedor · recepción física en almacén",
+              "3 cotizaciones distintas",
+              "Comprador, almacenista, gerente"
+            ],
+            "correcta": 1,
+            "explicacion": "Tres documentos: lo que se pidió (OC) · lo que se facturó · lo que llegó. Si los 3 no cuadran en cantidad o precio, hay problema (merma, factura inflada, cambio de precio sin avisar)."
+          },
+          {
+            "id": "M6Q6",
+            "texto": "Llega una recepción de carne y solo la firmó el almacenista. ¿Qué haces?",
+            "opciones": [
+              "Marco CKCD13 ✗ — para insumos especiales (carnes/pescados) la inspección de calidad la hace el área usuaria (cocina); pido que cocina la revise antes de mover el producto",
+              "Está bien porque el almacenista firmó",
+              "Firmo yo como cocina",
+              "Rechazo toda la recepción"
+            ],
+            "correcta": 0,
+            "explicacion": "C08 separa funciones: almacén cuenta y captura, cocina valida calidad. Si solo firmó almacén, cocina no validó. Marca, documenta y pide la revisión antes de que la carne se mueva al uso."
+          }
+        ]
+      },
+      "disponible": true
     },
     {
       "id": "M7",
