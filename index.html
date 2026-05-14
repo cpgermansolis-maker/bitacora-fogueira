@@ -4595,7 +4595,7 @@ const App = {
       <div class="resp-tag resp-supervisora">Responsable de esta métrica: <strong>la supervisora</strong> (capturar las marcas del check list)</div>
       <h3 style="margin-top:0;">Cobertura · ${escapeHtml(periodo)}</h3>
       <div class="dash-cards">${cards}</div>
-      <p class="muted">Esperadas = items diarios × ${data.rango.dias} días hábiles (L-V) + items semanales × ${data.rango.semanas} semanas + items mensuales × ${data.rango.meses} mes(es) del rango.</p>
+      <p class="muted">Esperadas = items diarios × ${data.rango.dias} días laborales (L-S, domingo libre) + items semanales × ${data.rango.semanas} semanas + items mensuales × ${data.rango.meses} mes(es) del rango.</p>
       ${tabla}
     `;
   },

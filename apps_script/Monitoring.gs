@@ -909,10 +909,10 @@ function getDesempenoSupervisor(user, payload) {
   // PilarA_Historico / PilarB_Diario / PilarC_Reqs+Movs, pero esas hojas no
   // se están capturando hoy → daba 0/0 y confundía. Eliminado en v18.3.
   //
-  // Denominador: items_D × días HÁBILES + items_S × semanas + items_M × meses.
-  // Hábiles = lunes a viernes — el restaurante opera 7 días pero la
-  // supervisión administrativa de Estefanía es L-V, así que contar fines
-  // de semana castigaba injustamente la cobertura.
+  // Denominador: items_D × días LABORALES + items_S × semanas + items_M × meses.
+  // Laborales = lunes a sábado (todos menos domingo). El restaurante opera
+  // los 7 días pero la supervisora descansa el domingo, así que contar ese
+  // día castigaba injustamente la cobertura.
   const pctOrNull = (num, den) => den > 0 ? Math.round((num * 100) / den) : null;
 
   function semanaIsoStr(d /* Date UTC */) {
@@ -923,12 +923,11 @@ function getDesempenoSupervisor(user, payload) {
     const week = 1 + Math.round(((x - firstThursday) / 86400000 - 3 + ((firstThursday.getUTCDay() + 6) % 7)) / 7);
     return x.getUTCFullYear() + '-W' + ('0' + week).slice(-2);
   }
-  function nDiasHabilesRango(d1, d2) {
+  function nDiasLaboralesRango(d1, d2) {
     let count = 0;
     const end = new Date(d2 + 'T00:00:00Z');
     for (let cur = new Date(d1 + 'T00:00:00Z'); cur <= end; cur.setUTCDate(cur.getUTCDate() + 1)) {
-      const dow = cur.getUTCDay();              // 0=domingo, 6=sábado
-      if (dow !== 0 && dow !== 6) count++;
+      if (cur.getUTCDay() !== 0) count++;       // 0=domingo (único día excluido)
     }
     return count;
   }
@@ -949,7 +948,7 @@ function getDesempenoSupervisor(user, payload) {
     return set.size;
   }
 
-  const nDias = nDiasHabilesRango(desde, hasta);
+  const nDias = nDiasLaboralesRango(desde, hasta);
   const nSem  = nSemanasIsoRango(desde, hasta);
   const nMes  = nMesesRango(desde, hasta);
 
