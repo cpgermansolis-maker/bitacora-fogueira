@@ -1129,3 +1129,323 @@ function getDesempenoSupervisor(user, payload) {
     hallazgos
   };
 }
+
+// =============================================================
+// Sub-pestaña "Impacto" — evolución de los 3 pilares de la mano
+// de la supervisora.
+// --------------------------------------------------------------
+// Para cada semana ISO del rango devuelve los KPIs del pilar Y la
+// cobertura semanal de la supervisora sobre items DIARIOS del pilar.
+// Los items semanales/mensuales no entran en la serie semanal porque
+// no encajan limpio (un item mensual genera una sola marca al mes).
+//
+// KPI por pilar (acordado con Germán 13-may-2026):
+//   Pilar A → brecha = 100 − promedio del SR12 al cierre de la semana
+//             (reconstruido aplicando PilarA_Historico)
+//   Pilar B → banderas rojas de la semana + % etapas cerradas
+//             (cierre = etapas cerradas / 8 etapas × días laborales L-S)
+//   Pilar C → % completadas acumulado al cierre de la semana
+//             (creadas hasta ese punto / completadas hasta ese punto —
+//              proxy de salud del flujo, más estable que solo semana)
+//
+// Genera además "lectura" = texto con los deltas más importantes
+// listo para pegar en el papel de trabajo.
+// =============================================================
+function getImpactoSupervisor(user, payload) {
+  if (user.rol !== 'auditor' && user.rol !== 'gerente') {
+    throw new Error('Solo el auditor o el gerente pueden ver este tablero');
+  }
+  payload = payload || {};
+
+  const tz = ss().getSpreadsheetTimeZone() || 'America/Mexico_City';
+  const fmt = (d) => Utilities.formatDate(d, tz, 'yyyy-MM-dd');
+  const fmtTs = (ts) => {
+    if (!ts) return '';
+    const d = new Date(ts);
+    return isNaN(d.getTime()) ? '' : fmt(d);
+  };
+
+  // Rango por default: últimas 8 semanas (mejor que mes para ver tendencia).
+  const today = fmt(new Date());
+  const hasta = String(payload.hasta || today);
+  let desde = String(payload.desde || '');
+  if (!desde) {
+    const m = new Date(); m.setDate(m.getDate() - 56);
+    desde = fmt(m);
+  }
+  if (desde > hasta) throw new Error('"desde" debe ser anterior o igual a "hasta"');
+
+  // Identificar supervisora — mismo fallback que getDesempenoSupervisor.
+  const usuarios = sheetData(SHEETS.USUARIOS);
+  const normRol = (r) => String(r || '').toLowerCase().trim();
+  const activos = usuarios.filter(u => String(u.activo).toUpperCase() === 'TRUE');
+  const operativos = activos.filter(u => normRol(u.rol) !== 'auditor' && normRol(u.rol) !== 'gerente');
+  let email = String(payload.email || '').toLowerCase().trim();
+  if (!email) {
+    const fallback =
+      operativos.find(u => normRol(u.rol) === 'administracion') ||
+      operativos.find(u => normRol(u.rol) === 'auxiliar') ||
+      operativos[0];
+    if (!fallback) throw new Error('No hay usuario operativo activo. Registra a la supervisora en Usuarios.');
+    email = String(fallback.email).toLowerCase().trim();
+  }
+  const persona = usuarios.find(u => String(u.email).toLowerCase().trim() === email);
+  if (!persona) throw new Error('Persona no encontrada: ' + email);
+
+  // ---------- Helpers compartidos ----------
+  function semanaIsoStr(d /* Date UTC */) {
+    const x = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+    const dayNum = (x.getUTCDay() + 6) % 7;
+    x.setUTCDate(x.getUTCDate() - dayNum + 3);
+    const firstThursday = new Date(Date.UTC(x.getUTCFullYear(), 0, 4));
+    const week = 1 + Math.round(((x - firstThursday) / 86400000 - 3 + ((firstThursday.getUTCDay() + 6) % 7)) / 7);
+    return x.getUTCFullYear() + '-W' + ('0' + week).slice(-2);
+  }
+  function lunesDeSemana(d /* Date UTC */) {
+    const x = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+    const dow = (x.getUTCDay() + 6) % 7;        // 0=lunes
+    x.setUTCDate(x.getUTCDate() - dow);
+    return x;
+  }
+  // Lista de semanas ISO únicas del rango, cada una con su lunes y domingo.
+  function semanasEnRango(d1, d2) {
+    const out = [];
+    const seen = {};
+    const end = new Date(d2 + 'T00:00:00Z');
+    for (let cur = new Date(d1 + 'T00:00:00Z'); cur <= end; cur.setUTCDate(cur.getUTCDate() + 1)) {
+      const sw = semanaIsoStr(cur);
+      if (seen[sw]) continue;
+      seen[sw] = true;
+      const lun = lunesDeSemana(cur);
+      const dom = new Date(lun.getTime() + 6 * 86400000);
+      out.push({
+        semana: sw,
+        inicio: fmt(lun),
+        fin: fmt(dom),
+        // Para clipping con el rango exterior (la semana puede sobresalir).
+        inicio_clip: fmt(lun) < d1 ? d1 : fmt(lun),
+        fin_clip: fmt(dom) > d2 ? d2 : fmt(dom)
+      });
+    }
+    return out;
+  }
+  // Días laborales (L-S) entre dos yyyy-MM-dd inclusive.
+  function diasLaborales(d1, d2) {
+    let n = 0;
+    const end = new Date(d2 + 'T00:00:00Z');
+    for (let cur = new Date(d1 + 'T00:00:00Z'); cur <= end; cur.setUTCDate(cur.getUTCDate() + 1)) {
+      if (cur.getUTCDay() !== 0) n++;
+    }
+    return n;
+  }
+
+  const semanas = semanasEnRango(desde, hasta);
+
+  // ---------- Cargas únicas ----------
+  const modulos = sheetData(SHEETS.PILAR_A_MODULOS);
+  const histA = sheetData(SHEETS.PILAR_A_HIST)
+    .filter(h => h.timestamp)
+    .sort((a, b) => String(a.timestamp).localeCompare(String(b.timestamp)));
+  const diarioB = sheetData(SHEETS.PILAR_B_DIARIO);
+  const reqs = sheetData(SHEETS.PILAR_C_REQS);
+  const movsC = sheetData(SHEETS.PILAR_C_MOV);
+  const itemsADiarios = sheetData(SHEETS.PILAR_A_CK_ITEMS)
+    .filter(it => String(it.activo).toUpperCase() === 'TRUE' && it.frecuencia === 'D');
+  const itemsBDiarios = sheetData(SHEETS.PILAR_B_CK_ITEMS)
+    .filter(it => String(it.activo).toUpperCase() === 'TRUE' && it.frecuencia === 'D');
+  const itemsCDiarios = sheetData(SHEETS.PILAR_C_CK_ITEMS)
+    .filter(it => String(it.activo).toUpperCase() === 'TRUE' && it.frecuencia === 'D');
+  const marcasA = sheetData(SHEETS.PILAR_A_CK_MARCAS);
+  const marcasB = sheetData(SHEETS.PILAR_B_CK_MARCAS);
+  const marcasC = sheetData(SHEETS.PILAR_C_CK_MARCAS);
+  const matchEmail = (m) => String(m.usuario_email).toLowerCase().trim() === email;
+
+  // Total de etapas B activas (para denominador de % cierre).
+  const totalEtapasB = sheetData(SHEETS.PILAR_B_ETAPAS).length;
+
+  // ---------- Pilar A: reconstrucción de estado por módulo ----------
+  // Estado inicial: porcentaje_anterior del primer evento de cada módulo, o
+  // si nunca tuvo evento, el porcentaje_actual (no se ha movido).
+  const estadoInicial = {};
+  modulos.forEach(m => {
+    const evs = histA.filter(h => h.modulo_id === m.id);
+    estadoInicial[m.id] = evs.length > 0
+      ? Number(evs[0].porcentaje_anterior)
+      : Number(m.porcentaje_actual);
+  });
+  function promedioAlCierre(fechaCierre) {
+    const estado = Object.assign({}, estadoInicial);
+    histA.forEach(h => {
+      const f = fmtTs(h.timestamp);
+      if (f <= fechaCierre) estado[h.modulo_id] = Number(h.porcentaje_nuevo);
+    });
+    const total = modulos.length;
+    if (total === 0) return 0;
+    let s = 0;
+    Object.keys(estado).forEach(k => { s += estado[k]; });
+    return Math.round(s / total);
+  }
+
+  // ---------- Pilar C: lastMov por requisición (proxy de fecha_completado) ----------
+  const lastMovByReq = {};
+  movsC.forEach(m => {
+    const ts = String(m.timestamp || '');
+    if (!lastMovByReq[m.requisicion_id] || ts > lastMovByReq[m.requisicion_id]) {
+      lastMovByReq[m.requisicion_id] = ts;
+    }
+  });
+  function reqsAlCierre(fechaCierre) {
+    // creadas <= fechaCierre, completadas con fecha_completado <= fechaCierre
+    let creadas = 0, completadas = 0;
+    reqs.forEach(r => {
+      const fs = (fmtTs(r.fecha_solicitud) || String(r.fecha_solicitud || '').substring(0, 10));
+      if (!fs || fs > fechaCierre) return;
+      creadas++;
+      if (String(r.estatus_general) === 'completado') {
+        const fc = (fmtTs(lastMovByReq[r.id] || r.fecha_solicitud) || '');
+        if (fc && fc <= fechaCierre) completadas++;
+      }
+    });
+    return { creadas, completadas };
+  }
+
+  // ---------- Serie por semana ----------
+  const pctOrNull = (n, d) => d > 0 ? Math.round((n * 100) / d) : null;
+
+  const serie = semanas.map(w => {
+    const fechaCierre = w.fin_clip;   // cierre = último día de la semana dentro del rango
+    const dLab = diasLaborales(w.inicio_clip, w.fin_clip);
+
+    // --- Pilar A ---
+    const promA = promedioAlCierre(fechaCierre);
+    const brechaA = 100 - promA;
+
+    // --- Pilar B ---
+    const diarioWeek = diarioB.filter(d => {
+      const f = String(d.fecha || '').substring(0, 10);
+      return f >= w.inicio_clip && f <= w.fin_clip;
+    });
+    const banderasB = diarioWeek.filter(d => String(d.bandera_roja).toUpperCase() === 'TRUE').length;
+    const etapasCerradas = diarioWeek.filter(d => String(d.completado).toUpperCase() === 'TRUE').length;
+    const etapasEsperadas = totalEtapasB * dLab;
+    const cierreB = pctOrNull(etapasCerradas, etapasEsperadas);
+
+    // --- Pilar C ---
+    const cAcum = reqsAlCierre(fechaCierre);
+    const pctComplC = pctOrNull(cAcum.completadas, cAcum.creadas);
+
+    // --- Cobertura semanal de la supervisora (solo diarios) ---
+    function marcasDeSupSemana(marcas) {
+      return marcas.filter(m => {
+        if (!matchEmail(m)) return false;
+        const f = fmtTs(m.timestamp);
+        return f >= w.inicio_clip && f <= w.fin_clip;
+      }).length;
+    }
+    const supA_atn = marcasDeSupSemana(marcasA);
+    const supB_atn = marcasDeSupSemana(marcasB);
+    const supC_atn = marcasDeSupSemana(marcasC);
+    const supA_esp = itemsADiarios.length * dLab;
+    const supB_esp = itemsBDiarios.length * dLab;
+    const supC_esp = itemsCDiarios.length * dLab;
+
+    return {
+      semana: w.semana,
+      inicio: w.inicio_clip,
+      fin: w.fin_clip,
+      dias_laborales: dLab,
+      pilar_a: { promedio: promA, brecha: brechaA },
+      pilar_b: {
+        banderas: banderasB,
+        etapas_cerradas: etapasCerradas,
+        etapas_esperadas: etapasEsperadas,
+        cierre_pct: cierreB
+      },
+      pilar_c: {
+        creadas_acum: cAcum.creadas,
+        completadas_acum: cAcum.completadas,
+        completadas_pct: pctComplC
+      },
+      supervisora: {
+        A: { atendidas: supA_atn, esperadas: supA_esp, pct: pctOrNull(supA_atn, supA_esp) },
+        B: { atendidas: supB_atn, esperadas: supB_esp, pct: pctOrNull(supB_atn, supB_esp) },
+        C: { atendidas: supC_atn, esperadas: supC_esp, pct: pctOrNull(supC_atn, supC_esp) }
+      }
+    };
+  });
+
+  // ---------- Resumen + lectura ----------
+  const primero = serie[0];
+  const ultimo = serie[serie.length - 1];
+  const resumen = {
+    pilar_a: {
+      brecha_ini: primero ? primero.pilar_a.brecha : null,
+      brecha_fin: ultimo ? ultimo.pilar_a.brecha : null,
+      delta_pts: (primero && ultimo) ? (ultimo.pilar_a.brecha - primero.pilar_a.brecha) : null
+    },
+    pilar_b: {
+      banderas_total: serie.reduce((s, w) => s + w.pilar_b.banderas, 0),
+      banderas_prom_sem: serie.length > 0
+        ? Math.round((serie.reduce((s, w) => s + w.pilar_b.banderas, 0) / serie.length) * 10) / 10
+        : 0,
+      cierre_prom: (() => {
+        const ws = serie.filter(w => w.pilar_b.cierre_pct !== null);
+        return ws.length > 0
+          ? Math.round(ws.reduce((s, w) => s + w.pilar_b.cierre_pct, 0) / ws.length)
+          : null;
+      })()
+    },
+    pilar_c: {
+      completadas_pct_ini: primero ? primero.pilar_c.completadas_pct : null,
+      completadas_pct_fin: ultimo ? ultimo.pilar_c.completadas_pct : null,
+      delta_pts: (primero && ultimo && primero.pilar_c.completadas_pct !== null && ultimo.pilar_c.completadas_pct !== null)
+        ? (ultimo.pilar_c.completadas_pct - primero.pilar_c.completadas_pct)
+        : null
+    },
+    supervisora: {
+      A: { pct_prom: (() => {
+        const ws = serie.filter(w => w.supervisora.A.pct !== null);
+        return ws.length > 0 ? Math.round(ws.reduce((s, w) => s + w.supervisora.A.pct, 0) / ws.length) : null;
+      })() },
+      B: { pct_prom: (() => {
+        const ws = serie.filter(w => w.supervisora.B.pct !== null);
+        return ws.length > 0 ? Math.round(ws.reduce((s, w) => s + w.supervisora.B.pct, 0) / ws.length) : null;
+      })() },
+      C: { pct_prom: (() => {
+        const ws = serie.filter(w => w.supervisora.C.pct !== null);
+        return ws.length > 0 ? Math.round(ws.reduce((s, w) => s + w.supervisora.C.pct, 0) / ws.length) : null;
+      })() }
+    }
+  };
+
+  // Lectura automática: 3 frases. Cada una compara inicio vs fin del rango.
+  // Pegable directo al papel de trabajo del auditor.
+  function frase(pilar, deltaPts, signoBueno /* '-' baja=bueno, '+' sube=bueno */, unidad, supPct) {
+    if (deltaPts === null) return `${pilar}: sin datos suficientes en el rango.`;
+    const abs = Math.abs(deltaPts);
+    const direccion = deltaPts === 0 ? 'sin cambio' :
+      (deltaPts < 0 ? 'bajó' : 'subió');
+    const eval_ = deltaPts === 0 ? '' :
+      ((signoBueno === '-' && deltaPts < 0) || (signoBueno === '+' && deltaPts > 0)
+        ? ' (mejora)' : ' (deterioro)');
+    const sup = supPct !== null ? ` Cobertura semanal promedio de la supervisora: ${supPct}%.` : '';
+    return `${pilar} ${direccion} ${abs} ${unidad}${eval_}.${sup}`;
+  }
+  const lectura = [
+    frase('Pilar A · Brecha', resumen.pilar_a.delta_pts, '-', 'pts', resumen.supervisora.A.pct_prom),
+    `Pilar B: ${resumen.pilar_b.banderas_total} bandera(s) en ${serie.length} semana(s) (promedio ${resumen.pilar_b.banderas_prom_sem}/sem). Cierre de etapas promedio: ${resumen.pilar_b.cierre_prom === null ? '—' : resumen.pilar_b.cierre_prom + '%'}. Cobertura supervisora: ${resumen.supervisora.B.pct_prom === null ? '—' : resumen.supervisora.B.pct_prom + '%'}.`,
+    frase('Pilar C · % completadas', resumen.pilar_c.delta_pts, '+', 'pts', resumen.supervisora.C.pct_prom)
+  ];
+
+  return {
+    persona: {
+      email: String(persona.email).toLowerCase().trim(),
+      nombre: persona.nombre,
+      rol: persona.rol
+    },
+    desde, hasta,
+    serie,
+    resumen,
+    lectura
+  };
+}

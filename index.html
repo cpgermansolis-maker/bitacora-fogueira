@@ -449,6 +449,29 @@ body.has-modo-banner .nav { top: calc(70px + 40px); }
 .resp-supervisora { background: var(--gold-soft); border-left-color: var(--gold-deep); color: var(--ink); }
 .resp-mixto       { background: var(--green-bg);  border-left-color: var(--green);      color: var(--ink); }
 
+/* Bloques de la sub-pestaña Supervisión → Impacto. Cada uno arma un
+   encabezado con título + meta-stats y abajo un mini SVG de tendencia. */
+.impacto-block {
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: 4px; padding: 1rem 1.25rem; margin: 0 0 1rem 0;
+}
+.impacto-head { margin-bottom: 0.5rem; }
+.impacto-head h3 { margin: 0 0 0.35rem 0; font-size: 1.05rem; }
+.impacto-meta { font-size: 0.85rem; color: var(--ink); line-height: 1.4; }
+.impacto-meta .muted { font-size: 0.85rem; }
+.impacto-lectura ul { margin: 0; padding-left: 1.25rem; }
+.impacto-lectura li { margin-bottom: 0.35rem; line-height: 1.45; font-size: 0.92rem; }
+
+/* Delta tags inline para indicar mejora/deterioro de un pilar en el rango. */
+.delta-tag {
+  display: inline-block; padding: 0.1rem 0.5rem;
+  font-size: 0.78rem; font-weight: 600; border-radius: 3px;
+  margin: 0 0.2rem; font-variant-numeric: tabular-nums;
+}
+.delta-tag.delta-pos  { background: var(--green-bg); color: var(--green); }
+.delta-tag.delta-neg  { background: var(--red-bg);   color: var(--red); }
+.delta-tag.delta-flat { background: var(--bg-paper); color: var(--ink-soft); }
+
 /* Barras pareadas de tendencia semanal (Supervisión → Hallazgos). */
 .line-chart .bar-open   { fill: var(--red);   opacity: 0.7; }
 .line-chart .bar-closed { fill: var(--green); opacity: 0.7; }
@@ -1773,6 +1796,7 @@ const State = {
   supervisionSubview: 'cobertura',
   supervisionEmail: null,
   supervisionUltimo: null,
+  supervisionImpactoUltimo: null,  // payload de getImpactoSupervisor
   supervisionCandidatas: null  // [{email,nombre,rol}] activos no-auditor/gerente
 };
 
@@ -4464,6 +4488,7 @@ const App = {
         <button class="subtab ${sub === 'cobertura'   ? 'active' : ''}" onclick="App.supervision_setView('cobertura')">Cobertura</button>
         <button class="subtab ${sub === 'profundidad' ? 'active' : ''}" onclick="App.supervision_setView('profundidad')">Profundidad</button>
         <button class="subtab ${sub === 'hallazgos'   ? 'active' : ''}" onclick="App.supervision_setView('hallazgos')">Hallazgos</button>
+        <button class="subtab ${sub === 'impacto'     ? 'active' : ''}" onclick="App.supervision_setView('impacto')">Impacto</button>
       </div>
       <div class="report-shell">
         <div class="report-controls">
@@ -4479,7 +4504,7 @@ const App = {
           <button class="btn-primary" style="width:auto; margin:0;" onclick="App.genSupervision()">Generar</button>
         </div>
         <div class="report-output" id="supervision-output">
-          ${last ? this._renderSupervisionSub(last, sub) : '<div class="empty-state"><p>Selecciona un periodo y haz click en <strong>Generar</strong>.</p></div>'}
+          ${this._renderSupervisionSubOrEmpty(last, State.supervisionImpactoUltimo, sub)}
         </div>
       </div>
     `;
@@ -4488,9 +4513,12 @@ const App = {
   supervision_setView(view) {
     State.supervisionSubview = view;
     // Si ya tenemos datos cargados, sólo re-renderiza el output sin tocar el form.
-    if (State.supervisionUltimo) {
+    const tieneCualquiera = State.supervisionUltimo || State.supervisionImpactoUltimo;
+    if (tieneCualquiera) {
       const out = el('supervision-output');
-      if (out) out.innerHTML = this._renderSupervisionSub(State.supervisionUltimo, view);
+      if (out) out.innerHTML = this._renderSupervisionSubOrEmpty(
+        State.supervisionUltimo, State.supervisionImpactoUltimo, view
+      );
       // Re-activar el subtab visualmente
       document.querySelectorAll('#view-supervision .subtab').forEach(b => b.classList.remove('active'));
       const btn = document.querySelector(`#view-supervision .subtab[onclick*="'${view}'"]`);
@@ -4498,6 +4526,20 @@ const App = {
     } else {
       this.render_supervision();
     }
+  },
+
+  // Decide qué renderizar según sub-tab y disponibilidad de datos. Impacto
+  // y los otros 3 sub-tabs usan endpoints distintos, así que un puede estar
+  // cargado mientras el otro no.
+  _renderSupervisionSubOrEmpty(last, lastImpacto, sub) {
+    if (sub === 'impacto') {
+      return lastImpacto
+        ? this._renderSupervisionImpacto(lastImpacto)
+        : '<div class="empty-state"><p>Selecciona un periodo y haz click en <strong>Generar</strong>.</p></div>';
+    }
+    return last
+      ? this._renderSupervisionSub(last, sub)
+      : '<div class="empty-state"><p>Selecciona un periodo y haz click en <strong>Generar</strong>.</p></div>';
   },
 
   async genSupervision() {
@@ -4520,8 +4562,18 @@ const App = {
         payload.email = emailSel.value;
         State.supervisionEmail = emailSel.value;
       }
-      const data = await apiCall('getDesempenoSupervisor', payload);
+      // Carga en paralelo: desempeño (cobertura/profundidad/hallazgos) +
+      // impacto (evolución por pilar). Si Impacto truena, no debe tumbar
+      // el resto — log y seguimos.
+      const [data, dataImpacto] = await Promise.all([
+        apiCall('getDesempenoSupervisor', payload),
+        apiCall('getImpactoSupervisor', payload).catch(err => {
+          console.error('Impacto error:', err);
+          return null;
+        })
+      ]);
       State.supervisionUltimo = data;
+      State.supervisionImpactoUltimo = dataImpacto;
       this.render_supervision();
     } catch (err) {
       out.innerHTML = `<div class="empty-state"><p>${escapeHtml(err.message)}</p></div>`;
@@ -4781,6 +4833,218 @@ const App = {
       ${kpis}
       ${svgTend}
       ${tablaPend}
+    `;
+  },
+
+  // ----- Sub-tab IMPACTO -----
+  // Une el avance de cada pilar con la actividad supervisora del mismo
+  // periodo. La idea es responder "¿cómo evolucionan los pilares de la
+  // mano de Estefanía?" — gráfica por pilar + lectura ejecutiva pegable
+  // al papel de trabajo.
+  _renderSupervisionImpacto(data) {
+    const periodo = data.desde === data.hasta
+      ? formatDate(data.desde)
+      : (formatDate(data.desde) + ' al ' + formatDate(data.hasta));
+    const serie = data.serie || [];
+    if (serie.length === 0) {
+      return `<div class="empty-state"><p>Sin semanas en el rango.</p></div>`;
+    }
+    const res = data.resumen;
+    const pctStr = (p) => p === null || p === undefined ? '—' : (p + '%');
+    const deltaTag = (n, signoBueno /* '+' o '-' */) => {
+      if (n === null || n === undefined) return '';
+      const cls = n === 0 ? 'delta-flat'
+        : ((signoBueno === '+' && n > 0) || (signoBueno === '-' && n < 0) ? 'delta-pos' : 'delta-neg');
+      const txt = (n > 0 ? '+' : '') + n + ' pts';
+      return `<span class="delta-tag ${cls}">${txt}</span>`;
+    };
+
+    // Helper SVG: dos líneas en mismo eje 0-100 (brecha + cobertura sup).
+    function svg2Lineas(serie, getY1, getY2, label1, label2, color1, color2) {
+      const W = 640, H = 180, PAD_L = 32, PAD_R = 16, PAD_T = 18, PAD_B = 36;
+      const innerW = W - PAD_L - PAD_R, innerH = H - PAD_T - PAD_B;
+      const n = serie.length;
+      const x = (i) => PAD_L + (n === 1 ? innerW / 2 : (i * innerW) / (n - 1));
+      const y = (v) => v === null ? null : PAD_T + innerH - (Math.max(0, Math.min(100, v)) / 100) * innerH;
+      function pathFrom(getter) {
+        const pts = serie.map((p, i) => ({ i, v: getter(p) })).filter(p => p.v !== null);
+        if (pts.length === 0) return '';
+        return pts.map((p, j) => (j === 0 ? 'M' : 'L') + x(p.i).toFixed(1) + ',' + y(p.v).toFixed(1)).join(' ');
+      }
+      const d1 = pathFrom(getY1);
+      const d2 = pathFrom(getY2);
+      const yGrid = [0, 50, 100].map(v => `<line x1="${PAD_L}" x2="${W-PAD_R}" y1="${y(v)}" y2="${y(v)}" class="grid"/>`).join('');
+      const yLabels = [0, 50, 100].map(v => `<text x="${PAD_L - 6}" y="${(y(v)+4).toFixed(1)}" text-anchor="end" class="ax">${v}</text>`).join('');
+      // Labels X: semanas ISO acortadas (W19) en posiciones espaciadas.
+      const everyN = n > 8 ? Math.ceil(n / 8) : 1;
+      const xLabels = serie.map((p, i) => i % everyN === 0
+        ? `<text x="${x(i).toFixed(1)}" y="${H - 16}" text-anchor="middle" class="ax">${escapeHtml(p.semana.replace(/^\d+-/, ''))}</text>`
+        : '').join('');
+      const dots1 = serie.map((p, i) => {
+        const v = getY1(p); if (v === null) return '';
+        return `<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="2.5" style="fill:${color1};"/>`;
+      }).join('');
+      const dots2 = serie.map((p, i) => {
+        const v = getY2(p); if (v === null) return '';
+        return `<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="2.5" style="fill:${color2};"/>`;
+      }).join('');
+      const legend = `
+        <g transform="translate(${PAD_L}, ${H - 4})">
+          <line x1="0" x2="14" y1="-3" y2="-3" stroke="${color1}" stroke-width="2"/>
+          <text x="18" y="0" class="ax">${escapeHtml(label1)}</text>
+          <line x1="180" x2="194" y1="-3" y2="-3" stroke="${color2}" stroke-width="2" stroke-dasharray="3 2"/>
+          <text x="198" y="0" class="ax">${escapeHtml(label2)}</text>
+        </g>`;
+      return `<svg viewBox="0 0 ${W} ${H}" class="line-chart" preserveAspectRatio="xMidYMid meet">
+        ${yGrid}
+        <path d="${d1}" fill="none" stroke="${color1}" stroke-width="2"/>
+        <path d="${d2}" fill="none" stroke="${color2}" stroke-width="2" stroke-dasharray="4 3"/>
+        ${dots1}${dots2}
+        ${yLabels}${xLabels}${legend}
+      </svg>`;
+    }
+
+    // Helper SVG: barras (banderas, eje izq) + línea (% cierre, eje der).
+    function svgBarrasLinea(serie, getBars, getLine, labelBars, labelLine, colorBars, colorLine) {
+      const W = 640, H = 180, PAD_L = 32, PAD_R = 36, PAD_T = 18, PAD_B = 36;
+      const innerW = W - PAD_L - PAD_R, innerH = H - PAD_T - PAD_B;
+      const n = serie.length;
+      const maxBars = Math.max(1, ...serie.map(p => getBars(p) || 0));
+      const slot = innerW / Math.max(n, 1);
+      const bw = Math.min(20, slot * 0.6);
+      const y0 = PAD_T + innerH;
+      const yBar = (v) => y0 - (v / maxBars) * innerH;
+      const yLine = (v) => v === null ? null : PAD_T + innerH - (Math.max(0, Math.min(100, v)) / 100) * innerH;
+      const xCenter = (i) => PAD_L + slot * (i + 0.5);
+      const bars = serie.map((p, i) => {
+        const v = getBars(p) || 0;
+        return `<rect x="${(xCenter(i) - bw/2).toFixed(1)}" y="${yBar(v).toFixed(1)}" width="${bw}" height="${(y0 - yBar(v)).toFixed(1)}" style="fill:${colorBars};opacity:0.75;"/>
+                ${v ? `<text x="${xCenter(i).toFixed(1)}" y="${(yBar(v) - 3).toFixed(1)}" text-anchor="middle" class="ax">${v}</text>` : ''}`;
+      }).join('');
+      const linePts = serie.map((p, i) => ({ i, v: getLine(p) })).filter(p => p.v !== null);
+      const lineD = linePts.length > 0
+        ? linePts.map((p, j) => (j === 0 ? 'M' : 'L') + xCenter(p.i).toFixed(1) + ',' + yLine(p.v).toFixed(1)).join(' ')
+        : '';
+      const lineDots = linePts.map(p =>
+        `<circle cx="${xCenter(p.i).toFixed(1)}" cy="${yLine(p.v).toFixed(1)}" r="2.5" style="fill:${colorLine};"/>`
+      ).join('');
+      const baseline = `<line x1="${PAD_L}" x2="${W-PAD_R}" y1="${y0}" y2="${y0}" class="grid"/>`;
+      // Etiquetas eje izq (barras) — 0 y max
+      const yLabL = `
+        <text x="${PAD_L - 6}" y="${(y0+4).toFixed(1)}" text-anchor="end" class="ax">0</text>
+        <text x="${PAD_L - 6}" y="${(PAD_T+4).toFixed(1)}" text-anchor="end" class="ax">${maxBars}</text>`;
+      // Etiquetas eje der (línea) — 0, 50, 100
+      const yLabR = [0, 50, 100].map(v =>
+        `<text x="${(W-PAD_R+6).toFixed(1)}" y="${(yLine(v)+4).toFixed(1)}" text-anchor="start" class="ax">${v}</text>`
+      ).join('');
+      const everyN = n > 8 ? Math.ceil(n / 8) : 1;
+      const xLabels = serie.map((p, i) => i % everyN === 0
+        ? `<text x="${xCenter(i).toFixed(1)}" y="${H - 16}" text-anchor="middle" class="ax">${escapeHtml(p.semana.replace(/^\d+-/, ''))}</text>`
+        : '').join('');
+      const legend = `
+        <g transform="translate(${PAD_L}, ${H - 4})">
+          <rect x="0" y="-8" width="10" height="8" style="fill:${colorBars};opacity:0.75;"/>
+          <text x="14" y="0" class="ax">${escapeHtml(labelBars)}</text>
+          <line x1="120" x2="134" y1="-3" y2="-3" stroke="${colorLine}" stroke-width="2"/>
+          <text x="138" y="0" class="ax">${escapeHtml(labelLine)}</text>
+        </g>`;
+      return `<svg viewBox="0 0 ${W} ${H}" class="line-chart" preserveAspectRatio="xMidYMid meet">
+        ${baseline}${bars}<path d="${lineD}" fill="none" stroke="${colorLine}" stroke-width="2"/>${lineDots}
+        ${yLabL}${yLabR}${xLabels}${legend}
+      </svg>`;
+    }
+
+    // Colores: usamos las variables ya definidas — gold para A, red+green
+    // para B, púrpura/azul para C, e ink-soft punteado para cobertura sup.
+    const COL_BRECHA = 'var(--gold-deep)';
+    const COL_BAND   = 'var(--red)';
+    const COL_CIERRE = 'var(--green)';
+    const COL_COMPLC = '#6B5B95';  // púrpura — distinto de los otros pilares
+    const COL_SUP    = 'var(--ink-soft)';
+
+    // Bloque Pilar A — brecha + cobertura supervisora A
+    const blockA = `
+      <section class="impacto-block">
+        <div class="impacto-head">
+          <h3>Pilar A · Brecha hasta meta</h3>
+          <div class="impacto-meta">
+            Δ rango ${deltaTag(res.pilar_a.delta_pts, '-')}
+            <span class="muted">· brecha al cierre: <strong>${pctStr(res.pilar_a.brecha_fin)}</strong></span>
+            <span class="muted">· cobertura sup. prom: <strong>${pctStr(res.supervisora.A.pct_prom)}</strong></span>
+          </div>
+        </div>
+        ${svg2Lineas(serie,
+          (p) => p.pilar_a.brecha,
+          (p) => p.supervisora.A.pct,
+          'Brecha pilar A',
+          'Cobertura supervisora A',
+          COL_BRECHA, COL_SUP)}
+      </section>
+    `;
+
+    // Bloque Pilar B — banderas (barras) + cierre (línea)
+    const blockB = `
+      <section class="impacto-block">
+        <div class="impacto-head">
+          <h3>Pilar B · Banderas rojas + % cierre de etapas</h3>
+          <div class="impacto-meta">
+            Banderas total <strong>${res.pilar_b.banderas_total}</strong>
+            <span class="muted">(${res.pilar_b.banderas_prom_sem}/sem)</span>
+            <span class="muted">· cierre promedio: <strong>${pctStr(res.pilar_b.cierre_prom)}</strong></span>
+            <span class="muted">· cobertura sup. prom: <strong>${pctStr(res.supervisora.B.pct_prom)}</strong></span>
+          </div>
+        </div>
+        ${svgBarrasLinea(serie,
+          (p) => p.pilar_b.banderas,
+          (p) => p.pilar_b.cierre_pct,
+          'Banderas rojas',
+          '% cierre etapas',
+          COL_BAND, COL_CIERRE)}
+      </section>
+    `;
+
+    // Bloque Pilar C — % completadas + cobertura supervisora C
+    const blockC = `
+      <section class="impacto-block">
+        <div class="impacto-head">
+          <h3>Pilar C · % requisiciones completadas</h3>
+          <div class="impacto-meta">
+            Δ rango ${deltaTag(res.pilar_c.delta_pts, '+')}
+            <span class="muted">· % al cierre: <strong>${pctStr(res.pilar_c.completadas_pct_fin)}</strong></span>
+            <span class="muted">· cobertura sup. prom: <strong>${pctStr(res.supervisora.C.pct_prom)}</strong></span>
+          </div>
+        </div>
+        ${svg2Lineas(serie,
+          (p) => p.pilar_c.completadas_pct,
+          (p) => p.supervisora.C.pct,
+          '% completadas (acum)',
+          'Cobertura supervisora C',
+          COL_COMPLC, COL_SUP)}
+      </section>
+    `;
+
+    // Lectura ejecutiva: las 3 frases que el backend ya armó. Marcadas como
+    // "papel de trabajo" para que se vea claro qué pegar al expediente.
+    const lectura = `
+      <section class="impacto-block impacto-lectura">
+        <h3>Lectura para papel de trabajo</h3>
+        <ul>
+          ${(data.lectura || []).map(l => `<li>${escapeHtml(l)}</li>`).join('')}
+        </ul>
+      </section>
+    `;
+
+    return `
+      <div class="resp-tag resp-mixto">
+        <strong>Pilares</strong>: el avance lo logran cocina, cajera, host, almacén, compras y gerente ·
+        <strong>Supervisión</strong>: la supervisora vigila ·
+        <strong>Destrabar</strong>: auditor y gerente. La gráfica cruza las tres capas.
+      </div>
+      <h3 style="margin-top:0;">Impacto · ${escapeHtml(periodo)} · ${serie.length} semana(s)</h3>
+      ${blockA}
+      ${blockB}
+      ${blockC}
+      ${lectura}
     `;
   },
 
