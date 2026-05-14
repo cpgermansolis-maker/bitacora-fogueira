@@ -904,54 +904,17 @@ function getDesempenoSupervisor(user, payload) {
   const marcasBEst = marcasB.filter(m => matchEmail(m) && enRangoFecha(fmtTs(m.timestamp)));
   const marcasCEst = marcasC.filter(m => matchEmail(m) && enRangoFecha(fmtTs(m.timestamp)));
 
-  // ---------- (1) COBERTURA por días de operación ----------
-  const diasOpA = new Set();
-  sheetData(SHEETS.PILAR_A_HIST).forEach(h => {
-    const f = fmtTs(h.timestamp);
-    if (enRangoFecha(f)) diasOpA.add(f);
-  });
-  const diasOpB = new Set();
-  sheetData(SHEETS.PILAR_B_DIARIO).forEach(d => {
-    const f = String(d.fecha || '').substring(0, 10);
-    if (enRangoFecha(f)) diasOpB.add(f);
-  });
-  const diasOpC = new Set();
-  sheetData(SHEETS.PILAR_C_REQS).forEach(r => {
-    // fecha_solicitud puede venir como ISO completo o como yyyy-MM-dd.
-    let f = fmtTs(r.fecha_solicitud);
-    if (!f) f = String(r.fecha_solicitud || '').substring(0, 10);
-    if (enRangoFecha(f)) diasOpC.add(f);
-  });
-  sheetData(SHEETS.PILAR_C_MOV).forEach(m => {
-    const f = fmtTs(m.timestamp);
-    if (enRangoFecha(f)) diasOpC.add(f);
-  });
-
-  const diasRevA = new Set(marcasAEst.map(m => fmtTs(m.timestamp)));
-  const diasRevB = new Set(marcasBEst.map(m => fmtTs(m.timestamp)));
-  const diasRevC = new Set(marcasCEst.map(m => fmtTs(m.timestamp)));
-  const intersectSize = (a, b) => {
-    let n = 0; a.forEach(x => { if (b.has(x)) n++; }); return n;
-  };
-  const revisadosA = intersectSize(diasOpA, diasRevA);
-  const revisadosB = intersectSize(diasOpB, diasRevB);
-  const revisadosC = intersectSize(diasOpC, diasRevC);
-
+  // ---------- (1) COBERTURA por actividades esperadas ----------
+  // Antes existía un segundo bloque "días con operación revisados" basado en
+  // PilarA_Historico / PilarB_Diario / PilarC_Reqs+Movs, pero esas hojas no
+  // se están capturando hoy → daba 0/0 y confundía. Eliminado en v18.3.
+  //
+  // Denominador: items_D × días HÁBILES + items_S × semanas + items_M × meses.
+  // Hábiles = lunes a viernes — el restaurante opera 7 días pero la
+  // supervisión administrativa de Estefanía es L-V, así que contar fines
+  // de semana castigaba injustamente la cobertura.
   const pctOrNull = (num, den) => den > 0 ? Math.round((num * 100) / den) : null;
 
-  const cobertura_reportes = {
-    A: { reportados: diasOpA.size, revisados: revisadosA, pct: pctOrNull(revisadosA, diasOpA.size) },
-    B: { reportados: diasOpB.size, revisados: revisadosB, pct: pctOrNull(revisadosB, diasOpB.size) },
-    C: { reportados: diasOpC.size, revisados: revisadosC, pct: pctOrNull(revisadosC, diasOpC.size) }
-  };
-
-  // ---------- (2) COBERTURA por actividades esperadas ----------
-  // Cuenta unidades calendario que caen dentro del rango: días, semanas ISO y meses.
-  function nDiasRango(d1, d2) {
-    const a = new Date(d1 + 'T00:00:00Z');
-    const b = new Date(d2 + 'T00:00:00Z');
-    return Math.round((b - a) / 86400000) + 1;
-  }
   function semanaIsoStr(d /* Date UTC */) {
     const x = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
     const dayNum = (x.getUTCDay() + 6) % 7;     // lunes=0
@@ -959,6 +922,15 @@ function getDesempenoSupervisor(user, payload) {
     const firstThursday = new Date(Date.UTC(x.getUTCFullYear(), 0, 4));
     const week = 1 + Math.round(((x - firstThursday) / 86400000 - 3 + ((firstThursday.getUTCDay() + 6) % 7)) / 7);
     return x.getUTCFullYear() + '-W' + ('0' + week).slice(-2);
+  }
+  function nDiasHabilesRango(d1, d2) {
+    let count = 0;
+    const end = new Date(d2 + 'T00:00:00Z');
+    for (let cur = new Date(d1 + 'T00:00:00Z'); cur <= end; cur.setUTCDate(cur.getUTCDate() + 1)) {
+      const dow = cur.getUTCDay();              // 0=domingo, 6=sábado
+      if (dow !== 0 && dow !== 6) count++;
+    }
+    return count;
   }
   function nSemanasIsoRango(d1, d2) {
     const set = new Set();
@@ -977,7 +949,7 @@ function getDesempenoSupervisor(user, payload) {
     return set.size;
   }
 
-  const nDias = nDiasRango(desde, hasta);
+  const nDias = nDiasHabilesRango(desde, hasta);
   const nSem  = nSemanasIsoRango(desde, hasta);
   const nMes  = nMesesRango(desde, hasta);
 
@@ -1151,8 +1123,8 @@ function getDesempenoSupervisor(user, payload) {
     },
     candidatas,
     desde, hasta,
+    // dias = días HÁBILES (L-V) del rango, no calendario.
     rango: { dias: nDias, semanas: nSem, meses: nMes },
-    cobertura_reportes,
     cobertura_esperadas,
     profundidad,
     hallazgos

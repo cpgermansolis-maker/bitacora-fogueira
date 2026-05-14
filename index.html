@@ -438,6 +438,17 @@ body.has-modo-banner .nav { top: calc(70px + 40px); }
 
 .muted { color: var(--ink-soft); font-size: 0.85rem; }
 
+/* Banner de "responsable de esta métrica" en sub-tabs de Supervisión.
+   Reduce ambigüedad: cobertura/profundidad miden a la supervisora,
+   % de cierre mide a auditor/gerente. */
+.resp-tag {
+  font-size: 0.82rem; padding: 0.55rem 0.85rem;
+  border-radius: 4px; margin: 0 0 1rem 0;
+  border-left: 3px solid; line-height: 1.4;
+}
+.resp-supervisora { background: var(--gold-soft); border-left-color: var(--gold-deep); color: var(--ink); }
+.resp-mixto       { background: var(--green-bg);  border-left-color: var(--green);      color: var(--ink); }
+
 /* Barras pareadas de tendencia semanal (Supervisión → Hallazgos). */
 .line-chart .bar-open   { fill: var(--red);   opacity: 0.7; }
 .line-chart .bar-closed { fill: var(--green); opacity: 0.7; }
@@ -4525,67 +4536,41 @@ const App = {
   },
 
   // ----- Sub-tab COBERTURA -----
-  // KPIs por pilar (4 tarjetas) + dos tablas: "Reportes revisados" (días con
-  // operación que también fueron revisados) y "Actividades esperadas atendidas"
-  // (marcas vs items_D×días + items_S×semanas + items_M×meses).
+  // % actividades esperadas atendidas. Esperadas = items_D × días hábiles
+  // (L-V, no calendario) + items_S × semanas + items_M × meses. La métrica
+  // anterior "% reportes revisados" se eliminó en v18.3 porque las hojas
+  // operativas (Historico/Diario/Reqs) no se capturan y daba 0/0.
   _renderSupervisionCobertura(data) {
     const periodo = data.desde === data.hasta
       ? formatDate(data.desde)
       : (formatDate(data.desde) + ' al ' + formatDate(data.hasta));
 
-    // KPI tarjetas: cobertura "reportes revisados" por pilar + global esperadas.
-    const cobR = data.cobertura_reportes;
     const cobE = data.cobertura_esperadas;
     const pctStr = (p) => p === null ? '—' : (p + '%');
-    const semClass = (p) => {
-      if (p === null) return 's-amarillo';
-      return semaforoClass(p);
-    };
+    const semClass = (p) => p === null ? 's-amarillo' : semaforoClass(p);
 
     const totalEsp = cobE.A.esperadas + cobE.B.esperadas + cobE.C.esperadas;
     const totalAtn = cobE.A.atendidas + cobE.B.atendidas + cobE.C.atendidas;
     const pctEspGlobal = totalEsp > 0 ? Math.round((totalAtn * 100) / totalEsp) : null;
 
-    const kpiCards = ['A','B','C'].map(k => `
+    // Tarjetas: cobertura por pilar + global.
+    const cards = ['A','B','C'].map(k => `
       <div class="dash-card">
-        <div class="dash-card-head">Cobertura · Pilar ${k}</div>
+        <div class="dash-card-head">Pilar ${k}</div>
         <div class="dash-card-body">
-          <div class="big-number ${semClass(cobR[k].pct)}">${pctStr(cobR[k].pct)}</div>
-          <div class="dash-card-meta">${cobR[k].revisados} de ${cobR[k].reportados} días con operación revisados</div>
+          <div class="big-number ${semClass(cobE[k].pct)}">${pctStr(cobE[k].pct)}</div>
+          <div class="dash-card-meta">${cobE[k].atendidas} de ${cobE[k].esperadas} marcas esperadas</div>
         </div>
-      </div>
-    `).join('');
-
-    const kpiGlobal = `
+      </div>`).join('') + `
       <div class="dash-card">
-        <div class="dash-card-head">Actividades esperadas</div>
+        <div class="dash-card-head">Total</div>
         <div class="dash-card-body">
           <div class="big-number ${semClass(pctEspGlobal)}">${pctStr(pctEspGlobal)}</div>
-          <div class="dash-card-meta">${totalAtn} marcadas de ${totalEsp} esperadas en el rango</div>
+          <div class="dash-card-meta">${totalAtn} de ${totalEsp} en el rango</div>
         </div>
-      </div>
-    `;
+      </div>`;
 
-    const tabla1 = `
-      <h3>% reportes revisados</h3>
-      <p class="muted">Días con operación del pilar que también fueron revisados al menos una vez.</p>
-      <table class="data-table">
-        <thead><tr><th>Pilar</th><th>Días con operación</th><th>Días revisados</th><th>%</th></tr></thead>
-        <tbody>
-          ${['A','B','C'].map(k => `
-            <tr>
-              <td>Pilar ${k}</td>
-              <td>${cobR[k].reportados}</td>
-              <td>${cobR[k].revisados}</td>
-              <td class="${semClass(cobR[k].pct)}"><strong>${pctStr(cobR[k].pct)}</strong></td>
-            </tr>`).join('')}
-        </tbody>
-      </table>
-    `;
-
-    const tabla2 = `
-      <h3>% actividades esperadas atendidas</h3>
-      <p class="muted">Esperadas = items diarios × ${data.rango.dias} días + items semanales × ${data.rango.semanas} semanas + items mensuales × ${data.rango.meses} mes(es).</p>
+    const tabla = `
       <table class="data-table">
         <thead><tr><th>Pilar</th><th>Atendidas</th><th>Esperadas</th><th>%</th></tr></thead>
         <tbody>
@@ -4607,10 +4592,11 @@ const App = {
     `;
 
     return `
+      <div class="resp-tag resp-supervisora">Responsable de esta métrica: <strong>la supervisora</strong> (capturar las marcas del check list)</div>
       <h3 style="margin-top:0;">Cobertura · ${escapeHtml(periodo)}</h3>
-      <div class="dash-cards">${kpiCards}${kpiGlobal}</div>
-      ${tabla1}
-      ${tabla2}
+      <div class="dash-cards">${cards}</div>
+      <p class="muted">Esperadas = items diarios × ${data.rango.dias} días hábiles (L-V) + items semanales × ${data.rango.semanas} semanas + items mensuales × ${data.rango.meses} mes(es) del rango.</p>
+      ${tabla}
     `;
   },
 
@@ -4658,6 +4644,7 @@ const App = {
     const filasC = data.profundidad.C.filter(f => f.no_cumplidos > 0);
 
     return `
+      <div class="resp-tag resp-supervisora">Responsable de esta métrica: <strong>la supervisora</strong> (dejar el "por qué" al marcar ✗)</div>
       <h3 style="margin-top:0;">Profundidad · ${escapeHtml(periodo)}</h3>
       <div class="dash-cards">
         <div class="dash-card">
@@ -4786,6 +4773,10 @@ const App = {
     }
 
     return `
+      <div class="resp-tag resp-mixto">
+        <strong>Abrir hallazgos</strong>: la supervisora (al marcar ✗) ·
+        <strong>Cerrarlos</strong>: auditor o gerente (desde Reporte → Hallazgos → Marcar como atendido)
+      </div>
       <h3 style="margin-top:0;">Hallazgos · ${escapeHtml(periodo)}</h3>
       ${kpis}
       ${svgTend}
