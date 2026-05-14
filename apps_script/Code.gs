@@ -81,6 +81,7 @@ function doPost(e) {
         case 'getDiaPersona':      response = getDiaPersona(user, payload); break;
         case 'getTendenciaPersona':response = getTendenciaPersona(user, payload); break;
         case 'getPersonasDia':     response = getPersonasDia(user); break;
+        case 'getDesempenoSupervisor': response = getDesempenoSupervisor(user, payload); break;
         case 'getPilarA':          response = getPilarA(user); break;
         case 'getPilarAEvolucion': response = getPilarAEvolucion(user, payload); break;
         case 'updateModulo':       response = updateModulo(user, payload); break;

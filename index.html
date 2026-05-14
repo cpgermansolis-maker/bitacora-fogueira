@@ -388,6 +388,60 @@ body.has-modo-banner .nav { top: calc(70px + 40px); }
 .subtab:hover { color: var(--ink); }
 .subtab.active { color: var(--gold-deep); border-bottom-color: var(--gold); font-weight: 600; }
 
+/* ----- Pestaña Supervisión · tarjetas KPI y tabla genérica ----- */
+/* Grid de tarjetas KPI utilizada también por sub-tab Profundidad/Hallazgos. */
+.dash-cards {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 0.75rem; margin: 0 0 1.25rem 0;
+}
+.dash-card {
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: 4px; padding: 0.85rem 1rem;
+}
+.dash-card-head {
+  font-size: 0.72rem; color: var(--ink-soft);
+  text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+.dash-card-body .big-number {
+  font-family: var(--font-display); font-size: 2.1rem; font-weight: 600;
+  line-height: 1; color: var(--ink); font-variant-numeric: tabular-nums;
+}
+.dash-card-body .big-number.s-verde    { color: var(--green); }
+.dash-card-body .big-number.s-amarillo { color: var(--gold-deep); }
+.dash-card-body .big-number.s-naranja  { color: var(--orange, #C76A2A); }
+.dash-card-body .big-number.s-rojo     { color: var(--red); }
+.dash-card-meta {
+  font-size: 0.78rem; color: var(--ink-muted); margin-top: 0.35rem;
+  line-height: 1.35;
+}
+
+/* Tabla densa usada por Cobertura/Profundidad/Hallazgos en Supervisión. */
+.data-table {
+  width: 100%; border-collapse: collapse; margin: 0.5rem 0 1.5rem 0;
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: 4px; overflow: hidden; font-size: 0.9rem;
+}
+.data-table thead { background: var(--bg-paper); border-bottom: 2px solid var(--border-strong); }
+.data-table th {
+  text-align: left; padding: 0.55rem 0.85rem;
+  font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--ink-soft); font-weight: 600;
+}
+.data-table td { padding: 0.55rem 0.85rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+.data-table tbody tr:last-child td { border-bottom: none; }
+.data-table tbody tr:hover { background: var(--bg-paper); }
+.data-table td.s-verde    { color: var(--green); }
+.data-table td.s-amarillo { color: var(--gold-deep); }
+.data-table td.s-naranja  { color: var(--orange, #C76A2A); }
+.data-table td.s-rojo     { color: var(--red); }
+
+.muted { color: var(--ink-soft); font-size: 0.85rem; }
+
+/* Barras pareadas de tendencia semanal (Supervisión → Hallazgos). */
+.line-chart .bar-open   { fill: var(--red);   opacity: 0.7; }
+.line-chart .bar-closed { fill: var(--green); opacity: 0.7; }
+
 /* Dashboard de evolución del Pilar A. */
 .evol-hero {
   display: grid; grid-template-columns: 1fr 1fr 2fr; gap: 1rem;
@@ -1577,6 +1631,7 @@ body.has-modo-banner .nav { top: calc(70px + 40px); }
     <button class="nav-tab" data-view="pilar-a">Pilar A · Soft Restaurant</button>
     <button class="nav-tab" data-view="pilar-b">Pilar B · Conciliación</button>
     <button class="nav-tab" data-view="pilar-c">Pilar C · Inventarios</button>
+    <button class="nav-tab" data-view="supervision" data-roles="auditor,gerente" style="display:none;">Supervisión</button>
     <button class="nav-tab" data-view="reporte">Reporte</button>
     <button class="nav-tab" data-view="usuarios" data-rol="auditor" style="display:none;">Usuarios</button>
   </div>
@@ -1631,6 +1686,11 @@ body.has-modo-banner .nav { top: calc(70px + 40px); }
   <!-- PILAR C -->
   <section class="view" id="view-pilar-c">
     <div id="pilar-c-content"><div class="empty-state"><div class="spinner"></div></div></div>
+  </section>
+
+  <!-- SUPERVISIÓN — desempeño de la supervisora en rango libre (auditor/gerente) -->
+  <section class="view" id="view-supervision">
+    <div id="supervision-content"><div class="empty-state"><div class="spinner"></div></div></div>
   </section>
 
   <!-- REPORTE -->
@@ -1697,7 +1757,11 @@ const State = {
   miDia: null,
   miDiaPersonas: null,
   miDiaEmail: null,
-  miDiaFecha: null
+  miDiaFecha: null,
+  // Supervisión — desempeño de la supervisora en rango libre
+  supervisionSubview: 'cobertura',
+  supervisionEmail: null,
+  supervisionUltimo: null
 };
 
 /* =========================================================
@@ -4301,6 +4365,387 @@ const App = {
   },
 
   imprimir() { window.print(); },
+
+  /* =========== SUPERVISIÓN — desempeño de la supervisora =========== */
+  // Una sola llamada a getDesempenoSupervisor trae los 4 bloques (cobertura
+  // doble, profundidad por módulo/etapa, hallazgos con tendencia). Cambiar
+  // de sub-tab no re-pega al backend mientras el rango no cambie.
+  async render_supervision() {
+    const c = el('supervision-content');
+    if (!State.user || (State.user.rol !== 'auditor' && State.user.rol !== 'gerente')) {
+      c.innerHTML = `<div class="empty-state"><p>Solo el auditor o el gerente pueden ver este tablero.</p></div>`;
+      return;
+    }
+    const sub = State.supervisionSubview || 'cobertura';
+    const today = todayInputValue();
+    const monthAgo = new Date(); monthAgo.setMonth(monthAgo.getMonth() - 1);
+    const desdeDefault = monthAgo.toISOString().split('T')[0];
+    const last = State.supervisionUltimo;
+    const desdeVal = last ? last.desde : desdeDefault;
+    const hastaVal = last ? last.hasta : today;
+    const cands = last && last.candidatas ? last.candidatas : [];
+    const emailSel = State.supervisionEmail || (last && last.persona ? last.persona.email : '');
+
+    // Selector de supervisora solo si hay >1 candidata (en práctica habrá 1).
+    const selector = cands.length > 1 ? `
+      <div class="form-group">
+        <label>Supervisora</label>
+        <select id="sup-email">
+          ${cands.map(c => `<option value="${escapeHtml(c.email)}" ${c.email === emailSel ? 'selected' : ''}>${escapeHtml(c.nombre || c.email)}</option>`).join('')}
+        </select>
+      </div>` : '';
+
+    c.innerHTML = `
+      <div class="section-head">
+        <h1><span class="badge">Supervisión</span> Desempeño de la supervisora</h1>
+        <div class="meta">
+          ${last && last.persona ? `<span><strong>${escapeHtml(last.persona.nombre || last.persona.email)}</strong></span>` : ''}
+          <span>Cobertura, profundidad y cierre de hallazgos en un rango libre</span>
+        </div>
+      </div>
+      <div class="subtabs">
+        <button class="subtab ${sub === 'cobertura'   ? 'active' : ''}" onclick="App.supervision_setView('cobertura')">Cobertura</button>
+        <button class="subtab ${sub === 'profundidad' ? 'active' : ''}" onclick="App.supervision_setView('profundidad')">Profundidad</button>
+        <button class="subtab ${sub === 'hallazgos'   ? 'active' : ''}" onclick="App.supervision_setView('hallazgos')">Hallazgos</button>
+      </div>
+      <div class="report-shell">
+        <div class="report-controls">
+          <div class="form-group">
+            <label>Desde</label>
+            <input type="date" id="sup-desde" value="${desdeVal}">
+          </div>
+          <div class="form-group">
+            <label>Hasta</label>
+            <input type="date" id="sup-hasta" value="${hastaVal}">
+          </div>
+          ${selector}
+          <button class="btn-primary" style="width:auto; margin:0;" onclick="App.genSupervision()">Generar</button>
+        </div>
+        <div class="report-output" id="supervision-output">
+          ${last ? this._renderSupervisionSub(last, sub) : '<div class="empty-state"><p>Selecciona un periodo y haz click en <strong>Generar</strong>.</p></div>'}
+        </div>
+      </div>
+    `;
+  },
+
+  supervision_setView(view) {
+    State.supervisionSubview = view;
+    // Si ya tenemos datos cargados, sólo re-renderiza el output sin tocar el form.
+    if (State.supervisionUltimo) {
+      const out = el('supervision-output');
+      if (out) out.innerHTML = this._renderSupervisionSub(State.supervisionUltimo, view);
+      // Re-activar el subtab visualmente
+      document.querySelectorAll('#view-supervision .subtab').forEach(b => b.classList.remove('active'));
+      const btn = document.querySelector(`#view-supervision .subtab[onclick*="'${view}'"]`);
+      if (btn) btn.classList.add('active');
+    } else {
+      this.render_supervision();
+    }
+  },
+
+  async genSupervision() {
+    const desde = el('sup-desde').value;
+    const hasta = el('sup-hasta').value;
+    const emailSel = el('sup-email');
+    const out = el('supervision-output');
+    if (!desde || !hasta) {
+      out.innerHTML = '<div class="empty-state"><p>Selecciona ambas fechas (desde / hasta).</p></div>';
+      return;
+    }
+    if (desde > hasta) {
+      out.innerHTML = '<div class="empty-state"><p>"Desde" no puede ser posterior a "hasta".</p></div>';
+      return;
+    }
+    out.innerHTML = '<div class="empty-state"><div class="spinner"></div></div>';
+    try {
+      const payload = { desde, hasta };
+      if (emailSel && emailSel.value) {
+        payload.email = emailSel.value;
+        State.supervisionEmail = emailSel.value;
+      }
+      const data = await apiCall('getDesempenoSupervisor', payload);
+      State.supervisionUltimo = data;
+      this.render_supervision();
+    } catch (err) {
+      out.innerHTML = `<div class="empty-state"><p>${escapeHtml(err.message)}</p></div>`;
+    }
+  },
+
+  // Despacha al renderer del sub-tab elegido. Los 3 comparten el mismo `data`.
+  _renderSupervisionSub(data, sub) {
+    if (sub === 'profundidad') return this._renderSupervisionProfundidad(data);
+    if (sub === 'hallazgos')   return this._renderSupervisionHallazgos(data);
+    return this._renderSupervisionCobertura(data);  // default
+  },
+
+  // ----- Sub-tab COBERTURA -----
+  // KPIs por pilar (4 tarjetas) + dos tablas: "Reportes revisados" (días con
+  // operación que también fueron revisados) y "Actividades esperadas atendidas"
+  // (marcas vs items_D×días + items_S×semanas + items_M×meses).
+  _renderSupervisionCobertura(data) {
+    const periodo = data.desde === data.hasta
+      ? formatDate(data.desde)
+      : (formatDate(data.desde) + ' al ' + formatDate(data.hasta));
+
+    // KPI tarjetas: cobertura "reportes revisados" por pilar + global esperadas.
+    const cobR = data.cobertura_reportes;
+    const cobE = data.cobertura_esperadas;
+    const pctStr = (p) => p === null ? '—' : (p + '%');
+    const semClass = (p) => {
+      if (p === null) return 's-amarillo';
+      return semaforoClass(p);
+    };
+
+    const totalEsp = cobE.A.esperadas + cobE.B.esperadas + cobE.C.esperadas;
+    const totalAtn = cobE.A.atendidas + cobE.B.atendidas + cobE.C.atendidas;
+    const pctEspGlobal = totalEsp > 0 ? Math.round((totalAtn * 100) / totalEsp) : null;
+
+    const kpiCards = ['A','B','C'].map(k => `
+      <div class="dash-card">
+        <div class="dash-card-head">Cobertura · Pilar ${k}</div>
+        <div class="dash-card-body">
+          <div class="big-number ${semClass(cobR[k].pct)}">${pctStr(cobR[k].pct)}</div>
+          <div class="dash-card-meta">${cobR[k].revisados} de ${cobR[k].reportados} días con operación revisados</div>
+        </div>
+      </div>
+    `).join('');
+
+    const kpiGlobal = `
+      <div class="dash-card">
+        <div class="dash-card-head">Actividades esperadas</div>
+        <div class="dash-card-body">
+          <div class="big-number ${semClass(pctEspGlobal)}">${pctStr(pctEspGlobal)}</div>
+          <div class="dash-card-meta">${totalAtn} marcadas de ${totalEsp} esperadas en el rango</div>
+        </div>
+      </div>
+    `;
+
+    const tabla1 = `
+      <h3>% reportes revisados</h3>
+      <p class="muted">Días con operación del pilar que también fueron revisados al menos una vez.</p>
+      <table class="data-table">
+        <thead><tr><th>Pilar</th><th>Días con operación</th><th>Días revisados</th><th>%</th></tr></thead>
+        <tbody>
+          ${['A','B','C'].map(k => `
+            <tr>
+              <td>Pilar ${k}</td>
+              <td>${cobR[k].reportados}</td>
+              <td>${cobR[k].revisados}</td>
+              <td class="${semClass(cobR[k].pct)}"><strong>${pctStr(cobR[k].pct)}</strong></td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    `;
+
+    const tabla2 = `
+      <h3>% actividades esperadas atendidas</h3>
+      <p class="muted">Esperadas = items diarios × ${data.rango.dias} días + items semanales × ${data.rango.semanas} semanas + items mensuales × ${data.rango.meses} mes(es).</p>
+      <table class="data-table">
+        <thead><tr><th>Pilar</th><th>Atendidas</th><th>Esperadas</th><th>%</th></tr></thead>
+        <tbody>
+          ${['A','B','C'].map(k => `
+            <tr>
+              <td>Pilar ${k}</td>
+              <td>${cobE[k].atendidas}</td>
+              <td>${cobE[k].esperadas}</td>
+              <td class="${semClass(cobE[k].pct)}"><strong>${pctStr(cobE[k].pct)}</strong></td>
+            </tr>`).join('')}
+          <tr style="border-top:2px solid var(--border-strong);">
+            <td><strong>Total</strong></td>
+            <td><strong>${totalAtn}</strong></td>
+            <td><strong>${totalEsp}</strong></td>
+            <td class="${semClass(pctEspGlobal)}"><strong>${pctStr(pctEspGlobal)}</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    `;
+
+    return `
+      <h3 style="margin-top:0;">Cobertura · ${escapeHtml(periodo)}</h3>
+      <div class="dash-cards">${kpiCards}${kpiGlobal}</div>
+      ${tabla1}
+      ${tabla2}
+    `;
+  },
+
+  // ----- Sub-tab PROFUNDIDAD -----
+  // Tabla por módulo (A) y por etapa (B/C) con cuántos no-cumplidos hubo y
+  // cuántos llevan observación. Sirve también de "consistencia" — qué área
+  // desatiende al marcar (no-cumplido sin contexto = trabajo a medias).
+  _renderSupervisionProfundidad(data) {
+    const periodo = data.desde === data.hasta
+      ? formatDate(data.desde)
+      : (formatDate(data.desde) + ' al ' + formatDate(data.hasta));
+    const g = data.profundidad.global;
+    const pctStr = (p) => p === null ? '—' : (p + '%');
+    const semClass = (p) => p === null ? 's-amarillo' : semaforoClass(p);
+
+    function bloque(etiqueta, filas) {
+      if (filas.length === 0) {
+        return `<section class="hallazgos-bloque">
+          <h3>${escapeHtml(etiqueta)} <small style="font-weight:400;color:var(--ink-soft);">· sin no-cumplidos en el rango</small></h3>
+        </section>`;
+      }
+      const rows = filas.map(f => `
+        <tr>
+          <td><strong>${escapeHtml(f.grupo)}</strong>${f.nombre ? ' · ' + escapeHtml(f.nombre) : ''}</td>
+          <td>${f.no_cumplidos}</td>
+          <td>${f.con_observacion}</td>
+          <td class="${semClass(f.pct)}"><strong>${pctStr(f.pct)}</strong></td>
+        </tr>
+      `).join('');
+      return `
+        <section class="hallazgos-bloque">
+          <h3>${escapeHtml(etiqueta)}</h3>
+          <table class="data-table">
+            <thead><tr><th>Grupo</th><th>No-cumplidos</th><th>Con observación</th><th>% profundidad</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </section>
+      `;
+    }
+
+    // Solo mostramos grupos con al menos 1 no-cumplido. Si están todos en 0,
+    // el bloque queda con el aviso "sin no-cumplidos en el rango".
+    const filasA = data.profundidad.A.filter(f => f.no_cumplidos > 0);
+    const filasB = data.profundidad.B.filter(f => f.no_cumplidos > 0);
+    const filasC = data.profundidad.C.filter(f => f.no_cumplidos > 0);
+
+    return `
+      <h3 style="margin-top:0;">Profundidad · ${escapeHtml(periodo)}</h3>
+      <div class="dash-cards">
+        <div class="dash-card">
+          <div class="dash-card-head">Profundidad global</div>
+          <div class="dash-card-body">
+            <div class="big-number ${semClass(g.pct)}">${pctStr(g.pct)}</div>
+            <div class="dash-card-meta">${g.con_observacion} de ${g.no_cumplidos} no-cumplidos con observación</div>
+          </div>
+        </div>
+      </div>
+      <p class="muted">% profundidad = no-cumplidos con observación / total de no-cumplidos. Un no-cumplido sin observación es trabajo incompleto: no queda evidencia de qué se rompió.</p>
+      ${bloque('Pilar A · Soft Restaurant 12', filasA)}
+      ${bloque('Pilar B · Conciliación', filasB)}
+      ${bloque('Pilar C · Inventarios', filasC)}
+    `;
+  },
+
+  // ----- Sub-tab HALLAZGOS -----
+  // KPIs (abiertos, atendidos, % cierre, edad promedio) + tendencia semanal
+  // (barras simples abiertos vs cerrados) + tabla de pendientes ordenados
+  // por edad descendente.
+  _renderSupervisionHallazgos(data) {
+    const periodo = data.desde === data.hasta
+      ? formatDate(data.desde)
+      : (formatDate(data.desde) + ' al ' + formatDate(data.hasta));
+    const h = data.hallazgos;
+    const pctStr = (p) => p === null ? '—' : (p + '%');
+    const semClass = (p) => p === null ? 's-amarillo' : semaforoClass(p);
+    // Edad: invertir semáforo (menos días pendientes = mejor)
+    const edadClass = (d) => {
+      if (d === null || d === undefined) return 's-verde';
+      if (d <= 3) return 's-verde';
+      if (d <= 7) return 's-amarillo';
+      if (d <= 15) return 's-naranja';
+      return 's-rojo';
+    };
+
+    const kpis = `
+      <div class="dash-cards">
+        <div class="dash-card">
+          <div class="dash-card-head">Abiertos en rango</div>
+          <div class="dash-card-body"><div class="big-number">${h.abiertos_rango}</div></div>
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-head">Cerrados en rango</div>
+          <div class="dash-card-body"><div class="big-number">${h.cerrados_rango}</div></div>
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-head">% cierre</div>
+          <div class="dash-card-body">
+            <div class="big-number ${semClass(h.pct_cierre)}">${pctStr(h.pct_cierre)}</div>
+            <div class="dash-card-meta">de lo abierto en el rango</div>
+          </div>
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-head">Pendientes al ${formatDate(data.hasta)}</div>
+          <div class="dash-card-body">
+            <div class="big-number ${edadClass(h.edad_promedio_dias)}">${h.pendientes_total}</div>
+            <div class="dash-card-meta">${h.edad_promedio_dias === null ? 'sin pendientes' : ('edad promedio ' + h.edad_promedio_dias + ' días')}</div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Tendencia semanal: barras pareadas (abiertos en rojo claro, cerrados
+    // en verde claro) por semana ISO. Inline SVG mínimo, sin libs.
+    const ts = h.tendencia_semanal || [];
+    let svgTend = '';
+    if (ts.length > 0) {
+      const W = 720, H = 180, PAD_L = 28, PAD_R = 16, PAD_T = 14, PAD_B = 36;
+      const innerW = W - PAD_L - PAD_R, innerH = H - PAD_T - PAD_B;
+      const maxV = Math.max(1, ...ts.map(x => Math.max(x.abiertos, x.cerrados)));
+      const slot = innerW / ts.length;
+      const bw = Math.min(18, slot * 0.35);
+      const y0 = PAD_T + innerH;
+      const y = (v) => y0 - (v / maxV) * innerH;
+      const bars = ts.map((x, i) => {
+        const cx = PAD_L + slot * (i + 0.5);
+        const xa = cx - bw - 1;
+        const xc = cx + 1;
+        return `
+          <rect x="${xa.toFixed(1)}" y="${y(x.abiertos).toFixed(1)}" width="${bw}" height="${(y0 - y(x.abiertos)).toFixed(1)}" class="bar-open"/>
+          <rect x="${xc.toFixed(1)}" y="${y(x.cerrados).toFixed(1)}" width="${bw}" height="${(y0 - y(x.cerrados)).toFixed(1)}" class="bar-closed"/>
+          <text x="${cx.toFixed(1)}" y="${H - 18}" text-anchor="middle" class="ax">${escapeHtml(x.semana.replace(/^\d+-/, ''))}</text>
+          <text x="${(xa+bw/2).toFixed(1)}" y="${(y(x.abiertos)-3).toFixed(1)}" text-anchor="middle" class="ax">${x.abiertos || ''}</text>
+          <text x="${(xc+bw/2).toFixed(1)}" y="${(y(x.cerrados)-3).toFixed(1)}" text-anchor="middle" class="ax">${x.cerrados || ''}</text>
+        `;
+      }).join('');
+      const baseline = `<line x1="${PAD_L}" x2="${W-PAD_R}" y1="${y0}" y2="${y0}" class="grid"/>`;
+      const leyenda = `
+        <g transform="translate(${PAD_L}, ${H - 6})">
+          <rect x="0" y="-8" width="10" height="8" class="bar-open"/><text x="14" y="0" class="ax">abiertos</text>
+          <rect x="80" y="-8" width="10" height="8" class="bar-closed"/><text x="94" y="0" class="ax">cerrados</text>
+        </g>`;
+      svgTend = `
+        <h3>Tendencia semanal</h3>
+        <svg viewBox="0 0 ${W} ${H}" class="line-chart" preserveAspectRatio="xMidYMid meet">
+          ${baseline}${bars}${leyenda}
+        </svg>
+      `;
+    }
+
+    // Tabla de pendientes (ya viene ordenada por edad desc, top 100).
+    let tablaPend = '';
+    if (h.pendientes.length === 0) {
+      tablaPend = `<div class="empty-state"><div class="big-icon">✓</div>
+        <p>Sin pendientes al ${formatDate(data.hasta)}. Cero hallazgos abiertos sin atender.</p>
+      </div>`;
+    } else {
+      const filas = h.pendientes.map(p => `
+        <tr>
+          <td>Pilar ${escapeHtml(p.pilar)}</td>
+          <td>${formatDate(p.fecha)}</td>
+          <td>${escapeHtml(p.titulo)}<br><small class="muted">${escapeHtml(p.contexto)}</small></td>
+          <td class="${edadClass(p.edad_dias)}"><strong>${p.edad_dias} d</strong></td>
+        </tr>
+      `).join('');
+      tablaPend = `
+        <h3>Pendientes (ordenados por edad)</h3>
+        <table class="data-table">
+          <thead><tr><th>Pilar</th><th>Abierto</th><th>Hallazgo</th><th>Edad</th></tr></thead>
+          <tbody>${filas}</tbody>
+        </table>
+        ${h.pendientes_total > h.pendientes.length ? `<p class="muted">Mostrando ${h.pendientes.length} de ${h.pendientes_total} pendientes (los más antiguos).</p>` : ''}
+      `;
+    }
+
+    return `
+      <h3 style="margin-top:0;">Hallazgos · ${escapeHtml(periodo)}</h3>
+      ${kpis}
+      ${svgTend}
+      ${tablaPend}
+    `;
+  },
 
   /* =========== USUARIOS (admin, solo auditor) =========== */
   async render_usuarios() {

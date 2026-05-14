@@ -785,3 +785,365 @@ function getPersonasDia(user) {
   if (user.rol === 'auditor' || user.rol === 'gerente') return usuarios;
   return usuarios.filter(u => u.email === String(user.email).toLowerCase().trim());
 }
+
+// =============================================================
+// Tablero "Supervisión" · desempeño de la supervisora en un rango libre
+// --------------------------------------------------------------
+// Mide a la supervisora (rol='administracion', p.ej. Estefanía) sobre cuatro
+// dimensiones, calculadas todas en una sola pasada para evitar 4 round-trips.
+//
+// 1) COBERTURA · % reportes revisados (por días de operación)
+//    Universo = días del rango con actividad del pilar:
+//      A → días con fila en PilarA_Historico
+//      B → días con fila en PilarB_Diario
+//      C → días con fila en PilarC_Requisiciones o PilarC_Movimientos
+//    Numerador = días con al menos una marca de la supervisora del pilar.
+//    Interpretación: "de los días que sí hubo operación, ¿cuántos también
+//    los revisó al menos una vez?".
+//
+// 2) COBERTURA · % actividades esperadas atendidas
+//    Denominador = items_D × días + items_S × semanas_ISO + items_M × meses
+//                  (cuenta solo items activos del pilar)
+//    Numerador   = marcas de la supervisora con timestamp en el rango.
+//    Cada (item_id, periodo) tiene UNA marca vigente (sobrescritura), por lo
+//    que no hay doble conteo. Interpretación: "del total de marcas esperadas
+//    en el rango, ¿cuántas dejó capturadas?".
+//
+// 3) PROFUNDIDAD · % de no-cumplidos con observación
+//    De las marcas valor=0 de la supervisora en el rango, qué porcentaje
+//    trae texto en `observaciones`. Se rinde por módulo (A) y por etapa
+//    (B/C), que sirve también de "consistencia" — qué área desatiende.
+//
+// 4) HALLAZGOS · cierre, edad de pendientes y tendencia semanal
+//    Usa el universo completo de marcas valor=0 (sin filtro de rango) más la
+//    hoja Hallazgos_Atendidos, para poder:
+//      - calcular pendientes al cierre (creados ≤ hasta y no atendidos al hasta)
+//      - calcular edad de cada pendiente (días entre apertura y `hasta`)
+//      - dibujar tendencia semanal de aperturas vs cierres dentro del rango
+//    Solo cuenta no-cumplidos (no banderas/reqs/sr12); esos son el output
+//    directo de la supervisora marcando.
+// --------------------------------------------------------------
+// Solo auditor/gerente. Si no se pasa email, se autodetecta el primer
+// usuario activo con rol='administracion' (Estefanía).
+// =============================================================
+function getDesempenoSupervisor(user, payload) {
+  if (user.rol !== 'auditor' && user.rol !== 'gerente') {
+    throw new Error('Solo el auditor o el gerente pueden ver este tablero');
+  }
+  payload = payload || {};
+
+  const tz = ss().getSpreadsheetTimeZone() || 'America/Mexico_City';
+  const fmt = (d) => Utilities.formatDate(d, tz, 'yyyy-MM-dd');
+  const fmtTs = (ts) => {
+    if (!ts) return '';
+    const d = new Date(ts);
+    return isNaN(d.getTime()) ? '' : fmt(d);
+  };
+
+  // Rango por default: último mes hasta hoy (mismo criterio que Reporte).
+  const today = fmt(new Date());
+  const hasta = String(payload.hasta || today);
+  let desde = String(payload.desde || '');
+  if (!desde) {
+    const m = new Date(); m.setMonth(m.getMonth() - 1);
+    desde = fmt(m);
+  }
+  if (desde > hasta) throw new Error('"desde" debe ser anterior o igual a "hasta"');
+
+  // Identificar a la supervisora. Si el payload trae email, usar ese; si no,
+  // el primer usuario activo con rol='administracion' (modelo confirmado:
+  // Estefanía es la única que captura marcas).
+  const usuarios = sheetData(SHEETS.USUARIOS);
+  let email = String(payload.email || '').toLowerCase().trim();
+  if (!email) {
+    const sup = usuarios.find(u =>
+      String(u.rol) === 'administracion' &&
+      String(u.activo).toUpperCase() === 'TRUE'
+    );
+    if (!sup) throw new Error('No hay usuario con rol "administracion" activo');
+    email = String(sup.email).toLowerCase().trim();
+  }
+  const persona = usuarios.find(u =>
+    String(u.email).toLowerCase().trim() === email
+  );
+  if (!persona) throw new Error('Persona no encontrada en Usuarios: ' + email);
+
+  // Lista de candidatas (todas las "administracion" activas) — útil al
+  // frontend si en el futuro hay más de una supervisora.
+  const candidatas = usuarios
+    .filter(u => String(u.rol) === 'administracion' && String(u.activo).toUpperCase() === 'TRUE')
+    .map(u => ({
+      email: String(u.email).toLowerCase().trim(),
+      nombre: String(u.nombre || '')
+    }));
+
+  // ---------- Carga única de datos ----------
+  const itemsA = sheetData(SHEETS.PILAR_A_CK_ITEMS).filter(it => String(it.activo).toUpperCase() === 'TRUE');
+  const itemsB = sheetData(SHEETS.PILAR_B_CK_ITEMS).filter(it => String(it.activo).toUpperCase() === 'TRUE');
+  const itemsC = sheetData(SHEETS.PILAR_C_CK_ITEMS).filter(it => String(it.activo).toUpperCase() === 'TRUE');
+  const marcasA = sheetData(SHEETS.PILAR_A_CK_MARCAS);
+  const marcasB = sheetData(SHEETS.PILAR_B_CK_MARCAS);
+  const marcasC = sheetData(SHEETS.PILAR_C_CK_MARCAS);
+
+  const matchEmail = (m) => String(m.usuario_email).toLowerCase().trim() === email;
+  const enRangoFecha = (f) => f && f >= desde && f <= hasta;
+
+  // Marcas de la supervisora filtradas por timestamp en rango.
+  const marcasAEst = marcasA.filter(m => matchEmail(m) && enRangoFecha(fmtTs(m.timestamp)));
+  const marcasBEst = marcasB.filter(m => matchEmail(m) && enRangoFecha(fmtTs(m.timestamp)));
+  const marcasCEst = marcasC.filter(m => matchEmail(m) && enRangoFecha(fmtTs(m.timestamp)));
+
+  // ---------- (1) COBERTURA por días de operación ----------
+  const diasOpA = new Set();
+  sheetData(SHEETS.PILAR_A_HIST).forEach(h => {
+    const f = fmtTs(h.timestamp);
+    if (enRangoFecha(f)) diasOpA.add(f);
+  });
+  const diasOpB = new Set();
+  sheetData(SHEETS.PILAR_B_DIARIO).forEach(d => {
+    const f = String(d.fecha || '').substring(0, 10);
+    if (enRangoFecha(f)) diasOpB.add(f);
+  });
+  const diasOpC = new Set();
+  sheetData(SHEETS.PILAR_C_REQS).forEach(r => {
+    // fecha_solicitud puede venir como ISO completo o como yyyy-MM-dd.
+    let f = fmtTs(r.fecha_solicitud);
+    if (!f) f = String(r.fecha_solicitud || '').substring(0, 10);
+    if (enRangoFecha(f)) diasOpC.add(f);
+  });
+  sheetData(SHEETS.PILAR_C_MOV).forEach(m => {
+    const f = fmtTs(m.timestamp);
+    if (enRangoFecha(f)) diasOpC.add(f);
+  });
+
+  const diasRevA = new Set(marcasAEst.map(m => fmtTs(m.timestamp)));
+  const diasRevB = new Set(marcasBEst.map(m => fmtTs(m.timestamp)));
+  const diasRevC = new Set(marcasCEst.map(m => fmtTs(m.timestamp)));
+  const intersectSize = (a, b) => {
+    let n = 0; a.forEach(x => { if (b.has(x)) n++; }); return n;
+  };
+  const revisadosA = intersectSize(diasOpA, diasRevA);
+  const revisadosB = intersectSize(diasOpB, diasRevB);
+  const revisadosC = intersectSize(diasOpC, diasRevC);
+
+  const pctOrNull = (num, den) => den > 0 ? Math.round((num * 100) / den) : null;
+
+  const cobertura_reportes = {
+    A: { reportados: diasOpA.size, revisados: revisadosA, pct: pctOrNull(revisadosA, diasOpA.size) },
+    B: { reportados: diasOpB.size, revisados: revisadosB, pct: pctOrNull(revisadosB, diasOpB.size) },
+    C: { reportados: diasOpC.size, revisados: revisadosC, pct: pctOrNull(revisadosC, diasOpC.size) }
+  };
+
+  // ---------- (2) COBERTURA por actividades esperadas ----------
+  // Cuenta unidades calendario que caen dentro del rango: días, semanas ISO y meses.
+  function nDiasRango(d1, d2) {
+    const a = new Date(d1 + 'T00:00:00Z');
+    const b = new Date(d2 + 'T00:00:00Z');
+    return Math.round((b - a) / 86400000) + 1;
+  }
+  function semanaIsoStr(d /* Date UTC */) {
+    const x = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+    const dayNum = (x.getUTCDay() + 6) % 7;     // lunes=0
+    x.setUTCDate(x.getUTCDate() - dayNum + 3);  // jueves de esa semana
+    const firstThursday = new Date(Date.UTC(x.getUTCFullYear(), 0, 4));
+    const week = 1 + Math.round(((x - firstThursday) / 86400000 - 3 + ((firstThursday.getUTCDay() + 6) % 7)) / 7);
+    return x.getUTCFullYear() + '-W' + ('0' + week).slice(-2);
+  }
+  function nSemanasIsoRango(d1, d2) {
+    const set = new Set();
+    const end = new Date(d2 + 'T00:00:00Z');
+    for (let cur = new Date(d1 + 'T00:00:00Z'); cur <= end; cur.setUTCDate(cur.getUTCDate() + 1)) {
+      set.add(semanaIsoStr(cur));
+    }
+    return set.size;
+  }
+  function nMesesRango(d1, d2) {
+    const set = new Set();
+    const end = new Date(d2 + 'T00:00:00Z');
+    for (let cur = new Date(d1 + 'T00:00:00Z'); cur <= end; cur.setUTCDate(cur.getUTCDate() + 1)) {
+      set.add(cur.getUTCFullYear() + '-' + ('0' + (cur.getUTCMonth() + 1)).slice(-2));
+    }
+    return set.size;
+  }
+
+  const nDias = nDiasRango(desde, hasta);
+  const nSem  = nSemanasIsoRango(desde, hasta);
+  const nMes  = nMesesRango(desde, hasta);
+
+  function denomEsperadas(items) {
+    const d = items.filter(it => it.frecuencia === 'D').length;
+    const s = items.filter(it => it.frecuencia === 'S').length;
+    const m = items.filter(it => it.frecuencia === 'M').length;
+    return d * nDias + s * nSem + m * nMes;
+  }
+  const cobertura_esperadas = {
+    A: { atendidas: marcasAEst.length, esperadas: denomEsperadas(itemsA) },
+    B: { atendidas: marcasBEst.length, esperadas: denomEsperadas(itemsB) },
+    C: { atendidas: marcasCEst.length, esperadas: denomEsperadas(itemsC) }
+  };
+  ['A','B','C'].forEach(k => {
+    cobertura_esperadas[k].pct = pctOrNull(cobertura_esperadas[k].atendidas, cobertura_esperadas[k].esperadas);
+  });
+
+  // ---------- (3) PROFUNDIDAD por módulo/etapa ----------
+  // Solo no-cumplidos (valor=0) de la supervisora en el rango. % con observación.
+  // Mapeos id→nombre humano para mostrar "Módulo M01 · Configuración base"
+  // en lugar de solo "M01" en la tabla.
+  const nombresMod = {}; sheetData(SHEETS.PILAR_A_MODULOS).forEach(m => { nombresMod[String(m.id)] = String(m.modulo || ''); });
+  const nombresEtB = {}; sheetData(SHEETS.PILAR_B_ETAPAS).forEach(e => { nombresEtB[String(e.id)] = String(e.nombre || ''); });
+  const nombresEtC = {}; sheetData(SHEETS.PILAR_C_ETAPAS).forEach(e => { nombresEtC[String(e.id)] = String(e.nombre || ''); });
+
+  function profundidadBloque(items, marcasNoCumpl, groupKey, dictNombre) {
+    const groups = {};
+    const itemToGroup = {};
+    items.forEach(it => {
+      const g = String(it[groupKey] || '—');
+      itemToGroup[String(it.id)] = g;
+      if (!groups[g]) groups[g] = { grupo: g, no_cumplidos: 0, con_observacion: 0 };
+    });
+    marcasNoCumpl.forEach(m => {
+      const g = itemToGroup[String(m.item_id)];
+      if (!g || !groups[g]) return;
+      groups[g].no_cumplidos++;
+      if (String(m.observaciones || '').trim() !== '') groups[g].con_observacion++;
+    });
+    return Object.values(groups)
+      .map(g => ({
+        grupo: g.grupo,
+        nombre: dictNombre[g.grupo] || '',
+        no_cumplidos: g.no_cumplidos,
+        con_observacion: g.con_observacion,
+        pct: pctOrNull(g.con_observacion, g.no_cumplidos)
+      }))
+      .sort((a, b) => String(a.grupo).localeCompare(String(b.grupo)));
+  }
+  const noCumplA = marcasAEst.filter(m => Number(m.valor) === 0);
+  const noCumplB = marcasBEst.filter(m => Number(m.valor) === 0);
+  const noCumplC = marcasCEst.filter(m => Number(m.valor) === 0);
+  const tieneObs = (m) => String(m.observaciones || '').trim() !== '';
+
+  const profundidad = {
+    A: profundidadBloque(itemsA, noCumplA, 'modulo_id', nombresMod),
+    B: profundidadBloque(itemsB, noCumplB, 'etapa_id',  nombresEtB),
+    C: profundidadBloque(itemsC, noCumplC, 'etapa_id',  nombresEtC),
+    global: {
+      no_cumplidos: noCumplA.length + noCumplB.length + noCumplC.length,
+      con_observacion: noCumplA.filter(tieneObs).length
+                     + noCumplB.filter(tieneObs).length
+                     + noCumplC.filter(tieneObs).length
+    }
+  };
+  profundidad.global.pct = pctOrNull(profundidad.global.con_observacion, profundidad.global.no_cumplidos);
+
+  // ---------- (4) HALLAZGOS — pendientes, edad y tendencia semanal ----------
+  // Construimos el universo completo de no-cumplidos (todas las marcas
+  // valor=0, sin filtrar rango) enriquecido con Hallazgos_Atendidos para
+  // poder responder "qué está abierto al cierre del rango" sin importar
+  // cuándo se abrió. Misma key que getHallazgos: pilar|no_cumplido|item|ts.
+  ensureSheetExists(SHEETS.HALLAZGOS_ATENDIDOS, HALLAZGOS_ATENDIDOS_HEADERS);
+  const atendidos = {};
+  sheetData(SHEETS.HALLAZGOS_ATENDIDOS).forEach(a => {
+    atendidos[String(a.key)] = a;
+  });
+  const dictA = {}; itemsA.forEach(it => dictA[String(it.id)] = it);
+  const dictB = {}; itemsB.forEach(it => dictB[String(it.id)] = it);
+  const dictC = {}; itemsC.forEach(it => dictC[String(it.id)] = it);
+
+  const hallAll = [];
+  function pushHall(pilar, m, dict) {
+    if (Number(m.valor) !== 0) return;
+    const ts = String(m.timestamp || '');
+    if (!ts) return;
+    const fecha = fmtTs(ts);
+    if (!fecha) return;
+    const it = dict[String(m.item_id)];
+    const key = pilar + '|no_cumplido|' + String(m.item_id) + '|' + ts;
+    const a = atendidos[key];
+    hallAll.push({
+      pilar,
+      key,
+      fecha,
+      titulo: it ? it.descripcion : ('Ítem ' + m.item_id),
+      contexto: it
+        ? (pilar === 'A'
+            ? ('Módulo ' + it.modulo_id + ' · ' + it.frecuencia)
+            : ('Etapa ' + it.etapa_id + ' · ' + (it.seccion || it.frecuencia)))
+        : '',
+      atendido_at: a ? String(a.atendido_at || '') : '',
+      atendido_por: a ? String(a.atendido_por || '') : ''
+    });
+  }
+  marcasA.forEach(m => pushHall('A', m, dictA));
+  marcasB.forEach(m => pushHall('B', m, dictB));
+  marcasC.forEach(m => pushHall('C', m, dictC));
+
+  // Pendientes al cierre del rango. atendido_at se compara como string ISO
+  // contra `hasta + T23:59:59` para permitir cerrar el mismo día y que
+  // cuente como cerrado en el rango (no como pendiente).
+  const hastaFin = hasta + 'T23:59:59';
+  const corteMs = new Date(hasta + 'T00:00:00Z').getTime();
+  const pendientes = hallAll
+    .filter(h => h.fecha <= hasta)
+    .filter(h => !h.atendido_at || h.atendido_at > hastaFin)
+    .map(h => {
+      const abMs = new Date(h.fecha + 'T00:00:00Z').getTime();
+      const edad = Math.max(0, Math.round((corteMs - abMs) / 86400000));
+      return {
+        pilar: h.pilar, key: h.key, fecha: h.fecha,
+        titulo: h.titulo, contexto: h.contexto,
+        edad_dias: edad
+      };
+    })
+    .sort((a, b) => b.edad_dias - a.edad_dias);
+  const edadPromedio = pendientes.length > 0
+    ? Math.round(pendientes.reduce((s, h) => s + h.edad_dias, 0) / pendientes.length)
+    : null;
+
+  // Aperturas y cierres dentro del rango (para tendencia semanal y % cierre).
+  const aperturasRango = hallAll.filter(h => h.fecha >= desde && h.fecha <= hasta);
+  const cerradosRango = hallAll.filter(h => {
+    if (!h.atendido_at) return false;
+    const f = fmtTs(h.atendido_at);
+    return f >= desde && f <= hasta;
+  });
+
+  const semanas = {};
+  function bumpSemana(sw, campo) {
+    if (!semanas[sw]) semanas[sw] = { semana: sw, abiertos: 0, cerrados: 0 };
+    semanas[sw][campo]++;
+  }
+  aperturasRango.forEach(h => {
+    bumpSemana(semanaIsoStr(new Date(h.fecha + 'T00:00:00Z')), 'abiertos');
+  });
+  cerradosRango.forEach(h => {
+    bumpSemana(semanaIsoStr(new Date(fmtTs(h.atendido_at) + 'T00:00:00Z')), 'cerrados');
+  });
+  const tendencia_semanal = Object.values(semanas)
+    .sort((a, b) => String(a.semana).localeCompare(String(b.semana)));
+
+  const hallazgos = {
+    abiertos_rango: aperturasRango.length,
+    cerrados_rango: cerradosRango.length,
+    pct_cierre: pctOrNull(cerradosRango.length, aperturasRango.length),
+    pendientes_total: pendientes.length,
+    edad_promedio_dias: edadPromedio,
+    // Topa a 100 para no inflar el payload; el contador total ya quedó arriba.
+    pendientes: pendientes.slice(0, 100),
+    tendencia_semanal
+  };
+
+  return {
+    persona: {
+      email: String(persona.email).toLowerCase().trim(),
+      nombre: persona.nombre,
+      rol: persona.rol
+    },
+    candidatas,
+    desde, hasta,
+    rango: { dias: nDias, semanas: nSem, meses: nMes },
+    cobertura_reportes,
+    cobertura_esperadas,
+    profundidad,
+    hallazgos
+  };
+}
