@@ -1,0 +1,260 @@
+{
+  "id": "estefania",
+  "titulo": "Supervisión Operativa de Fogueira",
+  "subtitulo": "Curso de certificación para la supervisora de conciliación, inventarios y operación SR12",
+  "rol_objetivo": "administracion",
+  "destinatario_descripcion": "Estefanía Martínez López · Supervisora de Conciliación",
+  "duracion_estimada_horas": 6,
+  "umbral_aprobacion": 80,
+  "presentacion": "Bienvenida al curso oficial de certificación de la Bitácora de Supervisión Fogueira. Este programa te certifica como Supervisora Operativa una vez que demuestres que entiendes la misión del sistema, tu rol dentro de él, los tres pilares que vigilas y cómo se mide tu desempeño. Aprueba el examen final con ≥ 80% para obtener tu certificado firmado por Mónica Solís (Dirección).",
+  "modulos": [
+    {
+      "id": "M1",
+      "numero": 1,
+      "titulo": "La misión del sistema",
+      "duracion_min": 25,
+      "objetivos": [
+        "Entender por qué existe la Bitácora de Supervisión",
+        "Identificar los 3 pilares que vigila el sistema",
+        "Distinguir entre vigilar (tu rol) y ejecutar (rol de los operativos)"
+      ],
+      "contenido_html": "<h2>¿Por qué existe este sistema?</h2><p>Fogueira es un restaurante operado por <strong>Grupo Toda</strong> bajo la dirección de <strong>Mónica Solís</strong>. Para que el negocio funcione con orden, hay <strong>tres pilares</strong> que tienen que sostener la operación diaria:</p><ul><li><strong>Pilar A · Soft Restaurant 12 (SR12)</strong> — el sistema de punto de venta, inventario y reportes. Es el <em>cerebro</em> del restaurante.</li><li><strong>Pilar B · Conciliación diaria</strong> — el cierre del día: arqueo, banderas rojas, cortesías, depósitos. Es el <em>candado</em> que evita fugas de dinero.</li><li><strong>Pilar C · Inventarios y compras</strong> — el flujo desde que se solicita un insumo hasta que llega al área usuaria. Es la <em>arteria</em> que mueve los recursos.</li></ul><p>El problema histórico: <strong>nadie tenía evidencia diaria</strong> de que estos tres pilares se estaban operando bien. Se confiaba en la palabra de cada responsable. Cuando algo fallaba (un faltante, una bandera roja sin investigar, un inventario sin conciliar), descubrirlo tomaba semanas — y para entonces, la fuga ya había ocurrido.</p><h2>Tu rol: <em>vigilar</em>, no <em>ejecutar</em></h2><p>Este es el punto más importante del curso, y vamos a repetirlo varias veces:</p><blockquote><strong>Tú no ejecutas las tareas operativas. Tú vigilas que se hagan bien.</strong></blockquote><p>Los ejecutores son:</p><ul><li>La <strong>cajera</strong> imprime el Corte Z, cuadra el efectivo, captura cancelaciones.</li><li>El <strong>almacenista</strong> recibe la mercancía, hace inventarios cíclicos, captura mermas.</li><li>El <strong>comprador</strong> consigue cotizaciones, emite órdenes, paga proveedores.</li><li>La <strong>cocina</strong> y la <strong>churrasca</strong> registran charolas en vivo.</li><li>El <strong>host</strong> lleva la bitácora de reservas y walk-ins.</li><li>El <strong>gerente</strong> firma cortesías, aprueba descuentos, valida el cierre.</li></ul><p><strong>Tú</strong> revisas cada día (y cada semana, y cada mes) que cada uno hizo su parte. Marcas un check (✓) si lo hicieron bien, una X (✗) si NO lo hicieron — y cuando marcas ✗, dejas <strong>una observación que explica qué se rompió</strong>.</p><h2>Por qué la observación es crítica</h2><p>Una ✗ sin observación es <strong>trabajo a medias</strong>. Significa: «sé que algo está mal pero no me importó documentar qué». Cuando Mónica revise tu trabajo (o cuando llegue una auditoría externa), no podrá entender qué pasó ese día. Por eso el sistema mide tu <strong>profundidad</strong> — qué porcentaje de tus ✗ trae texto en observaciones. La meta es 100%.</p><h2>Qué se espera de ti</h2><ol><li>Marcar las actividades del checklist <strong>cada día laboral</strong> (lunes a sábado; el domingo descansas).</li><li>Cuando marques ✗, escribir <em>siempre</em> qué falló y qué piensas hacer al respecto.</li><li>Abrir un <strong>hallazgo</strong> cada vez que detectes algo que requiere seguimiento más allá del día.</li><li>Cerrar la <strong>conciliación diaria</strong> antes de salir del restaurante.</li><li>Enviar un <strong>reporte semanal</strong> a Mónica los viernes y un <strong>reporte mensual</strong> el último viernes del mes.</li></ol><p>El resto del curso te enseña <em>exactamente cómo</em> hacer cada una de estas cosas. Pero la idea base, la que tienes que recordar siempre, es esta:</p><blockquote><strong>El sistema no mide al restaurante. Te mide a ti vigilando al restaurante.</strong></blockquote>",
+      "quiz": {
+        "preguntas": [
+          {
+            "id": "M1Q1",
+            "texto": "¿Cuál es tu rol principal dentro del sistema?",
+            "opciones": [
+              "Ejecutar las tareas operativas del restaurante (cobrar, recibir mercancía, cocinar)",
+              "Vigilar que las tareas operativas se hagan bien y dejar evidencia diaria",
+              "Aprobar las cortesías y los descuentos del día",
+              "Hacer el cierre contable mensual"
+            ],
+            "correcta": 1,
+            "explicacion": "Tú vigilas, no ejecutas. Los operativos hacen las tareas; tú revisas y dejas evidencia diaria de que se hicieron bien."
+          },
+          {
+            "id": "M1Q2",
+            "texto": "¿Qué representa una ✗ sin observación en el sistema?",
+            "opciones": [
+              "Un trabajo bien hecho — la X es suficiente",
+              "Un error del sistema que hay que reportar",
+              "Trabajo a medias: detectaste algo pero no documentaste qué",
+              "Una bandera roja automática"
+            ],
+            "correcta": 2,
+            "explicacion": "Una ✗ sin observación es trabajo a medias. El sistema mide tu profundidad: qué porcentaje de tus no-cumplidos trae texto. La meta es 100%."
+          },
+          {
+            "id": "M1Q3",
+            "texto": "¿Cuáles son los 3 pilares que vigila el sistema?",
+            "opciones": [
+              "Cocina, Bar y Caja",
+              "Soft Restaurant 12, Conciliación diaria, Inventarios y compras",
+              "Ventas, Costos y Utilidades",
+              "Mañana, Tarde y Noche"
+            ],
+            "correcta": 1,
+            "explicacion": "Pilar A: SR12 (el sistema). Pilar B: Conciliación diaria (el candado). Pilar C: Inventarios y compras (la arteria de insumos)."
+          },
+          {
+            "id": "M1Q4",
+            "texto": "¿Por qué se creó la Bitácora de Supervisión?",
+            "opciones": [
+              "Para automatizar las tareas operativas del restaurante",
+              "Para reemplazar al gerente",
+              "Porque no había evidencia diaria de que los 3 pilares se operaran bien — las fugas se detectaban semanas tarde",
+              "Para sustituir el Soft Restaurant 12"
+            ],
+            "correcta": 2,
+            "explicacion": "El problema histórico era falta de evidencia diaria. Las fugas se detectaban tarde. La bitácora deja evidencia diaria de que cada pilar fue revisado."
+          },
+          {
+            "id": "M1Q5",
+            "texto": "Si la cajera no imprime el Corte Z al cierre, ¿qué debes hacer tú?",
+            "opciones": [
+              "Imprimirlo tú misma para resolver el problema",
+              "Marcar ✗ en el ítem correspondiente, escribir una observación explicando qué pasó, y abrir un hallazgo si requiere seguimiento",
+              "Ignorarlo porque no es tu responsabilidad operativa",
+              "Cerrar el restaurante hasta que se resuelva"
+            ],
+            "correcta": 1,
+            "explicacion": "Tú no ejecutas la tarea. Tú la marcas como no cumplida, documentas qué pasó y das seguimiento mediante un hallazgo. La cajera o el gerente resuelven el problema."
+          },
+          {
+            "id": "M1Q6",
+            "texto": "¿Quién es tu jefa directa dentro de esta estructura?",
+            "opciones": [
+              "El C.P. Germán Solís Zamora (auditor externo)",
+              "La cajera y el almacenista",
+              "Mónica Solís (Dirección Grupo Toda)",
+              "El cliente"
+            ],
+            "correcta": 2,
+            "explicacion": "Mónica Solís es la Dirección de Grupo Toda y tu jefa directa. Ella revisa tu desempeño cada semana a través del semáforo y firma tu certificación. El C.P. Germán Solís es el auditor externo (otra capa de revisión)."
+          }
+        ]
+      }
+    },
+    {
+      "id": "M2",
+      "numero": 2,
+      "titulo": "Tu rol como supervisora — vigilar sin ejecutar",
+      "duracion_min": 35,
+      "objetivos": [
+        "Distinguir las tareas que SÍ son tuyas vs. las que NO",
+        "Aprender a delegar y dar seguimiento sin tomar el control",
+        "Practicar el lenguaje supervisor (revisar, validar, escalar)"
+      ],
+      "contenido_html": "<p><em>Contenido completo en preparación. Por ahora, repasa el M1 hasta que el sistema marque este módulo como disponible.</em></p>",
+      "quiz": {
+        "preguntas": [
+          {
+            "id": "M2Q1",
+            "texto": "[Placeholder] Si encuentras un problema en cocina, ¿qué haces?",
+            "opciones": [
+              "Lo resuelvo yo misma",
+              "Lo documento, escalo al gerente, doy seguimiento"
+            ],
+            "correcta": 1,
+            "explicacion": "Vigilar = documentar + escalar + dar seguimiento. No ejecutar."
+          }
+        ]
+      },
+      "disponible": false
+    },
+    {
+      "id": "M3",
+      "numero": 3,
+      "titulo": "Cómo te mide el sistema — el semáforo",
+      "duracion_min": 40,
+      "objetivos": [
+        "Entender la fórmula cobertura × 0.60 + profundidad × 0.40",
+        "Interpretar los umbrales adaptativos (rampa 90d)",
+        "Saber qué hacer cuando el semáforo baja a amarillo o naranja"
+      ],
+      "contenido_html": "<p><em>Contenido completo en preparación.</em></p>",
+      "quiz": { "preguntas": [{"id":"M3Q1","texto":"[Placeholder] ¿Cuál es el peso de cobertura en el puntaje?","opciones":["40%","60%","100%"],"correcta":1,"explicacion":"Cobertura pesa 60%, profundidad 40%."}] },
+      "disponible": false
+    },
+    {
+      "id": "M4",
+      "numero": 4,
+      "titulo": "Pilar A · Soft Restaurant 12 — qué reviso",
+      "duracion_min": 45,
+      "objetivos": ["Conocer los 12 módulos del SR12", "Identificar las 36 actividades del checklist Pilar A", "Reconocer las frecuencias D/S/M"],
+      "contenido_html": "<p><em>Contenido completo en preparación.</em></p>",
+      "quiz": { "preguntas": [{"id":"M4Q1","texto":"[Placeholder] ¿Cuántos módulos tiene el SR12?","opciones":["10","12","14"],"correcta":1,"explicacion":"12 módulos del SR12."}] },
+      "disponible": false
+    },
+    {
+      "id": "M5",
+      "numero": 5,
+      "titulo": "Pilar B · Conciliación — las 10 banderas rojas",
+      "duracion_min": 50,
+      "objetivos": ["Aprender las 10 banderas rojas del cierre diario", "Manejar cortesías, cancelaciones y depósitos", "Cerrar la conciliación con tu firma"],
+      "contenido_html": "<p><em>Contenido completo en preparación.</em></p>",
+      "quiz": { "preguntas": [{"id":"M5Q1","texto":"[Placeholder] ¿Cuántas banderas rojas hay en el cierre?","opciones":["5","10","15"],"correcta":1,"explicacion":"10 banderas rojas."}] },
+      "disponible": false
+    },
+    {
+      "id": "M6",
+      "numero": 6,
+      "titulo": "Pilar C · Inventarios — segregación de funciones",
+      "duracion_min": 40,
+      "objetivos": ["Aprender el flujo C01→C11", "Entender el control crítico de segregación", "Detectar bloqueos y escalarlos"],
+      "contenido_html": "<p><em>Contenido completo en preparación.</em></p>",
+      "quiz": { "preguntas": [{"id":"M6Q1","texto":"[Placeholder] ¿Quién recibe físicamente la mercancía?","opciones":["El comprador","El almacenista","El gerente"],"correcta":1,"explicacion":"El comprador NUNCA recibe. Recibe el almacenista (segregación de funciones)."}] },
+      "disponible": false
+    },
+    {
+      "id": "M7",
+      "numero": 7,
+      "titulo": "Hallazgos — abrir, dar contexto y dar seguimiento",
+      "duracion_min": 30,
+      "objetivos": ["Saber cuándo abrir un hallazgo", "Diferenciar entre observación y hallazgo", "Hacer seguimiento de edad de pendientes"],
+      "contenido_html": "<p><em>Contenido completo en preparación.</em></p>",
+      "quiz": { "preguntas": [{"id":"M7Q1","texto":"[Placeholder] Un hallazgo abierto sin cerrar por 15 días es:","opciones":["Normal","Una señal de riesgo","Insignificante"],"correcta":1,"explicacion":"Edad alta de pendientes es señal de riesgo y falta de seguimiento."}] },
+      "disponible": false
+    },
+    {
+      "id": "M8",
+      "numero": 8,
+      "titulo": "Reporte semanal y mensual",
+      "duracion_min": 35,
+      "objetivos": ["Estructurar el reporte semanal a Mónica", "Generar el cierre mensual con el sistema", "Pegar el texto ejecutivo del semáforo al papel de trabajo"],
+      "contenido_html": "<p><em>Contenido completo en preparación.</em></p>",
+      "quiz": { "preguntas": [{"id":"M8Q1","texto":"[Placeholder] El reporte semanal se envía:","opciones":["Lunes","Viernes","Domingo"],"correcta":1,"explicacion":"Cierre semanal = viernes."}] },
+      "disponible": false
+    }
+  ],
+  "examen_final": {
+    "id": "FINAL",
+    "titulo": "Examen final de certificación",
+    "n_preguntas": 25,
+    "umbral_aprobacion": 80,
+    "instrucciones": "Examen final del curso. Reúne preguntas de los 8 módulos. Necesitas 80% de aciertos para obtener tu certificado de Supervisora Operativa firmado por Dirección Grupo Toda. Puedes intentarlo cuantas veces necesites; queda registrado tu mejor score.",
+    "preguntas": [
+      {
+        "id": "FQ1",
+        "texto": "¿Cuál es la frase que mejor describe tu rol?",
+        "opciones": [
+          "Tú ejecutas las tareas operativas del restaurante",
+          "Tú vigilas que las tareas operativas se hagan bien",
+          "Tú coordinas al equipo de cocina",
+          "Tú reemplazas al gerente cuando él no está"
+        ],
+        "correcta": 1,
+        "explicacion": "Vigilar, no ejecutar."
+      },
+      {
+        "id": "FQ2",
+        "texto": "El sistema mide tu desempeño como:",
+        "opciones": [
+          "Cobertura × 1.0",
+          "Cobertura × 0.5 + Profundidad × 0.5",
+          "Cobertura × 0.60 + Profundidad × 0.40",
+          "Profundidad × 1.0"
+        ],
+        "correcta": 2,
+        "explicacion": "Cobertura pesa 60%, profundidad 40%."
+      },
+      {
+        "id": "FQ3",
+        "texto": "Una ✗ sin observación es:",
+        "opciones": [
+          "Trabajo correcto",
+          "Trabajo a medias",
+          "Un bug del sistema",
+          "Una bandera roja"
+        ],
+        "correcta": 1,
+        "explicacion": "Trabajo a medias. Falta el por qué."
+      },
+      {
+        "id": "FQ4",
+        "texto": "Tu jefa directa es:",
+        "opciones": [
+          "El C.P. Germán Solís",
+          "Mónica Solís (Dirección)",
+          "La cajera",
+          "El gerente"
+        ],
+        "correcta": 1,
+        "explicacion": "Mónica Solís, Dirección Grupo Toda."
+      },
+      {
+        "id": "FQ5",
+        "texto": "Si la cajera no cuadra efectivo, ¿qué haces?",
+        "opciones": [
+          "Cuadrar el efectivo yo misma",
+          "Marcar ✗, escribir observación con el detalle, abrir hallazgo si requiere seguimiento",
+          "Cerrar el restaurante",
+          "Llamar al auditor"
+        ],
+        "correcta": 1,
+        "explicacion": "Documentar y escalar. No ejecutar."
+      }
+    ]
+  }
+}

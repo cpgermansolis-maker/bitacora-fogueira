@@ -321,6 +321,24 @@ const SHEET_DEFINITIONS = [
     rows: []
   },
   {
+    // Capacitación · progreso de cada usuario por módulo/intento.
+    // Un usuario puede tener N intentos del mismo módulo; el certificado
+    // se calcula con el MEJOR score por módulo (reintentos ilimitados).
+    // score = % de aciertos del quiz (0-100). aprobado = score >= umbral.
+    name: 'Cursos_Progreso',
+    headers: ['timestamp', 'usuario_email', 'curso_id', 'modulo_id', 'intento', 'score', 'aprobado', 'respuestas_json', 'tipo'],
+    rows: []
+  },
+  {
+    // Certificados emitidos. Se inserta una fila cuando el usuario completa
+    // todos los módulos del curso con score promedio >= umbral. Si vuelve a
+    // mejorar después (suma de mejores intentos), se actualiza el score
+    // pero la fecha original se conserva.
+    name: 'Cursos_Certificados',
+    headers: ['id', 'curso_id', 'usuario_email', 'fecha_emision', 'score_final', 'firmante_nombre', 'firmante_rol'],
+    rows: []
+  },
+  {
     name: 'Bitacora_Comentarios',
     headers: ['timestamp', 'usuario_email', 'tipo', 'pilar', 'objeto_id', 'mensaje', 'leido'],
     rows: []

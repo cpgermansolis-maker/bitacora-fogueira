@@ -1,0 +1,239 @@
+{
+  "id": "monica",
+  "titulo": "Supervisión Estratégica de Fogueira",
+  "subtitulo": "Curso de certificación para la jefa de supervisión y enlace con dirección",
+  "rol_objetivo": "gerente",
+  "destinatario_descripcion": "Mónica Solís · Dirección Grupo Toda",
+  "duracion_estimada_horas": 5,
+  "umbral_aprobacion": 80,
+  "presentacion": "Bienvenida al curso oficial de certificación de la Bitácora de Supervisión Fogueira para Dirección. Este programa te certifica como Supervisora Estratégica una vez que demuestres que dominas la misión del sistema, sabes leer el semáforo de desempeño de Estefanía, sabes cuándo y cómo escalar hallazgos a dirección, y entiendes cómo certificar el trabajo de tu supervisora.",
+  "modulos": [
+    {
+      "id": "M1",
+      "numero": 1,
+      "titulo": "La misión del sistema",
+      "duracion_min": 25,
+      "objetivos": [
+        "Entender por qué existe la Bitácora de Supervisión",
+        "Reconocer los 3 pilares y por qué importan a Dirección",
+        "Diferenciar tu rol (revisar a la supervisora) del rol de ella (vigilar la operación)"
+      ],
+      "contenido_html": "<h2>¿Por qué existe este sistema?</h2><p>Fogueira es un restaurante de Grupo Toda bajo tu dirección. Para que el negocio funcione con orden, hay tres pilares operativos que tienen que sostenerse cada día:</p><ul><li><strong>Pilar A · Soft Restaurant 12</strong> — el sistema de punto de venta, inventario y reportes. El cerebro digital del restaurante.</li><li><strong>Pilar B · Conciliación diaria</strong> — el arqueo, las banderas rojas, las cortesías, los depósitos. El candado que evita fugas.</li><li><strong>Pilar C · Inventarios y compras</strong> — desde la solicitud hasta el surtimiento al área. La arteria que mueve los recursos.</li></ul><p>Antes de la Bitácora, no había evidencia diaria de que estos tres pilares se operaran bien. Tú confiabas en la palabra de los responsables — y cuando algo se rompía, descubrirlo tomaba semanas. Para entonces, la fuga ya había ocurrido.</p><h2>Cómo cambia tu rol con este sistema</h2><p>La Bitácora puso a <strong>Estefanía como supervisora operativa</strong> — ella revisa cada día (lunes a sábado) que los 3 pilares se hayan operado bien. Marca check si sí, X si no, y deja observaciones que documentan qué se rompió.</p><p>Tu rol como Dirección cambia así:</p><ul><li>Antes: tú revisabas operación + tú revisabas a quien la operaba + tú reportabas.</li><li>Ahora: <strong>Estefanía revisa operación</strong>. <strong>Tú revisas a Estefanía</strong>. Y reportas a tus socios con evidencia firme.</li></ul><p>El sistema te entrega un <strong>semáforo</strong> que califica el desempeño de Estefanía en un rango de fechas. El puntaje va de 0 a 100, con color (verde/amarillo/naranja/rojo). Eso es <em>tu</em> tablero — el que te dice si Estefanía está cumpliendo o necesita apoyo.</p><h2>Qué se espera de ti</h2><ol><li><strong>Revisar el semáforo de Estefanía cada semana</strong> (viernes). Si está verde, mensaje breve de felicitación. Si baja, conversación con Estefanía esa misma semana.</li><li><strong>Cerrar hallazgos</strong> que Estefanía deja abiertos. Tú o Germán los marcan como atendidos cuando el problema operativo se resolvió.</li><li><strong>Reporte mensual a tus socios</strong> con la evidencia que el sistema genera (último viernes del mes).</li><li><strong>Certificar a Estefanía</strong> firmando este curso una vez que ella lo apruebe, y validando su desempeño operativo cada trimestre.</li></ol><h2>Pero recuerda</h2><blockquote><strong>Tú no operas el restaurante ni capturas las marcas diarias. Tú revisas a quien lo hace.</strong></blockquote><p>Si encuentras que Estefanía no marcó algo, no lo marques tú. Pregúntale, documenta y dale apoyo para que cierre el ciclo ella misma. Tu valor está en la conversación estratégica, no en sustituir el trabajo operativo.</p>",
+      "quiz": {
+        "preguntas": [
+          {
+            "id": "M1Q1",
+            "texto": "¿Cuál es tu rol principal dentro del sistema?",
+            "opciones": [
+              "Operar las tareas diarias del restaurante",
+              "Marcar el checklist de los 3 pilares cada día",
+              "Revisar el desempeño de Estefanía y cerrar el ciclo estratégico con dirección",
+              "Sustituir a Estefanía cuando no está"
+            ],
+            "correcta": 2,
+            "explicacion": "Estefanía vigila la operación; tú revisas a Estefanía. Tu valor está en la conversación estratégica y el reporte a dirección."
+          },
+          {
+            "id": "M1Q2",
+            "texto": "Si descubres que Estefanía olvidó marcar un ítem, ¿qué haces?",
+            "opciones": [
+              "Marco yo el ítem para resolver el faltante",
+              "Lo ignoro porque no es mi rol",
+              "Le pregunto qué pasó, documento la conversación y le doy apoyo para que cierre ella misma",
+              "Le pongo una sanción"
+            ],
+            "correcta": 2,
+            "explicacion": "Tu valor es la conversación, no sustituir el trabajo operativo. Si marcas tú, contaminas la medición del semáforo."
+          },
+          {
+            "id": "M1Q3",
+            "texto": "¿Con qué frecuencia debes revisar el semáforo de Estefanía?",
+            "opciones": [
+              "Diaria",
+              "Semanal (viernes)",
+              "Trimestral",
+              "Cuando se acuerde uno"
+            ],
+            "correcta": 1,
+            "explicacion": "Cada viernes, junto con el reporte semanal que ella te envía."
+          },
+          {
+            "id": "M1Q4",
+            "texto": "¿Qué representan los 3 pilares?",
+            "opciones": [
+              "Mañana, tarde y noche",
+              "Cocina, bar y caja",
+              "Soft Restaurant 12, Conciliación diaria, Inventarios y compras",
+              "Cliente, empleado y proveedor"
+            ],
+            "correcta": 2,
+            "explicacion": "Pilar A: SR12. Pilar B: Conciliación. Pilar C: Inventarios y compras."
+          },
+          {
+            "id": "M1Q5",
+            "texto": "¿Quién certifica el curso de capacitación de Estefanía?",
+            "opciones": [
+              "El C.P. Germán Solís",
+              "Tú (Mónica Solís · Dirección Grupo Toda)",
+              "El propio sistema sin firma humana",
+              "Estefanía se auto-certifica"
+            ],
+            "correcta": 1,
+            "explicacion": "Tú firmas el certificado de Estefanía. Tu propio certificado lo firma el sistema en nombre de Dirección Grupo Toda."
+          },
+          {
+            "id": "M1Q6",
+            "texto": "Si el semáforo de Estefanía marca rojo dos semanas seguidas, ¿qué priorizas?",
+            "opciones": [
+              "Marco yo las actividades atrasadas",
+              "Conversación estructurada con Estefanía esa misma semana — entender la causa raíz",
+              "Despido inmediato",
+              "Llamar al C.P. Germán para que decida"
+            ],
+            "correcta": 1,
+            "explicacion": "Antes de escalar o sustituir, entiende qué está pasando. Puede ser falta de capacitación, sobrecarga, una herramienta rota o un proceso mal definido. La conversación primero, la decisión después."
+          }
+        ]
+      }
+    },
+    {
+      "id": "M2",
+      "numero": 2,
+      "titulo": "Tu rol como jefa de la supervisora",
+      "duracion_min": 30,
+      "objetivos": ["Diferenciar revisar a la supervisora vs. operar el restaurante", "Manejar la conversación semanal con Estefanía", "Decidir cuándo escalar a Germán o a socios"],
+      "contenido_html": "<p><em>Contenido completo en preparación.</em></p>",
+      "quiz": { "preguntas": [{"id":"M2Q1","texto":"[Placeholder] ¿Qué haces si Estefanía pide ayuda con un proceso?","opciones":["Lo resuelves tú","La acompañas a resolverlo, no la sustituyes"],"correcta":1,"explicacion":"Acompañar, no sustituir."}] },
+      "disponible": false
+    },
+    {
+      "id": "M3",
+      "numero": 3,
+      "titulo": "Lectura del semáforo de desempeño",
+      "duracion_min": 40,
+      "objetivos": ["Interpretar el puntaje 0-100 y el color", "Entender los umbrales adaptativos (rampa 90d)", "Leer el histórico semanal del puntaje"],
+      "contenido_html": "<p><em>Contenido completo en preparación.</em></p>",
+      "quiz": { "preguntas": [{"id":"M3Q1","texto":"[Placeholder] ¿Qué significa color naranja?","opciones":["Felicitar","Atención requerida","No conforme"],"correcta":1,"explicacion":"Naranja = atención requerida (rango intermedio)."}] },
+      "disponible": false
+    },
+    {
+      "id": "M4",
+      "numero": 4,
+      "titulo": "Cobertura — interpretarla y reaccionar",
+      "duracion_min": 35,
+      "objetivos": ["Saber qué es esperadas vs atendidas", "Reaccionar cuando cobertura baja", "Distinguir cobertura por pilar A/B/C"],
+      "contenido_html": "<p><em>Contenido completo en preparación.</em></p>",
+      "quiz": { "preguntas": [{"id":"M4Q1","texto":"[Placeholder] Cobertura mide:","opciones":["Cuántas X tiene","Qué porcentaje de marcas esperadas dejó capturadas"],"correcta":1,"explicacion":"Cobertura = atendidas / esperadas."}] },
+      "disponible": false
+    },
+    {
+      "id": "M5",
+      "numero": 5,
+      "titulo": "Profundidad — ¿superficial o exhaustiva?",
+      "duracion_min": 30,
+      "objetivos": ["Entender por qué una ✗ sin observación es trabajo a medias", "Leer profundidad por módulo/etapa", "Conversación con Estefanía cuando profundidad baja"],
+      "contenido_html": "<p><em>Contenido completo en preparación.</em></p>",
+      "quiz": { "preguntas": [{"id":"M5Q1","texto":"[Placeholder] Profundidad 100% significa:","opciones":["No tiene X","Todas sus X tienen observación"],"correcta":1,"explicacion":"Profundidad = % de no-cumplidos con observación. 100% = trabajo completo."}] },
+      "disponible": false
+    },
+    {
+      "id": "M6",
+      "numero": 6,
+      "titulo": "Hallazgos — qué cerrar y cuándo escalar",
+      "duracion_min": 35,
+      "objetivos": ["Saber cuándo cerrar tú un hallazgo", "Identificar hallazgos que se deben escalar a Germán/socios", "Manejar la edad de pendientes"],
+      "contenido_html": "<p><em>Contenido completo en preparación.</em></p>",
+      "quiz": { "preguntas": [{"id":"M6Q1","texto":"[Placeholder] Un hallazgo de más de 30 días:","opciones":["Es normal","Es señal de proceso atorado, requiere intervención"],"correcta":1,"explicacion":"Edad > 30d es alerta de proceso atorado."}] },
+      "disponible": false
+    },
+    {
+      "id": "M7",
+      "numero": 7,
+      "titulo": "Impacto en los pilares",
+      "duracion_min": 40,
+      "objetivos": ["Leer la sub-pestaña Impacto", "Conectar el trabajo de Estefanía con la evolución del SR12, conciliación e inventarios", "Detectar mejoras vs deterioros"],
+      "contenido_html": "<p><em>Contenido completo en preparación.</em></p>",
+      "quiz": { "preguntas": [{"id":"M7Q1","texto":"[Placeholder] Si el Pilar A sube de 60 a 75 en 30 días:","opciones":["Estafa","Mejora real apoyada por la supervisión"],"correcta":1,"explicacion":"Δ positivo en un pilar suele acompañar a buena cobertura/profundidad de la supervisora."}] },
+      "disponible": false
+    },
+    {
+      "id": "M8",
+      "numero": 8,
+      "titulo": "Reporte a dirección y certificación de Estefanía",
+      "duracion_min": 30,
+      "objetivos": ["Estructurar el reporte mensual a socios", "Usar el texto ejecutivo del semáforo", "Firmar la certificación trimestral de Estefanía"],
+      "contenido_html": "<p><em>Contenido completo en preparación.</em></p>",
+      "quiz": { "preguntas": [{"id":"M8Q1","texto":"[Placeholder] El reporte mensual a socios se envía:","opciones":["Cualquier día","Último viernes del mes con el texto ejecutivo del semáforo"],"correcta":1,"explicacion":"Cierre mensual = último viernes; usa el texto ejecutivo generado por el sistema."}] },
+      "disponible": false
+    }
+  ],
+  "examen_final": {
+    "id": "FINAL",
+    "titulo": "Examen final de certificación",
+    "n_preguntas": 25,
+    "umbral_aprobacion": 80,
+    "instrucciones": "Examen final del curso. Reúne preguntas de los 8 módulos. Necesitas 80% de aciertos para obtener tu certificado de Supervisora Estratégica firmado por Dirección Grupo Toda. Puedes intentarlo cuantas veces necesites; queda registrado tu mejor score.",
+    "preguntas": [
+      {
+        "id": "FQ1",
+        "texto": "¿Tu rol dentro del sistema es?",
+        "opciones": [
+          "Operar el restaurante",
+          "Revisar el desempeño de Estefanía y cerrar el ciclo estratégico",
+          "Capturar las marcas diarias",
+          "Atender clientes"
+        ],
+        "correcta": 1,
+        "explicacion": "Tú revisas a la supervisora, no operas."
+      },
+      {
+        "id": "FQ2",
+        "texto": "Si Estefanía no marcó un ítem, ¿qué haces?",
+        "opciones": [
+          "Lo marco yo",
+          "Le pregunto, documento la conversación y le doy apoyo para que cierre ella",
+          "Le bajo el sueldo",
+          "Lo escalo a Germán inmediatamente"
+        ],
+        "correcta": 1,
+        "explicacion": "Conversación + apoyo. Sustituirla contamina la medición."
+      },
+      {
+        "id": "FQ3",
+        "texto": "El semáforo se revisa:",
+        "opciones": [
+          "Diario",
+          "Semanal (viernes)",
+          "Anual",
+          "Nunca"
+        ],
+        "correcta": 1,
+        "explicacion": "Cada viernes."
+      },
+      {
+        "id": "FQ4",
+        "texto": "Cobertura mide:",
+        "opciones": [
+          "Profundidad de las observaciones",
+          "Porcentaje de marcas esperadas que la supervisora dejó capturadas",
+          "Cuántas banderas rojas hubo",
+          "El sueldo de Estefanía"
+        ],
+        "correcta": 1,
+        "explicacion": "Cobertura = atendidas / esperadas."
+      },
+      {
+        "id": "FQ5",
+        "texto": "El certificado de Estefanía lo firma:",
+        "opciones": [
+          "El C.P. Germán",
+          "Tú (Mónica Solís · Dirección Grupo Toda)",
+          "El sistema sin firma humana",
+          "Nadie"
+        ],
+        "correcta": 1,
+        "explicacion": "Tú firmas el de ella. El tuyo lo firma el sistema como Dirección."
+      }
+    ]
+  }
+}

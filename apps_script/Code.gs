@@ -40,7 +40,9 @@ const SHEETS = {
   PILAR_C_CK_MARCAS: 'PilarC_ChecklistMarcas',
   COMENTARIOS: 'Bitacora_Comentarios',
   BITACORA: 'Bitacora_Sistema',
-  HALLAZGOS_ATENDIDOS: 'Hallazgos_Atendidos'
+  HALLAZGOS_ATENDIDOS: 'Hallazgos_Atendidos',
+  CURSOS_PROGRESO: 'Cursos_Progreso',
+  CURSOS_CERTIFICADOS: 'Cursos_Certificados'
 };
 
 // Hoja Hallazgos_Atendidos: creada on-demand la primera vez que alguien marca
@@ -114,6 +116,10 @@ function doPost(e) {
         case 'addUsuario':         response = addUsuario(user, payload); break;
         case 'updateUsuario':      response = updateUsuario(user, payload); break;
         case 'deleteUsuario':      response = deleteUsuario(user, payload); break;
+        case 'getCursoUsuario':    response = getCursoUsuario(user); break;
+        case 'enviarRespuestasQuiz': response = enviarRespuestasQuiz(user, payload); break;
+        case 'getCertificado':     response = getCertificado(user, payload); break;
+        case 'getProgresoEquipo':  response = getProgresoEquipo(user); break;
         default: throw new Error('Acción desconocida: ' + action);
       }
     }

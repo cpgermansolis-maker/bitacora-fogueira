@@ -565,6 +565,256 @@ body.has-modo-banner .nav { top: calc(70px + 40px); }
 }
 .ejecutivo-box p { margin: 0; }
 
+/* =========================================================
+   CAPACITACIÓN — Curso de certificación (v21)
+   ========================================================= */
+.cap-presentacion {
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-left: 3px solid var(--gold-deep); border-radius: 4px;
+  padding: 0.9rem 1.1rem; line-height: 1.6; font-size: 0.92rem;
+  margin: 0 0 1.5rem 0;
+}
+
+.cap-progreso-bar {
+  display: grid; grid-template-columns: 1fr auto auto;
+  gap: 0.75rem; align-items: center; margin: 0 0 1.25rem 0;
+}
+.cap-progreso-lbl { font-size: 0.85rem; color: var(--ink-soft); }
+.cap-progreso-track {
+  width: 280px; height: 14px;
+  background: var(--bg-paper); border: 1px solid var(--border); border-radius: 3px;
+  overflow: hidden;
+}
+.cap-progreso-fill { height: 100%; background: var(--gold-deep); transition: width 0.4s; }
+.cap-progreso-pct {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 1.1rem; color: var(--ink); font-variant-numeric: tabular-nums;
+}
+@media (max-width: 700px) {
+  .cap-progreso-bar { grid-template-columns: 1fr; }
+  .cap-progreso-track { width: 100%; }
+}
+
+.cap-modulos-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem; margin: 0 0 2rem 0;
+}
+.cap-modulo-card {
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: 4px; padding: 1rem 1.1rem;
+  display: flex; flex-direction: column; gap: 0.5rem;
+  transition: border-color 0.15s;
+}
+.cap-modulo-card:hover { border-color: var(--gold-deep); }
+.cap-modulo-card.cap-aprobado { border-left: 4px solid var(--green); background: var(--green-bg); }
+.cap-modulo-card.cap-locked { opacity: 0.6; background: var(--bg-paper); }
+.cap-modulo-card.cap-locked:hover { border-color: var(--border); }
+.cap-modulo-card.cap-final { border-top: 3px solid var(--gold-deep); }
+.cap-modulo-num {
+  font-size: 0.7rem; color: var(--ink-soft);
+  text-transform: uppercase; letter-spacing: 0.12em; font-weight: 600;
+}
+.cap-modulo-titulo {
+  font-family: var(--font-display); font-weight: 600;
+  font-size: 1.05rem; line-height: 1.3; margin: 0;
+}
+.cap-modulo-meta { font-size: 0.78rem; color: var(--ink-muted); }
+.cap-modulo-score { font-size: 0.82rem; color: var(--ink); }
+.cap-modulo-action { margin-top: auto; padding-top: 0.5rem; }
+.cap-pill {
+  display: inline-block; padding: 0.25rem 0.6rem; font-size: 0.75rem;
+  border-radius: 3px; border: 1px solid var(--border);
+}
+.cap-pill-locked { background: var(--bg-paper); color: var(--ink-soft); }
+
+/* Banner de certificado emitido (clickable) */
+.cap-cert-banner {
+  display: grid; grid-template-columns: auto 1fr auto;
+  gap: 1rem; align-items: center; cursor: pointer;
+  padding: 0.9rem 1.1rem; margin: 0 0 1.25rem 0;
+  background: var(--green-bg); border: 1px solid var(--green);
+  border-left: 4px solid var(--green); border-radius: 4px;
+}
+.cap-cert-banner:hover { background: #C8DEC4; }
+.cap-cert-icon {
+  font-size: 2rem; color: var(--green); line-height: 1;
+  width: 44px; height: 44px; display: grid; place-items: center;
+  background: white; border: 2px solid var(--green); border-radius: 50%;
+}
+.cap-cert-text { line-height: 1.4; }
+.cap-cert-text strong { display: block; font-size: 1rem; margin-bottom: 0.2rem; }
+.cap-cert-text div { font-size: 0.88rem; color: var(--ink); }
+
+/* Shell del módulo / quiz */
+.cap-modulo-shell { max-width: 820px; margin: 0 auto; }
+.cap-modulo-h1 {
+  font-family: var(--font-display); font-size: 1.6rem; font-weight: 600;
+  margin: 0 0 1rem 0; line-height: 1.25;
+}
+.cap-objetivos {
+  background: var(--gold-soft); border: 1px solid var(--gold-deep);
+  border-radius: 4px; padding: 0.9rem 1.1rem; margin-bottom: 1.25rem;
+}
+.cap-objetivos h4 { margin: 0 0 0.5rem 0; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gold-deep); }
+.cap-objetivos ul { margin: 0; padding-left: 1.2rem; }
+.cap-objetivos li { line-height: 1.5; margin-bottom: 0.25rem; }
+
+.cap-contenido {
+  font-size: 0.95rem; line-height: 1.65; color: var(--ink);
+  margin-bottom: 1.5rem;
+}
+.cap-contenido h2 {
+  font-family: var(--font-display); font-size: 1.25rem;
+  margin: 1.5rem 0 0.6rem 0; color: var(--ink);
+}
+.cap-contenido h2:first-child { margin-top: 0; }
+.cap-contenido p { margin: 0 0 1rem 0; }
+.cap-contenido ul, .cap-contenido ol { padding-left: 1.5rem; margin: 0 0 1rem 0; }
+.cap-contenido li { margin-bottom: 0.4rem; }
+.cap-contenido blockquote {
+  border-left: 4px solid var(--gold-deep);
+  background: var(--gold-soft);
+  margin: 1rem 0; padding: 0.8rem 1.1rem;
+  font-style: italic; font-size: 1rem;
+}
+
+.cap-cta { margin: 1.5rem 0; text-align: right; }
+.cap-cta-row { display: flex; gap: 0.75rem; margin: 1rem 0; flex-wrap: wrap; }
+
+/* Preguntas */
+.cap-q {
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: 4px; padding: 1rem 1.1rem; margin-bottom: 0.9rem;
+}
+.cap-q-num {
+  font-size: 0.72rem; color: var(--ink-soft);
+  text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.4rem;
+}
+.cap-q-text { font-size: 1rem; line-height: 1.5; margin-bottom: 0.7rem; font-weight: 500; }
+.cap-q-options { display: flex; flex-direction: column; gap: 0.5rem; }
+.cap-q-option {
+  display: flex; gap: 0.6rem; align-items: flex-start;
+  padding: 0.55rem 0.75rem; border: 1px solid var(--border);
+  border-radius: 3px; cursor: pointer; background: var(--bg-paper);
+  transition: border-color 0.15s, background 0.15s;
+}
+.cap-q-option:hover { border-color: var(--gold-deep); background: var(--gold-soft); }
+.cap-q-option input { margin-top: 0.25rem; flex-shrink: 0; }
+.cap-q-option span { line-height: 1.45; font-size: 0.93rem; }
+
+/* Resultado del quiz */
+.cap-resultado-hero {
+  display: grid; grid-template-columns: auto 1fr; gap: 1.5rem;
+  align-items: center; padding: 1.25rem; margin: 0 0 1.25rem 0;
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: 4px;
+}
+.cap-resultado-lbl { font-size: 0.95rem; line-height: 1.45; }
+.cap-resultado-detalle { display: flex; flex-direction: column; gap: 0.8rem; }
+.cap-q-result {
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: 4px; padding: 0.9rem 1.1rem;
+}
+.cap-q-result.q-ok   { border-left: 4px solid var(--green); }
+.cap-q-result.q-fail { border-left: 4px solid var(--red); }
+.cap-q-option-result {
+  padding: 0.4rem 0.6rem; border-radius: 3px;
+  font-size: 0.88rem; font-family: monospace;
+  margin-bottom: 0.2rem; background: var(--bg-paper);
+}
+.cap-q-option-result.opt-correcta {
+  background: var(--green-bg); color: var(--green); font-weight: 600;
+}
+.cap-q-option-result.opt-elegida-mal {
+  background: var(--red-bg); color: var(--red); text-decoration: line-through;
+}
+.cap-q-expl {
+  margin-top: 0.6rem; padding: 0.5rem 0.75rem;
+  background: var(--gold-soft); border-radius: 3px;
+  font-size: 0.88rem; line-height: 1.45;
+}
+
+/* =========================================================
+   CERTIFICADO — vista imprimible
+   ========================================================= */
+.cap-cert-controles { margin-bottom: 1rem; text-align: right; }
+.certificado {
+  background: #FBF7EE; padding: 3rem 2rem;
+  margin: 0 auto; max-width: 820px;
+  position: relative; border: 1px solid var(--border);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+.cert-bordes {
+  border: 3px double var(--gold-deep); padding: 2.5rem 2rem;
+  position: relative; background: #FBF7EE;
+}
+.cert-corner {
+  position: absolute; width: 24px; height: 24px;
+  border: 2px solid var(--gold-deep);
+}
+.cert-corner.cert-tl { top: -3px; left: -3px; border-right: none; border-bottom: none; }
+.cert-corner.cert-tr { top: -3px; right: -3px; border-left: none; border-bottom: none; }
+.cert-corner.cert-bl { bottom: -3px; left: -3px; border-right: none; border-top: none; }
+.cert-corner.cert-br { bottom: -3px; right: -3px; border-left: none; border-top: none; }
+.cert-content { text-align: center; }
+.cert-marca {
+  font-size: 0.85rem; letter-spacing: 0.3em;
+  color: var(--gold-deep); font-weight: 700;
+  margin-bottom: 1.5rem; text-transform: uppercase;
+}
+.cert-titulo {
+  font-family: var(--font-display); font-size: 2.5rem; font-weight: 600;
+  color: var(--ink); margin-bottom: 2rem; line-height: 1.1;
+}
+.cert-otorga {
+  font-size: 0.95rem; color: var(--ink-soft); margin-bottom: 0.8rem;
+  font-style: italic;
+}
+.cert-nombre {
+  font-family: var(--font-display); font-size: 2.2rem; font-weight: 700;
+  color: var(--gold-deep); margin-bottom: 1.5rem; line-height: 1.2;
+  border-bottom: 1px solid var(--gold-deep); padding-bottom: 0.8rem;
+}
+.cert-descripcion {
+  font-size: 1.05rem; line-height: 1.7; color: var(--ink);
+  margin-bottom: 2rem;
+}
+.cert-detalles {
+  display: flex; justify-content: center; gap: 2rem;
+  font-size: 0.88rem; margin-bottom: 2.5rem; color: var(--ink-soft);
+}
+.cert-firma {
+  margin-top: 3rem;
+  display: inline-block; padding-top: 0.5rem;
+}
+.cert-linea-firma {
+  width: 280px; height: 1px;
+  background: var(--ink); margin: 0 auto 0.5rem;
+}
+.cert-firmante-nombre {
+  font-family: var(--font-display); font-size: 1.05rem; font-weight: 600;
+  color: var(--ink);
+}
+.cert-firmante-rol {
+  font-size: 0.82rem; color: var(--ink-soft);
+  text-transform: uppercase; letter-spacing: 0.1em; margin-top: 0.2rem;
+}
+
+@media print {
+  /* Solo el certificado debe imprimirse */
+  body * { visibility: hidden; }
+  .certificado, .certificado * { visibility: visible; }
+  .certificado { position: absolute; top: 0; left: 0; right: 0; box-shadow: none; }
+  .nav, .footer, .modo-banner, .cap-cert-controles, .btn-primary, .btn-secondary { display: none !important; }
+}
+@media (max-width: 700px) {
+  .cap-resultado-hero { grid-template-columns: 1fr; text-align: center; }
+  .cap-resultado-hero .big-number { font-size: 3rem !important; }
+  .cert-titulo { font-size: 1.8rem; }
+  .cert-nombre { font-size: 1.5rem; }
+  .cert-detalles { flex-direction: column; gap: 0.4rem; }
+}
+
 /* Dashboard de evolución del Pilar A. */
 .evol-hero {
   display: grid; grid-template-columns: 1fr 1fr 2fr; gap: 1rem;
@@ -1755,6 +2005,7 @@ body.has-modo-banner .nav { top: calc(70px + 40px); }
     <button class="nav-tab" data-view="pilar-b">Pilar B · Conciliación</button>
     <button class="nav-tab" data-view="pilar-c">Pilar C · Inventarios</button>
     <button class="nav-tab" data-view="supervision" data-roles="auditor,gerente" style="display:none;">Supervisión</button>
+    <button class="nav-tab" data-view="capacitacion">Capacitación</button>
     <button class="nav-tab" data-view="reporte">Reporte</button>
     <button class="nav-tab" data-view="usuarios" data-rol="auditor" style="display:none;">Usuarios</button>
   </div>
@@ -1814,6 +2065,11 @@ body.has-modo-banner .nav { top: calc(70px + 40px); }
   <!-- SUPERVISIÓN — desempeño de la supervisora en rango libre (auditor/gerente) -->
   <section class="view" id="view-supervision">
     <div id="supervision-content"><div class="empty-state"><div class="spinner"></div></div></div>
+  </section>
+
+  <!-- CAPACITACIÓN — curso de certificación según el rol -->
+  <section class="view" id="view-capacitacion">
+    <div id="capacitacion-content"><div class="empty-state"><div class="spinner"></div></div></div>
   </section>
 
   <!-- REPORTE -->
@@ -1886,7 +2142,15 @@ const State = {
   supervisionEmail: null,
   supervisionUltimo: null,
   supervisionImpactoUltimo: null,  // payload de getImpactoSupervisor
-  supervisionCandidatas: null  // [{email,nombre,rol}] activos no-auditor/gerente
+  supervisionCandidatas: null,  // [{email,nombre,rol}] activos no-auditor/gerente
+  // Capacitación — curso de certificación según rol
+  capacitacionView: 'curso',      // 'curso' | 'modulo' | 'quiz' | 'resultado' | 'certificado' | 'admin'
+  capacitacionCurso: null,        // JSON del curso (cargado desde cursos/<id>.json)
+  capacitacionEstado: null,       // payload de getCursoUsuario
+  capacitacionModuloId: null,     // 'M1', 'M2', ... 'FINAL'
+  capacitacionResultado: null,    // último resultado de enviarRespuestasQuiz
+  capacitacionEquipo: null,       // payload de getProgresoEquipo (auditor/gerente)
+  capacitacionCertVisto: null     // certificado en vista (de admin o del propio)
 };
 
 /* =========================================================
@@ -4180,6 +4444,477 @@ const App = {
       this.closeModal();
       this.render_pilar_c();
     } catch (err) { toast(err.message, true); }
+  },
+
+  /* =========================================================
+     CAPACITACIÓN — Curso de certificación según rol
+     ---------------------------------------------------------
+     Dos cursos paralelos:
+       - 'estefania' → rol administracion/auxiliar (supervisora operativa)
+       - 'monica'    → rol gerente (jefa de la supervisora)
+       - auditor     → no tiene curso, ve solo el progreso del equipo
+     El contenido editorial vive en cursos/<id>.json (estático, GitHub Pages).
+     El backend solo graba intentos/certificados y mapea rol→curso.
+     Re-intentos ilimitados. Certificado emitido al aprobar examen final.
+     ========================================================= */
+  async render_capacitacion() {
+    const c = el('capacitacion-content');
+    c.innerHTML = '<div class="empty-state"><div class="spinner"></div></div>';
+    try {
+      const estado = await apiCall('getCursoUsuario', {});
+      State.capacitacionEstado = estado;
+
+      // Auditor: no tiene curso propio. Va directo a admin.
+      if (!estado.curso_id) {
+        const data = await apiCall('getProgresoEquipo', {});
+        State.capacitacionEquipo = data.equipo;
+        State.capacitacionView = 'admin';
+        c.innerHTML = this._renderCapAdmin(data.equipo);
+        return;
+      }
+
+      // Cargar el JSON del curso si no está en cache (o si cambió el curso).
+      if (!State.capacitacionCurso || State.capacitacionCurso.id !== estado.curso_id) {
+        const res = await fetch('cursos/' + estado.curso_id + '.json?v=' + Date.now());
+        if (!res.ok) throw new Error('No se pudo cargar el contenido del curso');
+        State.capacitacionCurso = await res.json();
+      }
+      const curso = State.capacitacionCurso;
+      const view = State.capacitacionView || 'curso';
+
+      if (view === 'admin' && (State.user.rol === 'gerente' || State.user.rol === 'auditor')) {
+        const data = await apiCall('getProgresoEquipo', {});
+        State.capacitacionEquipo = data.equipo;
+        c.innerHTML = this._renderCapAdmin(data.equipo);
+      } else if (view === 'modulo') {
+        const moduloId = State.capacitacionModuloId;
+        const modulo = (curso.modulos.find(m => m.id === moduloId))
+                    || (moduloId === 'FINAL' ? curso.examen_final : null);
+        if (!modulo) { State.capacitacionView = 'curso'; this.render_capacitacion(); return; }
+        c.innerHTML = this._renderCapModulo(curso, modulo, estado);
+      } else if (view === 'quiz') {
+        c.innerHTML = this._renderCapQuiz(curso, State.capacitacionModuloId);
+      } else if (view === 'resultado') {
+        c.innerHTML = this._renderCapResultado(State.capacitacionResultado, curso);
+      } else if (view === 'certificado') {
+        const cert = State.capacitacionCertVisto || estado.certificado;
+        c.innerHTML = this._renderCapCertificado(cert, curso, estado.usuario);
+      } else {
+        c.innerHTML = this._renderCapCurso(curso, estado);
+      }
+    } catch (err) {
+      c.innerHTML = `<div class="empty-state"><p>${escapeHtml(err.message)}</p></div>`;
+    }
+  },
+
+  // Cambia la vista interna de capacitación sin re-pedir todo.
+  cap_setView(view, moduloId) {
+    State.capacitacionView = view;
+    if (moduloId !== undefined) State.capacitacionModuloId = moduloId;
+    this.render_capacitacion();
+  },
+
+  // ---- Vista 1 · landing del curso (lista de módulos + progreso) ----
+  _renderCapCurso(curso, estado) {
+    const mejor = estado.mejor_por_modulo || {};
+    const intentos = estado.intentos_por_modulo || {};
+    const aprobadosCount = curso.modulos.filter(m => mejor[m.id] && mejor[m.id].aprobado).length;
+    const total = curso.modulos.length;
+    const pctAvance = total > 0 ? Math.round((aprobadosCount * 100) / total) : 0;
+    const finalAprobado = mejor['FINAL'] && mejor['FINAL'].aprobado;
+    const todosLosModulosAprobados = aprobadosCount === total;
+    const esRevisor = State.user.rol === 'auditor' || State.user.rol === 'gerente';
+
+    const tarjetas = curso.modulos.map(m => {
+      const estaAprobado = mejor[m.id] && mejor[m.id].aprobado;
+      const ms = mejor[m.id];
+      const nIntentos = intentos[m.id] || 0;
+      const dispo = m.disponible !== false; // por defecto disponible
+      const cls = !dispo ? 'cap-modulo-card cap-locked'
+                : estaAprobado ? 'cap-modulo-card cap-aprobado'
+                : 'cap-modulo-card';
+      const action = !dispo
+        ? `<span class="cap-pill cap-pill-locked">En preparación</span>`
+        : estaAprobado
+          ? `<button class="btn-secondary" style="margin:0;width:auto;" onclick="App.cap_setView('modulo', '${m.id}')">Repasar</button>`
+          : `<button class="btn-primary" style="margin:0;width:auto;" onclick="App.cap_setView('modulo', '${m.id}')">${nIntentos > 0 ? 'Continuar' : 'Empezar'}</button>`;
+      const scoreLine = ms
+        ? `<div class="cap-modulo-score">Mejor score: <strong>${ms.score}%</strong>${ms.aprobado ? ' · aprobado' : ''}${nIntentos > 1 ? ' · ' + nIntentos + ' intentos' : ''}</div>`
+        : (nIntentos > 0 ? `<div class="cap-modulo-score muted">${nIntentos} intento(s) sin aprobar</div>` : '');
+      return `
+        <div class="${cls}">
+          <div class="cap-modulo-num">Módulo ${m.numero}</div>
+          <h3 class="cap-modulo-titulo">${escapeHtml(m.titulo)}</h3>
+          <div class="cap-modulo-meta">${m.duracion_min} min${m.objetivos ? ' · ' + m.objetivos.length + ' objetivos' : ''}</div>
+          ${scoreLine}
+          <div class="cap-modulo-action">${action}</div>
+        </div>
+      `;
+    }).join('');
+
+    // Tarjeta del examen final: aparece desbloqueada solo si todos los módulos están aprobados.
+    const ef = curso.examen_final;
+    const efMejor = mejor['FINAL'];
+    const efIntentos = intentos['FINAL'] || 0;
+    const efDispo = todosLosModulosAprobados;
+    const efCls = !efDispo ? 'cap-modulo-card cap-locked'
+                : (efMejor && efMejor.aprobado) ? 'cap-modulo-card cap-aprobado cap-final'
+                : 'cap-modulo-card cap-final';
+    const efAction = !efDispo
+      ? `<span class="cap-pill cap-pill-locked">Aprueba todos los módulos primero</span>`
+      : (efMejor && efMejor.aprobado)
+        ? `<button class="btn-secondary" style="margin:0;width:auto;" onclick="App.cap_setView('modulo', 'FINAL')">Repetir examen</button>`
+        : `<button class="btn-primary" style="margin:0;width:auto;" onclick="App.cap_setView('modulo', 'FINAL')">${efIntentos > 0 ? 'Reintentar examen' : 'Tomar examen final'}</button>`;
+    const efScore = efMejor
+      ? `<div class="cap-modulo-score">Mejor score: <strong>${efMejor.score}%</strong>${efMejor.aprobado ? ' · ¡aprobado!' : ''}${efIntentos > 1 ? ' · ' + efIntentos + ' intentos' : ''}</div>`
+      : '';
+    const finalCard = `
+      <div class="${efCls}">
+        <div class="cap-modulo-num">Examen final</div>
+        <h3 class="cap-modulo-titulo">${escapeHtml(ef.titulo)}</h3>
+        <div class="cap-modulo-meta">${ef.preguntas.length} preguntas · umbral ${ef.umbral_aprobacion}%</div>
+        ${efScore}
+        <div class="cap-modulo-action">${efAction}</div>
+      </div>
+    `;
+
+    // Certificado: si ya lo tiene, banner arriba con link a verlo.
+    const certBanner = estado.certificado ? `
+      <div class="cap-cert-banner" onclick="App.cap_setView('certificado')">
+        <div class="cap-cert-icon">✦</div>
+        <div class="cap-cert-text">
+          <strong>¡Curso completado!</strong>
+          <div>Tu certificado fue emitido el ${formatDate(estado.certificado.fecha_emision)} con ${estado.certificado.score_final}% de aciertos. Firmado por ${escapeHtml(estado.certificado.firmante_nombre)}.</div>
+        </div>
+        <button class="btn-primary" style="margin:0;width:auto;">Ver certificado</button>
+      </div>
+    ` : '';
+
+    const adminLink = esRevisor ? `
+      <div style="margin-bottom:1rem;">
+        <button class="btn-secondary" style="margin:0;width:auto;" onclick="App.cap_setView('admin')">Ver progreso del equipo →</button>
+      </div>
+    ` : '';
+
+    return `
+      <div class="section-head">
+        <h1><span class="badge">Capacitación</span> ${escapeHtml(curso.titulo)}</h1>
+        <div class="meta">
+          <span>${escapeHtml(curso.subtitulo)}</span>
+          <span>${curso.duracion_estimada_horas}h estimadas · umbral ${curso.umbral_aprobacion}% por módulo</span>
+        </div>
+      </div>
+      ${adminLink}
+      ${certBanner}
+      <div class="cap-progreso-bar">
+        <div class="cap-progreso-lbl">Tu avance · ${aprobadosCount} de ${total} módulos aprobados</div>
+        <div class="cap-progreso-track"><div class="cap-progreso-fill" style="width:${pctAvance}%;"></div></div>
+        <div class="cap-progreso-pct">${pctAvance}%</div>
+      </div>
+      <p class="cap-presentacion">${escapeHtml(curso.presentacion)}</p>
+      <div class="cap-modulos-grid">${tarjetas}${finalCard}</div>
+    `;
+  },
+
+  // ---- Vista 2 · contenido del módulo (lectura) ----
+  _renderCapModulo(curso, modulo, estado) {
+    const esFinal = modulo.id === 'FINAL';
+    const objetivos = modulo.objetivos ? `
+      <div class="cap-objetivos">
+        <h4>Al terminar este ${esFinal ? 'examen' : 'módulo'} sabrás:</h4>
+        <ul>${modulo.objetivos.map(o => '<li>' + escapeHtml(o) + '</li>').join('')}</ul>
+      </div>
+    ` : '';
+    const intro = esFinal
+      ? `<div class="resp-tag resp-supervisora"><strong>Instrucciones:</strong> ${escapeHtml(modulo.instrucciones || '')}</div>`
+      : '';
+    const cuerpo = esFinal ? '' : modulo.contenido_html;
+    const titulo = esFinal ? modulo.titulo : ('Módulo ' + modulo.numero + ' · ' + modulo.titulo);
+    const dispo = esFinal ? true : (modulo.disponible !== false);
+    return `
+      <div class="cap-modulo-shell">
+        <button class="btn-secondary" style="margin:0 0 1rem 0;width:auto;" onclick="App.cap_setView('curso')">← Volver al curso</button>
+        <h1 class="cap-modulo-h1">${escapeHtml(titulo)}</h1>
+        ${objetivos}
+        ${intro}
+        ${dispo ? `<div class="cap-contenido">${cuerpo}</div>` : `
+          <div class="empty-state">
+            <p>Este módulo está en preparación de contenido. Cuando esté listo, podrás tomarlo aquí mismo.</p>
+            <p class="muted">Mientras tanto, puedes ir al examen final del módulo si quieres practicar las preguntas básicas.</p>
+          </div>
+        `}
+        <div class="cap-cta">
+          <button class="btn-primary" style="margin:0;width:auto;" onclick="App.cap_setView('quiz', '${modulo.id}')">${esFinal ? 'Empezar examen final →' : 'Hacer el quiz del módulo →'}</button>
+        </div>
+      </div>
+    `;
+  },
+
+  // ---- Vista 3 · quiz / examen final ----
+  _renderCapQuiz(curso, moduloId) {
+    const modulo = (curso.modulos.find(m => m.id === moduloId))
+                || (moduloId === 'FINAL' ? curso.examen_final : null);
+    if (!modulo) return '<div class="empty-state"><p>Módulo no encontrado.</p></div>';
+    const preguntas = (modulo.quiz ? modulo.quiz.preguntas : modulo.preguntas) || [];
+    const esFinal = moduloId === 'FINAL';
+    const items = preguntas.map((p, i) => `
+      <div class="cap-q" data-qid="${escapeHtml(p.id)}">
+        <div class="cap-q-num">Pregunta ${i + 1} de ${preguntas.length}</div>
+        <div class="cap-q-text">${escapeHtml(p.texto)}</div>
+        <div class="cap-q-options">
+          ${p.opciones.map((opt, j) => `
+            <label class="cap-q-option">
+              <input type="radio" name="q-${escapeHtml(p.id)}" value="${j}">
+              <span>${escapeHtml(opt)}</span>
+            </label>
+          `).join('')}
+        </div>
+      </div>
+    `).join('');
+    return `
+      <div class="cap-modulo-shell">
+        <button class="btn-secondary" style="margin:0 0 1rem 0;width:auto;" onclick="App.cap_setView('modulo', '${moduloId}')">← Volver al ${esFinal ? 'examen' : 'módulo'}</button>
+        <h1 class="cap-modulo-h1">${esFinal ? 'Examen final' : 'Quiz · Módulo ' + modulo.numero}</h1>
+        <p class="muted">Responde todas las preguntas. Necesitas <strong>${(modulo.quiz ? modulo.quiz.umbral_aprobacion : modulo.umbral_aprobacion) || 80}%</strong> para aprobar. Puedes repetir las veces que quieras — guarda tu mejor score.</p>
+        <form id="cap-quiz-form" onsubmit="event.preventDefault(); App.cap_submitQuiz('${moduloId}');">
+          ${items}
+          <div class="cap-cta">
+            <button type="submit" class="btn-primary" style="margin:0;width:auto;">Enviar respuestas</button>
+          </div>
+        </form>
+      </div>
+    `;
+  },
+
+  // Califica el quiz en frontend, manda al backend, muestra resultado.
+  async cap_submitQuiz(moduloId) {
+    const curso = State.capacitacionCurso;
+    const modulo = (curso.modulos.find(m => m.id === moduloId))
+                || (moduloId === 'FINAL' ? curso.examen_final : null);
+    const preguntas = (modulo.quiz ? modulo.quiz.preguntas : modulo.preguntas) || [];
+    const form = el('cap-quiz-form');
+    if (!form) return;
+
+    // Recolectar respuestas y validar que estén todas.
+    const respuestas = {};
+    let faltaAlguna = false;
+    preguntas.forEach(p => {
+      const checked = form.querySelector(`input[name="q-${p.id}"]:checked`);
+      if (checked) respuestas[p.id] = Number(checked.value);
+      else faltaAlguna = true;
+    });
+    if (faltaAlguna) {
+      toast('Te falta responder al menos una pregunta', true);
+      return;
+    }
+
+    // Calificar.
+    let correctas = 0;
+    const detalle = preguntas.map(p => {
+      const elegida = respuestas[p.id];
+      const acierto = Number(p.correcta) === Number(elegida);
+      if (acierto) correctas++;
+      return {
+        id: p.id,
+        pregunta: p.texto,
+        elegida: elegida,
+        correcta: p.correcta,
+        acierto: acierto,
+        opciones: p.opciones,
+        explicacion: p.explicacion || ''
+      };
+    });
+    const score = Math.round((correctas * 100) / preguntas.length);
+    const tipo = moduloId === 'FINAL' ? 'final' : 'modulo';
+
+    try {
+      const r = await apiCall('enviarRespuestasQuiz', {
+        curso_id: curso.id,
+        modulo_id: moduloId,
+        tipo: tipo,
+        score: score,
+        respuestas: respuestas,
+        n_correctas: correctas,
+        n_total: preguntas.length
+      });
+      State.capacitacionResultado = {
+        score: score,
+        aprobado: r.aprobado,
+        umbral: r.umbral,
+        intento: r.intento,
+        n_correctas: correctas,
+        n_total: preguntas.length,
+        detalle: detalle,
+        modulo: modulo,
+        moduloId: moduloId,
+        tipo: tipo,
+        certificado_emitido: r.certificado_emitido
+      };
+      State.capacitacionEstado = r.estado;
+      this.cap_setView('resultado');
+    } catch (err) {
+      toast(err.message, true);
+    }
+  },
+
+  // ---- Vista 4 · resultado del quiz ----
+  _renderCapResultado(resultado, curso) {
+    if (!resultado) return '<div class="empty-state"><p>Sin resultado.</p></div>';
+    const r = resultado;
+    const esFinal = r.tipo === 'final';
+    const colorCls = r.aprobado ? 's-verde' : (r.score >= 50 ? 's-amarillo' : 's-rojo');
+    const detalleHtml = r.detalle.map((d, i) => `
+      <div class="cap-q-result ${d.acierto ? 'q-ok' : 'q-fail'}">
+        <div class="cap-q-num">Pregunta ${i + 1} ${d.acierto ? '· ✓ correcta' : '· ✗ incorrecta'}</div>
+        <div class="cap-q-text">${escapeHtml(d.pregunta)}</div>
+        <div class="cap-q-options">
+          ${d.opciones.map((opt, j) => {
+            let cls = '';
+            if (j === d.correcta) cls = 'opt-correcta';
+            else if (j === d.elegida) cls = 'opt-elegida-mal';
+            return `<div class="cap-q-option-result ${cls}">${j === d.correcta ? '✓ ' : (j === d.elegida ? '✗ ' : '  ')}${escapeHtml(opt)}</div>`;
+          }).join('')}
+        </div>
+        ${d.explicacion ? `<div class="cap-q-expl"><strong>Por qué:</strong> ${escapeHtml(d.explicacion)}</div>` : ''}
+      </div>
+    `).join('');
+
+    const certBanner = r.certificado_emitido ? `
+      <div class="cap-cert-banner" onclick="App.cap_setView('certificado')">
+        <div class="cap-cert-icon">✦</div>
+        <div class="cap-cert-text">
+          <strong>¡Certificado emitido!</strong>
+          <div>Aprobaste el examen final con ${r.score}%. Tu certificado ya está disponible para descargar e imprimir.</div>
+        </div>
+        <button class="btn-primary" style="margin:0;width:auto;">Ver certificado</button>
+      </div>
+    ` : '';
+
+    return `
+      <div class="cap-modulo-shell">
+        <button class="btn-secondary" style="margin:0 0 1rem 0;width:auto;" onclick="App.cap_setView('curso')">← Volver al curso</button>
+        <h1 class="cap-modulo-h1">Resultado · ${esFinal ? 'Examen final' : ('Módulo ' + r.modulo.numero)}</h1>
+        <div class="cap-resultado-hero">
+          <div class="big-number ${colorCls}" style="font-size:4rem;">${r.score}%</div>
+          <div>
+            <div class="cap-resultado-lbl">${r.n_correctas} de ${r.n_total} respuestas correctas</div>
+            <div class="cap-resultado-lbl">${r.aprobado ? '<strong>¡Aprobado!</strong>' : 'No aprobado'} · umbral ${r.umbral}% · intento ${r.intento}</div>
+          </div>
+        </div>
+        ${certBanner}
+        <div class="cap-cta-row">
+          <button class="btn-secondary" style="margin:0;width:auto;" onclick="App.cap_setView('quiz', '${r.moduloId}')">${r.aprobado ? 'Repetir para mejorar' : 'Reintentar'}</button>
+          <button class="btn-primary" style="margin:0;width:auto;" onclick="App.cap_setView('curso')">Volver al curso</button>
+        </div>
+        <h3 style="margin-top:2rem;">Revisión pregunta por pregunta</h3>
+        <div class="cap-resultado-detalle">${detalleHtml}</div>
+      </div>
+    `;
+  },
+
+  // ---- Vista 5 · certificado imprimible ----
+  _renderCapCertificado(cert, curso, usuario) {
+    if (!cert) {
+      return `<div class="empty-state"><p>Aún no tienes certificado. Aprueba el examen final con ${curso.umbral_aprobacion}% para obtenerlo.</p>
+        <button class="btn-secondary" style="margin:1rem auto 0;width:auto;" onclick="App.cap_setView('curso')">Volver al curso</button></div>`;
+    }
+    const nombre = cert.usuario_nombre || (usuario ? usuario.nombre : cert.usuario_email);
+    return `
+      <div class="cap-modulo-shell">
+        <button class="btn-secondary" style="margin:0 0 1rem 0;width:auto;" onclick="App.cap_setView('curso')">← Volver al curso</button>
+        <div class="cap-cert-controles">
+          <button class="btn-primary" style="margin:0;width:auto;" onclick="window.print()">Imprimir / Guardar PDF</button>
+        </div>
+        <div class="certificado">
+          <div class="cert-bordes">
+            <div class="cert-corner cert-tl"></div>
+            <div class="cert-corner cert-tr"></div>
+            <div class="cert-corner cert-bl"></div>
+            <div class="cert-corner cert-br"></div>
+            <div class="cert-content">
+              <div class="cert-marca">GRUPO TODA · FOGUEIRA</div>
+              <div class="cert-titulo">Certificado de Capacitación</div>
+              <div class="cert-otorga">Se otorga el presente a</div>
+              <div class="cert-nombre">${escapeHtml(nombre)}</div>
+              <div class="cert-descripcion">
+                Por haber concluido satisfactoriamente el curso<br>
+                <strong>${escapeHtml(curso.titulo)}</strong><br>
+                <em>${escapeHtml(curso.subtitulo)}</em>
+              </div>
+              <div class="cert-detalles">
+                <div><strong>Calificación final:</strong> ${cert.score_final}%</div>
+                <div><strong>Fecha de emisión:</strong> ${formatDate(cert.fecha_emision)}</div>
+                <div><strong>Identificador:</strong> ${escapeHtml(cert.id)}</div>
+              </div>
+              <div class="cert-firma">
+                <div class="cert-linea-firma"></div>
+                <div class="cert-firmante-nombre">${escapeHtml(cert.firmante_nombre)}</div>
+                <div class="cert-firmante-rol">${cert.firmante_rol === 'sistema' ? 'Dirección Grupo Toda' : 'Firma de quien certifica'}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  },
+
+  // ---- Vista 6 · admin (progreso del equipo) ----
+  _renderCapAdmin(equipo) {
+    const rows = (equipo || []).map(p => {
+      if (!p.curso_id) {
+        return `<tr>
+          <td><strong>${escapeHtml(p.nombre || p.email)}</strong><div class="muted">${escapeHtml(p.rol)}</div></td>
+          <td colspan="4" class="muted">Sin curso asignado (rol ${escapeHtml(p.rol)})</td>
+        </tr>`;
+      }
+      const status = p.tiene_certificado
+        ? `<span class="s-verde"><strong>Certificada ${p.score_final}%</strong> · ${formatDate(p.fecha_certificado)}</span>`
+        : (p.modulos_completados > 0 ? `${p.modulos_completados} módulos aprobados · ${p.n_intentos} intentos` : 'Sin avance');
+      const verCert = p.tiene_certificado
+        ? `<button class="btn-secondary" style="margin:0;width:auto;font-size:0.78rem;padding:0.3rem 0.7rem;" onclick="App.cap_verCertDeOtro('${escapeHtml(p.email)}','${escapeHtml(p.curso_id)}')">Ver certificado</button>`
+        : '';
+      return `<tr>
+        <td><strong>${escapeHtml(p.nombre || p.email)}</strong><div class="muted">${escapeHtml(p.rol)}</div></td>
+        <td>${escapeHtml(p.curso_id)}</td>
+        <td>${p.modulos_completados || 0}</td>
+        <td>${p.n_intentos || 0}</td>
+        <td>${status} ${verCert}</td>
+      </tr>`;
+    }).join('');
+    const propio = (State.user.rol === 'gerente') ? `
+      <div style="margin-bottom:1rem;">
+        <button class="btn-secondary" style="margin:0;width:auto;" onclick="App.cap_setView('curso')">← Volver a mi curso</button>
+      </div>
+    ` : '';
+    return `
+      <div class="section-head">
+        <h1><span class="badge">Capacitación</span> Progreso del equipo</h1>
+        <div class="meta"><span>Vista de auditor/dirección — estado de certificación por persona</span></div>
+      </div>
+      ${propio}
+      <table class="data-table">
+        <thead><tr><th>Persona</th><th>Curso</th><th>Módulos aprobados</th><th>Intentos totales</th><th>Estado</th></tr></thead>
+        <tbody>${rows || '<tr><td colspan="5" class="muted">Sin personas activas.</td></tr>'}</tbody>
+      </table>
+    `;
+  },
+
+  // Para auditor/gerente: cargar y mostrar el certificado de otra persona.
+  async cap_verCertDeOtro(email, cursoId) {
+    try {
+      const r = await apiCall('getCertificado', { usuario_email: email, curso_id: cursoId });
+      if (!r.certificado) { toast('Sin certificado emitido'); return; }
+      State.capacitacionCertVisto = r.certificado;
+      // Cargar el curso correspondiente para tener título/subtítulo.
+      if (!State.capacitacionCurso || State.capacitacionCurso.id !== cursoId) {
+        const res = await fetch('cursos/' + cursoId + '.json?v=' + Date.now());
+        State.capacitacionCurso = await res.json();
+      }
+      State.capacitacionView = 'certificado';
+      this.render_capacitacion();
+    } catch (err) {
+      toast(err.message, true);
+    }
   },
 
   /* =========== REPORTE =========== */
