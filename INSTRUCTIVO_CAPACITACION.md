@@ -19,7 +19,7 @@ Ambos cierran con un certificado oficial imprimible.
 
 ## Cómo entran
 
-1. Abrir el sistema: **[URL de la app]**
+1. Abrir el sistema: **https://cpgermansolis-maker.github.io/bitacora-fogueira/**
 2. Ingresar con su correo Google (el que ya está registrado en `Usuarios`)
 3. En la barra superior, buscar la pestaña **Capacitación**
 4. Aparece automáticamente el curso que les toca
