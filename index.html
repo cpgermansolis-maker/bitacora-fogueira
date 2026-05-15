@@ -5589,10 +5589,8 @@ const App = {
 
     const sub = State.supervisionSubview || 'cobertura';
     const today = todayInputValue();
-    const monthAgo = new Date(); monthAgo.setMonth(monthAgo.getMonth() - 1);
-    const desdeDefault = monthAgo.toISOString().split('T')[0];
     const last = State.supervisionUltimo;
-    const desdeVal = last ? last.desde : desdeDefault;
+    const desdeVal = last ? last.desde : today;
     const hastaVal = last ? last.hasta : today;
     const cands = State.supervisionCandidatas || [];
     // Email seleccionado: el explícito del State, o el de la última carga, o
