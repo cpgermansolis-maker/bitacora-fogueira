@@ -84,6 +84,37 @@ function marcarNotificacionesVistas(user) {
 }
 
 // =============================================================
+// Parser de observaciones estructuradas (v33+)
+// Formato: "Key: Valor · Key: Valor · ..."
+// Retorna null para observaciones de texto libre (previas a v33).
+// =============================================================
+function parsearEstructurada(obs) {
+  if (!obs) return null;
+  var partes = String(obs).split(' · ');
+  if (partes.length < 2) return null;
+  function norm(s) {
+    return s.toLowerCase()
+      .replace(/[áàâä]/g,'a').replace(/[éèêë]/g,'e')
+      .replace(/[íìîï]/g,'i').replace(/[óòôö]/g,'o')
+      .replace(/[úùûü]/g,'u').replace(/ñ/g,'n').trim();
+  }
+  var mapa = {};
+  partes.forEach(function(p) {
+    var idx = p.indexOf(': ');
+    if (idx > 0) { mapa[norm(p.substring(0, idx))] = p.substring(idx + 2).trim(); }
+  });
+  if (!mapa['responsable'] && !mapa['hallazgo'] && !mapa['folio']) return null;
+  return {
+    responsable: mapa['responsable'] || mapa['folio'] || '',
+    hallazgo:    mapa['hallazgo']    || mapa['motivo'] || '',
+    monto:       mapa['monto']       || mapa['diferencia'] || mapa['valor impacto'] || '',
+    accion:      mapa['accion comprometida'] || '',
+    jefe:        mapa['jefe inmediato'] || '',
+    fecha:       mapa['fecha compromiso'] || ''
+  };
+}
+
+// =============================================================
 // getReporteEjecutivo · listo para mandar al Director Operativo
 // =============================================================
 // Devuelve estructura con resumen ejecutivo + tabla pivote + lista
@@ -138,6 +169,7 @@ function getReporteEjecutivo(user, payload) {
         const grupoNombre = grupoDict[grupo] || '';
         const email = String(m.usuario_email || '').toLowerCase().trim();
         const u = usuariosByEmail[email];
+        var obsTexto = String(m.observaciones || '').trim();
         return {
           pilar: pilar,
           timestamp: ts,
@@ -147,7 +179,8 @@ function getReporteEjecutivo(user, payload) {
           frecuencia: it ? String(it.frecuencia || '') : '',
           grupo: grupo,
           grupo_nombre: grupoNombre,
-          observacion: String(m.observaciones || '').trim(),
+          observacion: obsTexto,
+          estructurado: parsearEstructurada(obsTexto),
           usuario_email: email,
           usuario_nombre: u ? String(u.nombre || '') : email
         };
@@ -177,46 +210,81 @@ function getReporteEjecutivo(user, payload) {
   pivote.B = pivotearPilar(obsB);
   pivote.C = pivotearPilar(obsC);
 
-  // ---------- Resumen ejecutivo narrativo ----------
+  // ---------- Totales y supervisora ----------
   const totales = {
-    A: obsA.length,
-    B: obsB.length,
-    C: obsC.length,
+    A: obsA.length, B: obsB.length, C: obsC.length,
     total: todas.length,
     con_obs: todas.filter(o => o.observacion !== '').length
   };
   const profundidadGlobal = totales.total > 0
-    ? Math.round((totales.con_obs * 100) / totales.total)
-    : null;
+    ? Math.round((totales.con_obs * 100) / totales.total) : null;
   const supervisora = usuarios.find(u =>
     String(u.activo).toUpperCase() === 'TRUE' &&
-    (String(u.rol).toLowerCase().trim() === 'administracion' || String(u.rol).toLowerCase().trim() === 'auxiliar')
+    (String(u.rol).toLowerCase() === 'administracion' || String(u.rol).toLowerCase() === 'auxiliar')
   );
   const nombreSup = supervisora ? String(supervisora.nombre || supervisora.email) : 'la supervisora';
   const periodo = desde === hasta ? desde : (desde + ' al ' + hasta);
 
-  // Top 3 grupos con más observaciones (de cualquier pilar)
-  const allGrupos = [];
-  pivote.A.forEach(g => allGrupos.push({ pilar: 'A', grupo: g.grupo, nombre: g.grupo_nombre, total: g.total }));
-  pivote.B.forEach(g => allGrupos.push({ pilar: 'B', grupo: g.grupo, nombre: g.grupo_nombre, total: g.total }));
-  pivote.C.forEach(g => allGrupos.push({ pilar: 'C', grupo: g.grupo, nombre: g.grupo_nombre, total: g.total }));
-  const top3 = allGrupos.sort((a, b) => b.total - a.total).slice(0, 3);
+  // ---------- Compromisos estructurados (v33+) ----------
+  const estructurados = todas.filter(o => o.estructurado !== null);
+  const sinEstructura  = todas.filter(o => o.estructurado === null);
 
+  // Agrupar por jefe inmediato
+  const compromisosPorJefe = {};
+  estructurados.forEach(o => {
+    const jefe = (o.estructurado.jefe || '(sin jefe asignado)').trim();
+    if (!compromisosPorJefe[jefe]) compromisosPorJefe[jefe] = [];
+    compromisosPorJefe[jefe].push(o);
+  });
+  // Ordenar compromisos de cada grupo por fecha_compromiso asc
+  Object.values(compromisosPorJefe).forEach(arr =>
+    arr.sort((a, b) => String(a.estructurado.fecha).localeCompare(String(b.estructurado.fecha)))
+  );
+
+  // Fechas vencidas y próximas
+  const conFecha   = estructurados.filter(o => o.estructurado.fecha && o.estructurado.fecha.length === 10);
+  const vencidos   = conFecha.filter(o => o.estructurado.fecha < today);
+  const proximos   = conFecha.filter(o => o.estructurado.fecha >= today)
+    .sort((a, b) => a.estructurado.fecha.localeCompare(b.estructurado.fecha)).slice(0, 3);
+
+  // Jefe más mencionado
+  const cntJefe = {};
+  estructurados.forEach(o => {
+    const j = o.estructurado.jefe;
+    if (j) cntJefe[j] = (cntJefe[j] || 0) + 1;
+  });
+  const rankJefe = Object.entries(cntJefe).sort((a, b) => b[1] - a[1]);
+
+  // ---------- Resumen ejecutivo narrativo mejorado ----------
   let resumen = 'Durante el periodo ' + periodo + ', ' + nombreSup + ' detectó ' + totales.total +
-    ' no-cumplido(s) en el checklist operativo. ';
-  if (totales.total > 0) {
-    resumen += 'Distribución: Pilar A (' + totales.A + ') · Pilar B (' + totales.B + ') · Pilar C (' + totales.C + '). ';
-    resumen += totales.con_obs + ' de ' + totales.total + ' incluyen observación documentada (' + profundidadGlobal + '% de profundidad). ';
-    if (top3.length > 0) {
-      resumen += 'Las áreas con más incidencias fueron: ' + top3.map(t =>
-        t.grupo + (t.nombre ? ' · ' + t.nombre : '') + ' (' + t.total + ')'
-      ).join(', ') + '. ';
+    ' no-cumplido(s) (Pilar A: ' + totales.A + ' · Pilar B: ' + totales.B + ' · Pilar C: ' + totales.C + '). ';
+
+  if (totales.total === 0) {
+    resumen = 'Sin no-cumplidos en el periodo ' + periodo + ' — operación sin observaciones para reportar.';
+  } else if (estructurados.length > 0) {
+    resumen += estructurados.length + ' cuentan con hallazgo estructurado';
+    if (sinEstructura.length > 0) resumen += ' y ' + sinEstructura.length + ' en texto libre';
+    resumen += '. ';
+    if (rankJefe.length > 0) {
+      resumen += 'Supervisión requerida: ' +
+        rankJefe.map(function(e) { return e[0] + ' (' + e[1] + ' compromiso' + (e[1] > 1 ? 's' : '') + ')'; }).join(', ') + '. ';
     }
-    if (profundidadGlobal !== null && profundidadGlobal < 80) {
-      resumen += 'Se identifica margen de mejora en la profundidad de las observaciones (meta ≥ 80%).';
+    if (proximos.length > 0) {
+      resumen += 'Compromisos próximos: ' +
+        proximos.map(function(o) {
+          return (o.estructurado.responsable || 'responsable') + ' → ' + o.estructurado.fecha;
+        }).join('; ') + '. ';
+    }
+    if (vencidos.length > 0) {
+      resumen += '⚠️ ' + vencidos.length + ' compromiso(s) con fecha de resolución vencida. ';
     }
   } else {
-    resumen += 'No se registran no-cumplidos en el rango — operación sin observaciones para reportar.';
+    resumen += totales.con_obs + ' de ' + totales.total + ' incluyen observación documentada';
+    if (profundidadGlobal !== null) resumen += ' (' + profundidadGlobal + '% profundidad)';
+    resumen += '. ';
+    if (profundidadGlobal !== null && profundidadGlobal < 80) {
+      resumen += 'Se recomienda mejorar la profundidad de las observaciones (meta ≥ 80%).';
+    }
   }
 
   return {
@@ -227,6 +295,8 @@ function getReporteEjecutivo(user, payload) {
     resumen_ejecutivo: resumen,
     pivote: pivote,
     observaciones: todas,
-    top_grupos: top3
+    compromisos_por_jefe: compromisosPorJefe,
+    n_estructurados: estructurados.length,
+    n_vencidos: vencidos.length
   };
 }

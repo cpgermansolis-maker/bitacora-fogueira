@@ -583,6 +583,22 @@ body.has-modo-banner .nav { top: calc(70px + 40px); }
   background: var(--gold-deep);
 }
 
+/* Informe ejecutivo estructurado (v34) */
+.compromisos-jefe-grupo { margin-bottom: 1.5rem; }
+.compromisos-jefe-titulo {
+  font-size: 0.9rem; font-weight: 700; color: var(--ink);
+  padding: 0.4rem 0.75rem; margin-bottom: 0.4rem;
+  background: var(--bg-paper); border-left: 3px solid var(--gold-line);
+  border-radius: 0 4px 4px 0;
+}
+.compromisos-jefe-titulo .cnt {
+  font-weight: 400; color: var(--ink-soft); margin-left: 0.4rem;
+}
+.td-vencida { color: var(--red) !important; font-weight: 700; }
+.obs-estructura { font-size: 0.85rem; }
+.obs-estructura .obs-accion { color: var(--ink-soft); margin-top: 0.2rem; font-size: 0.82rem; }
+.obs-libre { font-style: italic; color: var(--ink-soft); font-size: 0.85rem; }
+
 /* Hallazgo guiado (v32) — descripción del ítem en el modal */
 .guiado-item-desc {
   font-style: italic; color: var(--ink-soft);
@@ -6401,38 +6417,91 @@ const App = {
       </div>
     `;
 
-    // Lista cronológica detallada
+    // ---------- Compromisos por supervisor (v34) ----------
+    const compromisosPorJefe = data.compromisos_por_jefe || {};
+    const hoyStr = new Date().toISOString().substring(0, 10);
+    let secCompromisos = '';
+    const jefes = Object.keys(compromisosPorJefe);
+    if (jefes.length > 0) {
+      const grupos = jefes.map(jefe => {
+        const items = compromisosPorJefe[jefe];
+        const filas = items.map(o => {
+          const s = o.estructurado;
+          const vencida = s.fecha && s.fecha < hoyStr;
+          return `
+            <tr>
+              <td>Pilar ${escapeHtml(o.pilar)}<br><small class="muted">${escapeHtml(o.item_id)}</small></td>
+              <td><strong>${escapeHtml(s.responsable)}</strong></td>
+              <td class="obs-estructura">
+                ${escapeHtml(s.hallazgo)}
+                ${s.monto ? `<div class="obs-accion">Monto: ${escapeHtml(s.monto)}</div>` : ''}
+              </td>
+              <td class="obs-estructura">
+                ${escapeHtml(s.accion) || '<em class="muted">—</em>'}
+              </td>
+              <td class="${vencida ? 'td-vencida' : ''}">${escapeHtml(s.fecha) || '—'}${vencida ? ' ⚠️' : ''}</td>
+            </tr>`;
+        }).join('');
+        return `
+          <div class="compromisos-jefe-grupo">
+            <div class="compromisos-jefe-titulo">
+              Supervisión de ${escapeHtml(jefe)}
+              <span class="cnt">${items.length} compromiso${items.length > 1 ? 's' : ''}</span>
+            </div>
+            <table class="data-table">
+              <thead><tr><th>Pilar</th><th>Responsable</th><th>Hallazgo</th><th>Acción comprometida</th><th>Fecha</th></tr></thead>
+              <tbody>${filas}</tbody>
+            </table>
+          </div>`;
+      }).join('');
+      secCompromisos = grupos;
+    } else {
+      secCompromisos = '<p class="muted">Sin compromisos estructurados en este rango. Las observaciones anteriores a v33 aparecen como texto libre en la sección siguiente.</p>';
+    }
+
+    // ---------- Lista detallada (todas, estructuradas y libres) ----------
     const obs = data.observaciones || [];
     let lista = '';
     if (obs.length === 0) {
       lista = '<p class="muted">Sin observaciones en el rango.</p>';
     } else {
+      const filas = obs.map(o => {
+        const s = o.estructurado;
+        let celObs;
+        if (s) {
+          celObs = `<div class="obs-estructura">
+            ${escapeHtml(s.responsable ? s.responsable + ': ' : '')}${escapeHtml(s.hallazgo)}
+            ${s.monto ? `<span class="muted"> · Monto: ${escapeHtml(s.monto)}</span>` : ''}
+            <div class="obs-accion">
+              Acción: ${escapeHtml(s.accion) || '—'} &nbsp;·&nbsp;
+              Jefe: ${escapeHtml(s.jefe) || '—'} &nbsp;·&nbsp;
+              Fecha: ${escapeHtml(s.fecha) || '—'}
+            </div>
+          </div>`;
+        } else {
+          celObs = o.observacion
+            ? `<span class="obs-libre">${escapeHtml(o.observacion)}</span>`
+            : '<em class="muted">sin observación</em>';
+        }
+        return `
+          <tr>
+            <td>${escapeHtml(o.fecha)}</td>
+            <td>${escapeHtml(o.pilar)}${o.grupo ? '<br><small class="muted">' + escapeHtml(o.grupo) + '</small>' : ''}</td>
+            <td><strong>${escapeHtml(o.item_id)}</strong><br><small class="muted">${escapeHtml(o.item_descripcion)}</small></td>
+            <td>${celObs}</td>
+          </tr>`;
+      }).join('');
       lista = `
         <table class="data-table reporte-lista">
-          <thead>
-            <tr><th>Fecha</th><th>Pilar</th><th>Ítem</th><th>Observación</th></tr>
-          </thead>
-          <tbody>
-            ${obs.map(o => `
-              <tr>
-                <td>${escapeHtml(o.fecha)}</td>
-                <td>${escapeHtml(o.pilar)}${o.grupo ? ' · ' + escapeHtml(o.grupo) : ''}</td>
-                <td>
-                  <strong>${escapeHtml(o.item_id)}</strong>
-                  <div class="muted" style="font-size:0.82rem;">${escapeHtml(o.item_descripcion)}</div>
-                </td>
-                <td>${o.observacion ? escapeHtml(o.observacion) : '<em class="muted">sin observación documentada</em>'}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      `;
+          <thead><tr><th>Fecha</th><th>Pilar</th><th>Ítem</th><th>Observación</th></tr></thead>
+          <tbody>${filas}</tbody>
+        </table>`;
     }
 
     return `
       <div class="resp-tag resp-mixto reporte-no-print">
-        Informe ejecutivo de observaciones para enviar al Director Operativo.
-        Botones para copiar texto plano o imprimir/exportar PDF.
+        Informe ejecutivo de supervisión para el Director Operativo.
+        Copiar o imprimir/exportar PDF.
       </div>
       <div class="reporte-acciones reporte-no-print">
         <button class="btn-secondary" style="margin:0;width:auto;" onclick="App.copiarReporteAlPortapapeles()">📋 Copiar al portapapeles</button>
@@ -6442,12 +6511,12 @@ const App = {
       <div class="reporte-doc">
         <header class="reporte-header">
           <div class="reporte-marca">GRUPO TODA · FOGUEIRA · INFORME EJECUTIVO DE SUPERVISIÓN</div>
-          <h1>Observaciones del periodo</h1>
+          <h1>Informe de supervisión operativa</h1>
           <div class="reporte-meta">
             <div><strong>Periodo:</strong> ${escapeHtml(periodo)}</div>
             <div><strong>Supervisora:</strong> ${escapeHtml(data.supervisora_nombre)}</div>
             <div><strong>Emitido por:</strong> ${escapeHtml(State.user.nombre || State.user.email)} · ${escapeHtml(State.user.rol)}</div>
-            <div><strong>Fecha de emisión:</strong> ${formatDate(new Date().toISOString().substring(0, 10))}</div>
+            <div><strong>Fecha de emisión:</strong> ${formatDate(hoyStr)}</div>
           </div>
         </header>
 
@@ -6461,13 +6530,18 @@ const App = {
           ${cards}
         </section>
 
+        <section class="reporte-compromisos-sec">
+          <h3>Compromisos por supervisor</h3>
+          ${secCompromisos}
+        </section>
+
         <section class="reporte-pivote-sec">
           <h3>Distribución por pilar y módulo / etapa</h3>
           ${pivoteBlock}
         </section>
 
         <section class="reporte-lista-sec">
-          <h3>Lista cronológica de observaciones</h3>
+          <h3>Detalle cronológico de observaciones</h3>
           ${lista}
         </section>
 
@@ -6502,6 +6576,31 @@ const App = {
       (r.profundidad_global !== null ? ' (' + r.profundidad_global + '% de profundidad)' : ''));
     lines.push('Distribución: Pilar A = ' + r.totales.A + ' · Pilar B = ' + r.totales.B + ' · Pilar C = ' + r.totales.C);
     lines.push('');
+    // Compromisos por supervisor (solo si hay observaciones estructuradas)
+    const cpj = r.compromisos_por_jefe || {};
+    const jefes = Object.keys(cpj);
+    if (jefes.length > 0) {
+      lines.push('— COMPROMISOS POR SUPERVISOR —');
+      if (r.n_vencidos > 0) {
+        lines.push('⚠️ ' + r.n_vencidos + ' compromiso(s) con fecha de resolución VENCIDA');
+      }
+      jefes.forEach(jefe => {
+        lines.push('');
+        lines.push('  Supervisor: ' + jefe);
+        cpj[jefe].forEach(o => {
+          const e = o.estructurado;
+          const vencida = e.fecha && e.fecha < new Date().toISOString().substring(0, 10) ? ' ⚠️VENCIDA' : '';
+          lines.push('  · Pilar ' + o.pilar + ' · ' + o.fecha);
+          if (e.responsable) lines.push('    Responsable: ' + e.responsable);
+          if (e.hallazgo)    lines.push('    Hallazgo: ' + e.hallazgo);
+          if (e.monto)       lines.push('    Monto: ' + e.monto);
+          if (e.accion)      lines.push('    Acción comprometida: ' + e.accion);
+          if (e.fecha)       lines.push('    Fecha compromiso: ' + e.fecha + vencida);
+        });
+      });
+      lines.push('');
+    }
+
     ['A', 'B', 'C'].forEach(p => {
       const items = r.pivote[p] || [];
       if (items.length === 0) return;
@@ -6513,13 +6612,22 @@ const App = {
       });
       lines.push('');
     });
-    lines.push('— LISTA CRONOLÓGICA —');
+
+    lines.push('— DETALLE CRONOLÓGICO —');
     (r.observaciones || []).forEach(o => {
       lines.push(o.fecha + ' · Pilar ' + o.pilar + ' · ' + o.item_id + ' — ' + o.item_descripcion);
-      if (o.observacion) {
-        lines.push('   Observación: ' + o.observacion);
+      if (o.estructurado) {
+        const e = o.estructurado;
+        if (e.responsable) lines.push('    Responsable: ' + e.responsable);
+        if (e.hallazgo)    lines.push('    Hallazgo: ' + e.hallazgo);
+        if (e.monto)       lines.push('    Monto: ' + e.monto);
+        if (e.accion)      lines.push('    Acción: ' + e.accion);
+        if (e.jefe)        lines.push('    Jefe inmediato: ' + e.jefe);
+        if (e.fecha)       lines.push('    Fecha compromiso: ' + e.fecha);
+      } else if (o.observacion) {
+        lines.push('    ' + o.observacion);
       } else {
-        lines.push('   (sin observación documentada)');
+        lines.push('    (sin observación documentada)');
       }
     });
     lines.push('');
