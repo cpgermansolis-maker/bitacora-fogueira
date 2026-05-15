@@ -110,6 +110,7 @@ function doPost(e) {
         case 'getChecklistResumenC': response = getChecklistResumenC(user); break;
         case 'getReporte':         response = getReporte(user, payload); break;
         case 'getHallazgos':       response = getHallazgos(user, payload); break;
+        case 'getAlertaHallazgos': response = getAlertaHallazgos(user); break;
         case 'marcarHallazgoAtendido':   response = marcarHallazgoAtendido(user, payload); break;
         case 'desmarcarHallazgoAtendido':response = desmarcarHallazgoAtendido(user, payload); break;
         case 'subirEvidencia':     response = subirEvidencia(user, payload); break;
@@ -1848,6 +1849,33 @@ function getHallazgos(user, payload) {
   };
 
   return { hallazgos: visibles, conteos, por_tipo: porTipo, desde, hasta, incluir_atendidos: incluirAtendidos };
+}
+
+// Retorna los hallazgos no-atendidos con ≥7 días de antigüedad para la alarma
+// de Mónica/Germán al cargar la app. Solo lee los últimos 90 días para no
+// ralentizar el inicio. Los tipos snapshot (req_bloqueada, sr12_critico) usan
+// fecha=hasta, por lo que nunca alcanzan 7 días aquí — eso es correcto.
+function getAlertaHallazgos(user) {
+  if (user.rol !== 'auditor' && user.rol !== 'gerente') return { count: 0, pendientes: [] };
+  const tz = ss().getSpreadsheetTimeZone() || 'America/Mexico_City';
+  const hoy = new Date();
+  const hasta = Utilities.formatDate(hoy, tz, 'yyyy-MM-dd');
+  const desde = Utilities.formatDate(new Date(hoy.getTime() - 90 * 86400000), tz, 'yyyy-MM-dd');
+  const data = getHallazgos(user, { desde, hasta, incluir_atendidos: false });
+  const hoyMs = hoy.getTime();
+  const UMBRAL = 7;
+  const urgentes = data.hallazgos
+    .filter(h => !h.atendido)
+    .map(h => {
+      const d = new Date(h.fecha + 'T00:00:00');
+      return Object.assign({}, h, { dias: isNaN(d.getTime()) ? 0 : Math.floor((hoyMs - d.getTime()) / 86400000) });
+    })
+    .filter(h => h.dias >= UMBRAL)
+    .sort((a, b) => b.dias - a.dias);
+  return {
+    count: urgentes.length,
+    pendientes: urgentes.slice(0, 5).map(h => ({ pilar: h.pilar, titulo: h.titulo, fecha: h.fecha, dias: h.dias }))
+  };
 }
 
 // Genera un identificador estable de un hallazgo. Determinístico — mismas

@@ -583,6 +583,43 @@ body.has-modo-banner .nav { top: calc(70px + 40px); }
   background: var(--gold-deep);
 }
 
+/* Alerta urgente de hallazgos pendientes (v31) */
+.modal-head-urgente {
+  background: var(--red-bg);
+  border-bottom: 2px solid var(--red);
+}
+.modal-head-urgente h2 { color: var(--red); }
+.modal-head-urgente .sub { color: var(--red); opacity: 0.8; }
+.alerta-hallazgos-lista { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.25rem; }
+.alerta-hallazgo-item {
+  display: flex; align-items: baseline; gap: 0.5rem;
+  padding: 0.55rem 0.75rem;
+  background: var(--bg-paper); border-radius: 4px;
+  border-left: 3px solid var(--red);
+}
+.alerta-pilar {
+  font-size: 0.72rem; font-weight: 700; padding: 0.1rem 0.45rem;
+  background: var(--red); color: white; border-radius: 3px;
+  white-space: nowrap; flex-shrink: 0;
+}
+.alerta-titulo { flex: 1; font-size: 0.88rem; color: var(--ink); line-height: 1.3; }
+.alerta-edad {
+  font-size: 0.8rem; font-weight: 700; color: var(--red);
+  white-space: nowrap; flex-shrink: 0;
+}
+.alerta-mas { font-size: 0.82rem; color: var(--ink-soft); margin: 0.4rem 0 0; }
+.alerta-hallazgos-banner {
+  background: var(--red-bg);
+  border: 1px solid var(--red);
+  border-left: 4px solid var(--red);
+  border-radius: 4px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
+  color: var(--red);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
 /* Acciones (Copiar / Imprimir) arriba del informe */
 .reporte-acciones {
   display: flex; gap: 0.75rem; margin: 0 0 1.25rem 0; flex-wrap: wrap;
@@ -2230,7 +2267,8 @@ const State = {
   supervisionImpactoUltimo: null,  // payload de getImpactoSupervisor
   supervisionReporteUltimo: null,  // payload de getReporteEjecutivo (v30)
   supervisionCandidatas: null,  // [{email,nombre,rol}] activos no-auditor/gerente
-  notifNuevas: null,  // payload de getNotificacionesNuevas (v30)
+  notifNuevas: null,      // payload de getNotificacionesNuevas (v30)
+  alertaHallazgos: null,  // payload de getAlertaHallazgos (v31)
   // Capacitación — curso de certificación según rol
   capacitacionView: 'curso',      // 'curso' | 'modulo' | 'quiz' | 'resultado' | 'certificado' | 'admin'
   capacitacionCurso: null,        // JSON del curso (cargado desde cursos/<id>.json)
@@ -2554,6 +2592,8 @@ const App = {
     // Cargar badge de notificaciones (visible solo para auditor/gerente).
     // No bloquea el render; corre en background.
     this.refreshNotifBadge();
+    // Alarma de hallazgos urgentes — modal bloqueante si hay pendientes ≥7d.
+    this.checkAlertaHallazgos();
     // Tour de bienvenida — solo la primera vez que cada usuario entra.
     this.maybeShowTour();
   },
@@ -2582,6 +2622,47 @@ const App = {
       // Silencioso — si falla, simplemente no mostramos badge.
       badge.style.display = 'none';
     }
+  },
+
+  // Consulta hallazgos urgentes (≥7 días sin cerrar). Si los hay, muestra un
+  // modal bloqueante que Mónica debe cerrar antes de continuar. Silencioso si
+  // el usuario no es gerente/auditor o si el backend falla.
+  async checkAlertaHallazgos() {
+    if (!State.user || (State.user.rol !== 'auditor' && State.user.rol !== 'gerente')) return;
+    try {
+      const data = await apiCall('getAlertaHallazgos', {});
+      State.alertaHallazgos = data;
+      if (data.count > 0) this.showAlertaHallazgos(data);
+    } catch (e) { /* silencioso */ }
+  },
+
+  showAlertaHallazgos(data) {
+    const items = data.pendientes.map(p => `
+      <div class="alerta-hallazgo-item">
+        <span class="alerta-pilar">Pilar ${escapeHtml(p.pilar)}</span>
+        <span class="alerta-titulo">${escapeHtml(p.titulo)}</span>
+        <span class="alerta-edad">${p.dias}d</span>
+      </div>`).join('');
+    const mas = data.count > 5
+      ? `<p class="alerta-mas">...y ${data.count - 5} más pendiente${data.count - 5 > 1 ? 's' : ''}</p>` : '';
+    const n = data.count;
+    this.openModal(`
+      <div class="modal-head modal-head-urgente">
+        <h2>⚠️ Hallazgos urgentes</h2>
+        <div class="sub">Tienes ${n} hallazgo${n > 1 ? 's' : ''} sin cerrar con más de 7 días</div>
+      </div>
+      <div class="modal-body">
+        <div class="alerta-hallazgos-lista">${items}</div>
+        ${mas}
+      </div>
+      <div class="modal-foot">
+        <button class="btn-primary" style="width:auto;margin:0;"
+          onclick="App.closeModal(); App.go('supervision'); App.supervision_setView('hallazgos')">
+          Ver hallazgos
+        </button>
+        <button class="btn-ghost" onclick="App.closeModal()">Cerrar</button>
+      </div>
+    `);
   },
 
   // Banner que indica el modo de responsabilidad activo (Config!modo_responsable).
@@ -5693,6 +5774,15 @@ const App = {
       ? formatDate(data.desde)
       : (formatDate(data.desde) + ' al ' + formatDate(data.hasta));
     const h = data.hallazgos;
+
+    // Banner de alerta si hay pendientes urgentes (≥7 días sin cerrar)
+    const alerta = State.alertaHallazgos;
+    const alertaBanner = alerta && alerta.count > 0
+      ? `<div class="alerta-hallazgos-banner">
+           ⚠️ Tienes ${alerta.count} hallazgo${alerta.count > 1 ? 's' : ''} sin cerrar con más de 7 días.
+           Búscalos abajo ordenados por antigüedad (los más viejos aparecen primero).
+         </div>`
+      : '';
     const pctStr = (p) => p === null ? '—' : (p + '%');
     const semClass = (p) => p === null ? 's-amarillo' : semaforoClass(p);
     // Edad: invertir semáforo (menos días pendientes = mejor)
@@ -5795,6 +5885,7 @@ const App = {
     }
 
     return `
+      ${alertaBanner}
       <div class="resp-tag resp-mixto">
         <strong>Abrir hallazgos</strong>: la supervisora (al marcar ✗) ·
         <strong>Cerrarlos</strong>: auditor o gerente (desde Reporte → Hallazgos → Marcar como atendido)
