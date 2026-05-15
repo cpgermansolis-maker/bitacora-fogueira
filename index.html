@@ -1805,6 +1805,38 @@ body.has-modo-banner .nav { top: calc(70px + 40px); }
   flex-basis: 100%; margin-top: 0.35rem;
   font-style: italic; color: var(--ink-soft); font-size: 0.82rem;
 }
+/* Retroalimentado (amber) */
+.hallazgo-retro-strip {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.35rem;
+  padding: 0.55rem 0.75rem;
+  background: #FFF8E1; border-top: 1px solid #F9A825;
+  border-radius: 0 0 6px 6px; margin-top: 0.6rem;
+}
+.hallazgo-retro-badge {
+  background: #F9A825; color: #fff; font-size: 0.7rem; font-weight: 700;
+  padding: 0.15rem 0.45rem; border-radius: 3px; white-space: nowrap;
+}
+.hallazgo-retro-meta { color: var(--ink-soft); font-size: 0.82rem; }
+.hallazgo-retro-nota {
+  flex-basis: 100%; margin-top: 0.3rem;
+  font-style: italic; color: var(--ink-soft); font-size: 0.82rem;
+}
+/* Sección retroalimentación en Mi Día */
+.retro-banner {
+  background: #FFF8E1; border: 1px solid #F9A825; border-radius: 6px;
+  padding: 1rem 1.25rem; margin-bottom: 1.25rem;
+}
+.retro-banner-title {
+  font-size: 0.85rem; font-weight: 700; color: #E65100; margin-bottom: 0.65rem;
+}
+.retro-banner-item {
+  padding: 0.6rem 0.75rem; background: white; border-radius: 4px;
+  border-left: 3px solid #F9A825; margin-bottom: 0.45rem;
+}
+.retro-banner-item:last-child { margin-bottom: 0; }
+.retro-banner-titulo { font-weight: 600; font-size: 0.87rem; }
+.retro-banner-nota { font-style: italic; color: var(--ink-soft); font-size: 0.82rem; margin-top: 0.15rem; }
+.retro-banner-meta { font-size: 0.75rem; color: var(--ink-soft); margin-top: 0.1rem; }
 
 /* =========================================================
    UTILIDADES Y RESPONSIVE
@@ -2990,6 +3022,8 @@ const App = {
         </div>
       </div>
 
+      <div id="retro-banner"></div>
+
       <div class="subtabs">
         <button class="subtab ${State.miDiaSubview === 'hoy'       ? 'active' : ''}" onclick="App.miDia_setView('hoy')">Detalle del día</button>
         <button class="subtab ${State.miDiaSubview === 'tendencia' ? 'active' : ''}" onclick="App.miDia_setView('tendencia')">Tendencia 7 días</button>
@@ -3002,6 +3036,32 @@ const App = {
     } else {
       this._miDia_renderHoy();
     }
+
+    // Retroalimentaciones pendientes de Mónica (solo para Estefanía)
+    if (!isAuditor) {
+      this._renderRetroBanner();
+    }
+  },
+
+  async _renderRetroBanner() {
+    const div = el('retro-banner');
+    if (!div) return;
+    try {
+      const r = await apiCall('getRetroalimentaciones', {});
+      if (!r || r.count === 0) return;
+      div.innerHTML = `
+        <div class="retro-banner">
+          <div class="retro-banner-title">💬 Tienes ${r.count} retroalimentación${r.count > 1 ? 'es' : ''} pendiente${r.count > 1 ? 's' : ''} de Mónica</div>
+          ${r.items.map(it => `
+            <div class="retro-banner-item">
+              <div class="retro-banner-titulo">Pilar ${escapeHtml(it.pilar)} · ${escapeHtml(it.titulo)}</div>
+              ${it.nota_monica ? `<div class="retro-banner-nota">"${escapeHtml(it.nota_monica)}"</div>` : ''}
+              <div class="retro-banner-meta">
+                ${it.retroalimentado_por ? 'De: ' + escapeHtml(it.retroalimentado_por) + ' · ' : ''}${it.retroalimentado_at || ''}
+              </div>
+            </div>`).join('')}
+        </div>`;
+    } catch (e) { /* no bloqueante */ }
   },
 
   // Sub-vista "Detalle del día" — los dos paneles (faltantes + línea
@@ -5392,7 +5452,7 @@ const App = {
       toast('No hay hallazgos para exportar. Genera primero.', true);
       return;
     }
-    const headers = ['pilar','tipo','fecha','hora','titulo','contexto','responsable_rol','observacion','capturado_por','atendido','atendido_por','atendido_at','nota_atendido'];
+    const headers = ['pilar','tipo','fecha','hora','titulo','contexto','responsable_rol','observacion','capturado_por','estado_monica','atendido_por','atendido_at','nota_atendido'];
     const tipoLbl = {
       no_cumplido: 'No cumplido',
       bandera_roja: 'Bandera roja',
@@ -5414,7 +5474,7 @@ const App = {
       h.responsable_rol || '',
       h.observacion || '',
       h.capturado_por || '',
-      h.atendido ? 'Sí' : 'No',
+      h.estado_monica || (h.atendido ? 'cerrado' : 'pendiente'),
       h.atendido_por || '',
       h.atendido_at || '',
       h.atendido_nota || ''
@@ -5431,48 +5491,56 @@ const App = {
     toast('CSV descargado · ' + data.hallazgos.length + ' filas');
   },
 
-  // Abre el modal para marcar un hallazgo como atendido (auditor + gerente).
-  // Persistente en hoja Hallazgos_Atendidos hasta que se desmarque.
-  openMarcarAtendidoModal(key, titulo) {
-    State._atendidoCtx = { key, titulo };
+  // Abre el modal para retroalimentar o cerrar un hallazgo (auditor + gerente).
+  openHallazgoAccionModal(key, titulo, accion) {
+    State._hallazgoAccionCtx = { key, titulo, accion };
+    const esCerrar = accion === 'cerrar';
+    const tituloModal = esCerrar ? 'Cerrar hallazgo' : 'Retroalimentar a Estefanía';
+    const subModal    = esCerrar
+      ? 'El hallazgo quedará cerrado. Ya no aparecerá como pendiente.'
+      : 'Estefanía verá tu nota en "Mi Día". El hallazgo sigue abierto hasta que lo cierres.';
+    const ph = esCerrar
+      ? '¿Qué se hizo para resolverlo? ¿Acuerdo con quién?'
+      : '¿Qué debe corregir o hacer Estefanía? ¿Cuál es el seguimiento esperado?';
+    const btnLabel = esCerrar ? '✅ Cerrar hallazgo' : '💬 Enviar retroalimentación';
     this.openModal(`
       <div class="modal-head">
-        <h2>Marcar hallazgo como atendido</h2>
-        <div class="sub">Quedará oculto del informe por default. Puedes deshacerlo después.</div>
+        <h2>${tituloModal}</h2>
+        <div class="sub">${subModal}</div>
       </div>
       <div class="modal-body">
         <p style="margin-bottom:1rem; color:var(--ink-soft); font-style:italic;">
           ${escapeHtml(titulo || '')}
         </p>
         <div class="form-group">
-          <label>Nota de cierre (opcional)</label>
-          <textarea id="atendido-nota" rows="3" placeholder="¿Qué se hizo para cerrarlo? ¿Acuerdo con quién?"></textarea>
+          <label>Nota${esCerrar ? ' de cierre' : ' para Estefanía'} (opcional)</label>
+          <textarea id="hallazgo-accion-nota" rows="3" placeholder="${ph}"></textarea>
         </div>
       </div>
       <div class="modal-foot">
         <button class="btn-ghost" onclick="App.closeModal()">Cancelar</button>
-        <button class="btn-primary" style="width:auto;margin:0;" onclick="App.confirmarAtendido()">Marcar atendido</button>
+        <button class="btn-primary" style="width:auto;margin:0;" onclick="App.confirmarHallazgoAccion()">${btnLabel}</button>
       </div>
     `);
-    setTimeout(() => { const t = el('atendido-nota'); if (t) t.focus(); }, 50);
+    setTimeout(() => { const t = el('hallazgo-accion-nota'); if (t) t.focus(); }, 50);
   },
 
-  async confirmarAtendido() {
-    const ctx = State._atendidoCtx;
+  async confirmarHallazgoAccion() {
+    const ctx = State._hallazgoAccionCtx;
     if (!ctx) return this.closeModal();
-    const nota = (el('atendido-nota').value || '').trim();
+    const nota = (el('hallazgo-accion-nota').value || '').trim();
+    const apiMethod = ctx.accion === 'retroalimentar' ? 'retroalimentarHallazgo' : 'marcarHallazgoAtendido';
     try {
-      await apiCall('marcarHallazgoAtendido', { key: ctx.key, nota });
+      await apiCall(apiMethod, { key: ctx.key, nota });
       this.closeModal();
-      State._atendidoCtx = null;
-      toast('Hallazgo atendido ✓');
-      // Refrescamos la lista respetando el rango ya elegido.
+      State._hallazgoAccionCtx = null;
+      toast(ctx.accion === 'retroalimentar' ? 'Retroalimentación enviada a Estefanía ✓' : 'Hallazgo cerrado ✓');
       await this.genHallazgos();
     } catch (err) { toast(err.message, true); }
   },
 
   async desmarcarAtendido(key) {
-    if (!confirm('¿Desmarcar este hallazgo? Volverá a aparecer en el informe.')) return;
+    if (!confirm('¿Reabrir este hallazgo? Volverá a aparecer como pendiente.')) return;
     try {
       await apiCall('desmarcarHallazgoAtendido', { key });
       toast('Hallazgo reabierto');
@@ -7772,27 +7840,52 @@ function hallazgoCardHTML(h) {
     ? `<div class="hallazgo-obs"><strong>Observación:</strong> ${escapeHtml(obs)}</div>`
     : `<div class="hallazgo-obs hallazgo-obs-empty">Sin observación capturada</div>`;
 
-  // Bloque acción / estado atendido
+  // Bloque acción / estado: pendiente | retroalimentado | cerrado
   const puedeAtender = State.user && (State.user.rol === 'auditor' || State.user.rol === 'gerente');
-  const cardCls = h.atendido ? 'hallazgo-card hallazgo-atendido' : 'hallazgo-card';
+  const estadoM = h.estado_monica || (h.atendido ? 'cerrado' : 'pendiente');
+  const cardCls = estadoM === 'cerrado'         ? 'hallazgo-card hallazgo-atendido'
+                : estadoM === 'retroalimentado' ? 'hallazgo-card hallazgo-retroalimentado'
+                : 'hallazgo-card';
+  const keyQ  = escapeHtml(h.key);
+  const titQ  = JSON.stringify(h.titulo || '').replace(/"/g, '&quot;');
   let accionHTML = '';
-  if (h.atendido) {
+  if (estadoM === 'cerrado') {
     const fecha = String(h.atendido_at || '').slice(0, 10);
     const notaAt = (h.atendido_nota || '').trim();
     accionHTML = `<div class="hallazgo-atendido-strip">
-        <span class="hallazgo-atendido-badge">✓ Atendido</span>
+        <span class="hallazgo-atendido-badge">✓ Cerrado</span>
         <span class="hallazgo-atendido-meta">
           por <strong>${escapeHtml(h.atendido_por || '')}</strong>${fecha ? ' · ' + escapeHtml(fecha) : ''}
         </span>
         ${puedeAtender ? `<button class="btn-ghost hallazgo-btn-reabrir"
-          onclick="App.desmarcarAtendido('${escapeHtml(h.key)}')">Reabrir</button>` : ''}
+          onclick="App.desmarcarAtendido('${keyQ}')">Reabrir</button>` : ''}
         ${notaAt ? `<div class="hallazgo-atendido-nota">"${escapeHtml(notaAt)}"</div>` : ''}
       </div>`;
+  } else if (estadoM === 'retroalimentado') {
+    const fecha = String(h.atendido_at || '').slice(0, 10);
+    const notaAt = (h.atendido_nota || '').trim();
+    accionHTML = `<div class="hallazgo-retro-strip">
+        <span class="hallazgo-retro-badge">💬 Retroalimentado</span>
+        <span class="hallazgo-retro-meta">
+          por <strong>${escapeHtml(h.atendido_por || '')}</strong>${fecha ? ' · ' + escapeHtml(fecha) : ''}
+        </span>
+        ${notaAt ? `<div class="hallazgo-retro-nota">"${escapeHtml(notaAt)}"</div>` : ''}
+        ${puedeAtender ? `<div style="flex-basis:100%;display:flex;justify-content:flex-end;gap:0.5rem;margin-top:0.4rem;">
+          <button class="btn-ghost hallazgo-btn-reabrir"
+            onclick="App.desmarcarAtendido('${keyQ}')">Reabrir</button>
+          <button class="btn-ghost hallazgo-btn-atender"
+            onclick="App.openHallazgoAccionModal('${keyQ}', ${titQ}, 'cerrar')">✅ Cerrar hallazgo</button>
+        </div>` : ''}
+      </div>`;
   } else if (puedeAtender) {
-    accionHTML = `<div class="hallazgo-acciones">
+    accionHTML = `<div class="hallazgo-acciones" style="gap:0.5rem;">
         <button class="btn-ghost hallazgo-btn-atender"
-          onclick="App.openMarcarAtendidoModal('${escapeHtml(h.key)}', ${JSON.stringify(h.titulo || '').replace(/"/g, '&quot;')})">
-          ✓ Marcar como atendido
+          onclick="App.openHallazgoAccionModal('${keyQ}', ${titQ}, 'retroalimentar')">
+          💬 Retroalimentar
+        </button>
+        <button class="btn-ghost hallazgo-btn-atender"
+          onclick="App.openHallazgoAccionModal('${keyQ}', ${titQ}, 'cerrar')">
+          ✅ Cerrar hallazgo
         </button>
       </div>`;
   }

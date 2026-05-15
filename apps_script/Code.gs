@@ -49,7 +49,7 @@ const SHEETS = {
 // Hoja Hallazgos_Atendidos: creada on-demand la primera vez que alguien marca
 // uno (ver ensureSheetExists). El key es un identificador estable del hallazgo
 // que reconstruye el frontend/backend a partir de su tipo + referencia.
-const HALLAZGOS_ATENDIDOS_HEADERS = ['key', 'atendido_por', 'atendido_at', 'nota'];
+const HALLAZGOS_ATENDIDOS_HEADERS = ['key', 'atendido_por', 'atendido_at', 'nota', 'estado'];
 
 // El ID de la carpeta de Drive se guarda en PropertiesService al ejecutar
 // setupSheet() (ver Setup.gs). No requiere edición manual de este archivo.
@@ -112,6 +112,8 @@ function doPost(e) {
         case 'getHallazgos':       response = getHallazgos(user, payload); break;
         case 'getAlertaHallazgos': response = getAlertaHallazgos(user); break;
         case 'marcarHallazgoAtendido':   response = marcarHallazgoAtendido(user, payload); break;
+        case 'retroalimentarHallazgo':   response = marcarHallazgoAtendido(user, Object.assign({}, payload, { estado: 'retroalimentado' })); break;
+        case 'getRetroalimentaciones':   response = getRetroalimentaciones(user); break;
         case 'desmarcarHallazgoAtendido':response = desmarcarHallazgoAtendido(user, payload); break;
         case 'subirEvidencia':     response = subirEvidencia(user, payload); break;
         case 'getUsuarios':        response = getUsuarios(user); break;
@@ -1813,20 +1815,21 @@ function getHallazgos(user, payload) {
   });
   hallazgos.forEach(h => {
     const a = atendidos[h.key];
+    const estadoM = a ? String(a.estado || 'cerrado') : 'pendiente';
+    h.estado_monica = estadoM;
+    h.atendido = estadoM === 'cerrado';
     if (a) {
-      h.atendido = true;
-      h.atendido_por = a.atendido_por || '';
-      h.atendido_at  = String(a.atendido_at || '');
+      h.atendido_por  = a.atendido_por || '';
+      h.atendido_at   = String(a.atendido_at || '');
       h.atendido_nota = a.nota || '';
-    } else {
-      h.atendido = false;
     }
   });
 
-  // Filtro: por default los atendidos se ocultan. El frontend pasa
+  // Filtro: por default los cerrados se ocultan. El frontend pasa
   // incluir_atendidos:true cuando el usuario activa el toggle.
+  // Retroalimentados siguen visibles siempre (son pendientes con feedback).
   const incluirAtendidos = payload.incluir_atendidos === true;
-  const visibles = incluirAtendidos ? hallazgos : hallazgos.filter(h => !h.atendido);
+  const visibles = incluirAtendidos ? hallazgos : hallazgos.filter(h => h.estado_monica !== 'cerrado');
 
   // Orden global: más reciente arriba (timestamp desc). Esto deja, dentro de
   // cada bloque por pilar/día que arme el frontend, lo más reciente primero.
@@ -1839,7 +1842,7 @@ function getHallazgos(user, payload) {
     total: visibles.length,
     // total de atendidos en el rango — útil para mostrar "X ocultos" si el
     // toggle está apagado.
-    atendidos_ocultos: incluirAtendidos ? 0 : hallazgos.filter(h => h.atendido).length
+    atendidos_ocultos: incluirAtendidos ? 0 : hallazgos.filter(h => h.estado_monica === 'cerrado').length
   };
   const porTipo = {
     no_cumplido:  visibles.filter(h => h.tipo === 'no_cumplido').length,
@@ -1865,7 +1868,7 @@ function getAlertaHallazgos(user) {
   const hoyMs = hoy.getTime();
   const UMBRAL = 7;
   const urgentes = data.hallazgos
-    .filter(h => !h.atendido)
+    .filter(h => h.estado_monica === 'pendiente')
     .map(h => {
       const d = new Date(h.fecha + 'T00:00:00');
       return Object.assign({}, h, { dias: isNaN(d.getTime()) ? 0 : Math.floor((hoyMs - d.getTime()) / 86400000) });
@@ -1875,6 +1878,29 @@ function getAlertaHallazgos(user) {
   return {
     count: urgentes.length,
     pendientes: urgentes.slice(0, 5).map(h => ({ pilar: h.pilar, titulo: h.titulo, fecha: h.fecha, dias: h.dias }))
+  };
+}
+
+// Devuelve los hallazgos retroalimentados (Mónica dejó nota pero no los cerró).
+// Disponible para cualquier rol autenticado: Estefanía lo usa en Mi Día.
+function getRetroalimentaciones(user) {
+  const tz = ss().getSpreadsheetTimeZone() || 'America/Mexico_City';
+  const hoy = new Date();
+  const hasta = Utilities.formatDate(hoy, tz, 'yyyy-MM-dd');
+  const desde = Utilities.formatDate(new Date(hoy.getTime() - 90 * 86400000), tz, 'yyyy-MM-dd');
+  const data = getHallazgos(user, { desde, hasta, incluir_atendidos: true });
+  const retros = data.hallazgos.filter(h => h.estado_monica === 'retroalimentado');
+  return {
+    count: retros.length,
+    items: retros.map(h => ({
+      key:                  h.key,
+      pilar:                h.pilar,
+      titulo:               h.titulo || '',
+      fecha:                h.fecha,
+      nota_monica:          h.atendido_nota || '',
+      retroalimentado_por:  h.atendido_por || '',
+      retroalimentado_at:   String(h.atendido_at || '').slice(0, 10)
+    }))
   };
 }
 
@@ -1913,7 +1939,8 @@ function marcarHallazgoAtendido(user, payload) {
     key: payload.key,
     atendido_por: user.email,
     atendido_at: nowISO(),
-    nota: payload.nota || ''
+    nota: payload.nota || '',
+    estado: payload.estado || 'cerrado'
   };
   if (existing) {
     updateRow(SHEETS.HALLAZGOS_ATENDIDOS, existing.rowIdx, rowData);

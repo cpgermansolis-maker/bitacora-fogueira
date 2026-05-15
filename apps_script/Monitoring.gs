@@ -1080,8 +1080,9 @@ function getDesempenoSupervisor(user, payload) {
             ? ('Módulo ' + it.modulo_id + ' · ' + it.frecuencia)
             : ('Etapa ' + it.etapa_id + ' · ' + (it.seccion || it.frecuencia)))
         : '',
-      atendido_at: a ? String(a.atendido_at || '') : '',
-      atendido_por: a ? String(a.atendido_por || '') : ''
+      atendido_at:   a ? String(a.atendido_at || '') : '',
+      atendido_por:  a ? String(a.atendido_por || '') : '',
+      estado_monica: a ? String(a.estado || 'cerrado') : 'pendiente'
     });
   }
   marcasA.forEach(m => pushHall('A', m, dictA));
@@ -1095,7 +1096,7 @@ function getDesempenoSupervisor(user, payload) {
   const corteMs = new Date(hasta + 'T00:00:00Z').getTime();
   const pendientes = hallAll
     .filter(h => h.fecha <= hasta)
-    .filter(h => !h.atendido_at || h.atendido_at > hastaFin)
+    .filter(h => !h.atendido_at || h.estado_monica === 'retroalimentado' || h.atendido_at > hastaFin)
     .map(h => {
       const abMs = new Date(h.fecha + 'T00:00:00Z').getTime();
       const edad = Math.max(0, Math.round((corteMs - abMs) / 86400000));
@@ -1113,7 +1114,7 @@ function getDesempenoSupervisor(user, payload) {
   // Aperturas y cierres dentro del rango (para tendencia semanal y % cierre).
   const aperturasRango = hallAll.filter(h => h.fecha >= desde && h.fecha <= hasta);
   const cerradosRango = hallAll.filter(h => {
-    if (!h.atendido_at) return false;
+    if (!h.atendido_at || h.estado_monica === 'retroalimentado') return false;
     const f = fmtTs(h.atendido_at);
     return f >= desde && f <= hasta;
   });
