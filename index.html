@@ -583,6 +583,15 @@ body.has-modo-banner .nav { top: calc(70px + 40px); }
   background: var(--gold-deep);
 }
 
+/* Hallazgo guiado (v32) — descripción del ítem en el modal */
+.guiado-item-desc {
+  font-style: italic; color: var(--ink-soft);
+  margin-bottom: 1.1rem; padding: 0.55rem 0.75rem;
+  background: var(--bg-paper); border-radius: 4px;
+  border-left: 3px solid var(--gold-line);
+  font-size: 0.88rem; line-height: 1.4;
+}
+
 /* Alerta urgente de hallazgos pendientes (v31) */
 .modal-head-urgente {
   background: var(--red-bg);
@@ -2524,6 +2533,92 @@ function toast(msg, isError) {
   setTimeout(() => t.remove(), 3500);
 }
 /* =========================================================
+   HALLAZGO GUIADO (v32) — templates de preguntas por rol/pilar
+   Al marcar ✗ nuevo, en lugar de textarea libre se muestran
+   preguntas específicas que ensamblan una observación estructurada.
+   Cada campo tiene: id (para el input), key (prefijo en la obs),
+   label (pregunta visible), tipo (text|textarea|date|jefe), ph.
+   ========================================================= */
+const HALLAZGO_GUIADO = {
+  cajera: { campos: [
+    { id:'resp',   key:'Responsable',        label:'Nombre de la cajera',                tipo:'text',     ph:'Ej: María García' },
+    { id:'que',    key:'Hallazgo',           label:'¿Qué no se cumplió exactamente?',    tipo:'textarea', ph:'Describe concretamente qué faltó o qué estuvo mal' },
+    { id:'monto',  key:'Monto',              label:'Diferencia o monto en riesgo',        tipo:'text',     ph:'Ej: $350  —  o "sin monto"' },
+    { id:'accion', key:'Acción comprometida',label:'Acción concreta requerida',           tipo:'text',     ph:'¿Qué tiene que hacer y cuándo?' },
+    { id:'jefe',   key:'Jefe inmediato',     label:'Jefe inmediato de la cajera',         tipo:'jefe' },
+    { id:'fecha',  key:'Fecha compromiso',   label:'Fecha compromiso de resolución',      tipo:'date' },
+  ]},
+  almacen: { campos: [
+    { id:'resp',   key:'Responsable',        label:'Nombre del almacenista',              tipo:'text',     ph:'Ej: Carlos López' },
+    { id:'prod',   key:'Producto/área',      label:'Producto o área específica afectada', tipo:'text',     ph:'Ej: carne de res  —  bar  —  almacén general' },
+    { id:'dif',    key:'Diferencia',         label:'Diferencia encontrada',               tipo:'text',     ph:'Ej: 3 kg faltantes  —  diferencia 4%' },
+    { id:'accion', key:'Acción comprometida',label:'Acción concreta requerida',           tipo:'text',     ph:'¿Qué tiene que hacer?' },
+    { id:'jefe',   key:'Jefe inmediato',     label:'Jefe inmediato del almacenista',      tipo:'jefe' },
+    { id:'fecha',  key:'Fecha compromiso',   label:'Fecha compromiso de resolución',      tipo:'date' },
+  ]},
+  compras: { campos: [
+    { id:'resp',   key:'Responsable',        label:'Nombre del comprador',                tipo:'text',     ph:'Ej: Juan Pérez' },
+    { id:'prov',   key:'Proveedor/factura',  label:'Proveedor o factura involucrada',     tipo:'text',     ph:'Ej: Dist. Fres S.A.  —  Factura 4521' },
+    { id:'monto',  key:'Monto',              label:'Monto en riesgo',                     tipo:'text',     ph:'Ej: $4,200  —  o "sin monto"' },
+    { id:'accion', key:'Acción comprometida',label:'Acción concreta requerida',           tipo:'text',     ph:'¿Qué tiene que hacer?' },
+    { id:'jefe',   key:'Jefe inmediato',     label:'Jefe inmediato del comprador',        tipo:'jefe' },
+    { id:'fecha',  key:'Fecha compromiso',   label:'Fecha compromiso de resolución',      tipo:'date' },
+  ]},
+  cocina: { campos: [
+    { id:'resp',   key:'Responsable',        label:'Nombre del responsable de cocina',    tipo:'text',     ph:'Ej: Chef Antonio' },
+    { id:'prod',   key:'Producto/proceso',   label:'Producto o proceso afectado',         tipo:'text',     ph:'Ej: charola de costilla  —  merma de carne' },
+    { id:'monto',  key:'Valor impacto',      label:'Valor estimado del impacto',          tipo:'text',     ph:'Ej: $800  —  o "sin monto"' },
+    { id:'accion', key:'Acción comprometida',label:'Acción concreta requerida',           tipo:'text',     ph:'¿Qué tiene que hacer?' },
+    { id:'jefe',   key:'Jefe inmediato',     label:'Jefe inmediato del responsable',      tipo:'jefe' },
+    { id:'fecha',  key:'Fecha compromiso',   label:'Fecha compromiso de resolución',      tipo:'date' },
+  ]},
+  gerente: { campos: [
+    { id:'que',    key:'Hallazgo',           label:'¿Qué no fue revisado o firmado?',     tipo:'textarea', ph:'Ej: el reporte de ventas del día no fue firmado' },
+    { id:'motivo', key:'Motivo',             label:'Motivo por el que no se completó',    tipo:'text',     ph:'Ej: no hubo gerente disponible al cierre' },
+    { id:'accion', key:'Acción comprometida',label:'Acción concreta requerida',           tipo:'text',     ph:'¿Qué necesita pasar para completarse?' },
+    { id:'jefe',   key:'Jefe inmediato',     label:'¿A quién se notifica?',               tipo:'jefe' },
+    { id:'fecha',  key:'Fecha compromiso',   label:'Fecha compromiso de resolución',      tipo:'date' },
+  ]},
+  conciliacion: { campos: [
+    { id:'resp',   key:'Responsable',        label:'Persona o área involucrada',          tipo:'text',     ph:'Ej: cajera María  —  host turno nocturno' },
+    { id:'que',    key:'Hallazgo',           label:'¿Qué no se cumplió exactamente?',     tipo:'textarea', ph:'Describe concretamente qué faltó' },
+    { id:'monto',  key:'Monto',              label:'Monto o impacto ($)',                 tipo:'text',     ph:'Ej: $1,500  —  o "sin monto"' },
+    { id:'accion', key:'Acción comprometida',label:'Acción concreta requerida',           tipo:'text',     ph:'¿Qué tiene que hacer?' },
+    { id:'jefe',   key:'Jefe inmediato',     label:'Jefe inmediato del responsable',      tipo:'jefe' },
+    { id:'fecha',  key:'Fecha compromiso',   label:'Fecha compromiso de resolución',      tipo:'date' },
+  ]},
+  requisicion: { campos: [
+    { id:'folio',  key:'Folio',              label:'Folio de la requisición afectada',    tipo:'text',     ph:'Ej: REQ-2026-045' },
+    { id:'resp',   key:'Responsable',        label:'Nombre del responsable de esa etapa', tipo:'text',     ph:'Ej: almacenista Carlos' },
+    { id:'que',    key:'Hallazgo',           label:'¿Cuál es el problema exacto?',        tipo:'textarea', ph:'Ej: cotizaciones de 3 proveedores distintos no obtenidas' },
+    { id:'accion', key:'Acción comprometida',label:'Acción para desbloquear',             tipo:'text',     ph:'¿Qué tiene que hacer y quién?' },
+    { id:'jefe',   key:'Jefe inmediato',     label:'Jefe inmediato del responsable',      tipo:'jefe' },
+    { id:'fecha',  key:'Fecha compromiso',   label:'Fecha compromiso de resolución',      tipo:'date' },
+  ]},
+  default: { campos: [
+    { id:'resp',   key:'Responsable',        label:'Nombre del responsable',              tipo:'text',     ph:'Nombre completo' },
+    { id:'que',    key:'Hallazgo',           label:'¿Qué no se cumplió exactamente?',     tipo:'textarea', ph:'Describe concretamente qué faltó' },
+    { id:'monto',  key:'Monto',              label:'Monto o impacto (si aplica)',          tipo:'text',     ph:'Ej: $500  —  o "sin monto"' },
+    { id:'accion', key:'Acción comprometida',label:'Acción concreta requerida',           tipo:'text',     ph:'¿Qué tiene que hacer?' },
+    { id:'jefe',   key:'Jefe inmediato',     label:'Jefe inmediato del responsable',      tipo:'jefe' },
+    { id:'fecha',  key:'Fecha compromiso',   label:'Fecha compromiso de resolución',      tipo:'date' },
+  ]}
+};
+
+function hallazgoTemplateKey(pilar, responsable_rol) {
+  if (pilar === 'C') return 'requisicion';
+  switch (responsable_rol) {
+    case 'cajera':         return 'cajera';
+    case 'almacen':        return 'almacen';
+    case 'compras':        return 'compras';
+    case 'cocina':         return 'cocina';
+    case 'gerente':        return 'gerente';
+    case 'administracion': return pilar === 'B' ? 'conciliacion' : 'default';
+    default:               return 'default';
+  }
+}
+
+/* =========================================================
    APP — controlador principal
    ========================================================= */
 const App = {
@@ -3403,7 +3498,9 @@ const App = {
       return this.openNotaHallazgoModal({
         item_id, pilar: 'A', valor: 0,
         descripcion: it ? it.descripcion : '',
-        obsActual: (it && it.marca && it.marca.observaciones) || ''
+        obsActual: (it && it.marca && it.marca.observaciones) || '',
+        responsable_rol: it ? (it.responsable_rol || '') : '',
+        frecuencia: it ? (it.frecuencia || '') : ''
       });
     }
     try {
@@ -3916,7 +4013,9 @@ const App = {
       return this.openNotaHallazgoModal({
         item_id, pilar: 'B', valor: 0,
         descripcion: it ? it.descripcion : '',
-        obsActual: (it && it.marca && it.marca.observaciones) || ''
+        obsActual: (it && it.marca && it.marca.observaciones) || '',
+        responsable_rol: it ? (it.responsable_rol || '') : '',
+        frecuencia: it ? (it.frecuencia || '') : ''
       });
     }
     try {
@@ -4435,7 +4534,9 @@ const App = {
       return this.openNotaHallazgoModal({
         item_id, pilar: 'C', valor: 0,
         descripcion: it ? it.descripcion : '',
-        obsActual: (it && it.marca && it.marca.observaciones) || ''
+        obsActual: (it && it.marca && it.marca.observaciones) || '',
+        responsable_rol: it ? (it.responsable_rol || '') : '',
+        frecuencia: it ? (it.frecuencia || '') : ''
       });
     }
     try {
@@ -6769,41 +6870,114 @@ const App = {
   // de una marca existente (sin cambiar el valor). El backend ya acepta observaciones
   // en marcarChecklistA/B/C — sólo no se las estábamos mandando.
   openNotaHallazgoModal(ctx) {
-    // ctx = { item_id, pilar:'A'|'B'|'C', valor:0|1, descripcion, obsActual }
-    const titulo = ctx.valor === 0 ? 'Marcar como no cumplido' : 'Editar nota del ítem';
-    const sub = ctx.valor === 0
-      ? 'Deja una nota para que el informe de hallazgos tenga contexto. Es opcional.'
-      : 'Modifica la observación de este ítem. Es opcional.';
-    const btnLabel = ctx.valor === 0 ? 'Guardar como no cumplido' : 'Guardar nota';
+    // ctx = { item_id, pilar, valor, descripcion, obsActual, responsable_rol, frecuencia }
+    // valor===0 nuevo ✗ → formulario guiado
+    // valor===1 editar existente → textarea libre (no rompe observaciones ya capturadas)
+    const guiado = ctx.valor === 0;
+    const tKey = guiado ? hallazgoTemplateKey(ctx.pilar, ctx.responsable_rol || '') : '';
+    ctx.guiado = guiado;
+    ctx.templateKey = tKey;
     State._notaHallazgoCtx = ctx;
-    this.openModal(`
-      <div class="modal-head">
-        <h2>${escapeHtml(titulo)}</h2>
-        <div class="sub">${escapeHtml(sub)}</div>
-      </div>
-      <div class="modal-body">
-        <p style="margin-bottom:1rem; color:var(--ink-soft); font-style:italic;">
-          ${escapeHtml(ctx.descripcion || '')}
-        </p>
+
+    let bodyHTML;
+    if (guiado) {
+      const template = HALLAZGO_GUIADO[tKey] || HALLAZGO_GUIADO.default;
+      bodyHTML = `
+        <p class="guiado-item-desc">${escapeHtml(ctx.descripcion || '')}</p>
+        ${this._hallazgoFormHTML(template.campos)}`;
+    } else {
+      bodyHTML = `
+        <p style="margin-bottom:1rem;color:var(--ink-soft);font-style:italic;">${escapeHtml(ctx.descripcion || '')}</p>
         <div class="form-group">
           <label>Observación (opcional)</label>
           <textarea id="nota-hallazgo-obs" rows="4"
-            placeholder="${ctx.valor === 0 ? '¿Por qué no se cumplió? ¿Qué hace falta?' : 'Contexto adicional…'}">${escapeHtml(ctx.obsActual || '')}</textarea>
-        </div>
+            placeholder="Contexto adicional…">${escapeHtml(ctx.obsActual || '')}</textarea>
+        </div>`;
+    }
+
+    const titulo = guiado ? 'Registrar hallazgo' : 'Editar nota del ítem';
+    const btnLabel = guiado ? 'Guardar como no cumplido' : 'Guardar nota';
+    this.openModal(`
+      <div class="modal-head">
+        <h2>${escapeHtml(titulo)}</h2>
+        <div class="sub">${guiado ? 'Responde las preguntas — se armará una observación estructurada.' : 'Modifica la observación de este ítem. Es opcional.'}</div>
       </div>
+      <div class="modal-body">${bodyHTML}</div>
       <div class="modal-foot">
         <button class="btn-ghost" onclick="App.closeModal()">Cancelar</button>
         <button class="btn-primary" style="width:auto;margin:0;" onclick="App.guardarNotaHallazgo()">${escapeHtml(btnLabel)}</button>
       </div>
     `);
-    // Auto-focus al textarea para que escriba directo (en móvil abre el teclado).
-    setTimeout(() => { const t = el('nota-hallazgo-obs'); if (t) t.focus(); }, 50);
+    if (!guiado) setTimeout(() => { const t = el('nota-hallazgo-obs'); if (t) t.focus(); }, 50);
+  },
+
+  _hallazgoFormHTML(campos) {
+    return campos.map(c => {
+      if (c.tipo === 'jefe') return `
+        <div class="form-group">
+          <label>${escapeHtml(c.label)}</label>
+          <select id="hg-jefe-sel" onchange="App._onJefeChange()">
+            <option value="">— Selecciona —</option>
+            <option value="Mónica">Mónica</option>
+            <option value="Gabriel">Gabriel</option>
+            <option value="__otro">Otro...</option>
+          </select>
+          <input type="text" id="hg-jefe-txt" style="display:none;margin-top:0.4rem;"
+            placeholder="Nombre del jefe inmediato" />
+        </div>`;
+      if (c.tipo === 'date') return `
+        <div class="form-group">
+          <label>${escapeHtml(c.label)}</label>
+          <input type="date" id="hg-${c.id}" />
+        </div>`;
+      if (c.tipo === 'textarea') return `
+        <div class="form-group">
+          <label>${escapeHtml(c.label)}</label>
+          <textarea id="hg-${c.id}" rows="2" placeholder="${escapeHtml(c.ph || '')}"
+            style="resize:vertical;"></textarea>
+        </div>`;
+      return `
+        <div class="form-group">
+          <label>${escapeHtml(c.label)}</label>
+          <input type="text" id="hg-${c.id}" placeholder="${escapeHtml(c.ph || '')}" />
+        </div>`;
+    }).join('');
+  },
+
+  _onJefeChange() {
+    const sel = el('hg-jefe-sel');
+    const txt = el('hg-jefe-txt');
+    if (sel && txt) txt.style.display = sel.value === '__otro' ? '' : 'none';
   },
 
   async guardarNotaHallazgo() {
     const ctx = State._notaHallazgoCtx;
     if (!ctx) return this.closeModal();
-    const obs = (el('nota-hallazgo-obs').value || '').trim();
+
+    let obs;
+    if (ctx.guiado) {
+      const template = HALLAZGO_GUIADO[ctx.templateKey] || HALLAZGO_GUIADO.default;
+      const partes = [];
+      for (const c of template.campos) {
+        if (c.tipo === 'jefe') {
+          const sel = el('hg-jefe-sel');
+          const txt = el('hg-jefe-txt');
+          const val = sel ? (sel.value === '__otro' ? (txt ? txt.value.trim() : '') : sel.value) : '';
+          if (val) partes.push(`${c.key}: ${val}`);
+        } else if (c.tipo === 'date') {
+          const inp = el('hg-' + c.id);
+          if (inp && inp.value) partes.push(`${c.key}: ${inp.value}`);
+        } else {
+          const inp = el('hg-' + c.id);
+          const val = inp ? inp.value.trim() : '';
+          if (val) partes.push(`${c.key}: ${val}`);
+        }
+      }
+      obs = partes.join(' · ');
+    } else {
+      const t = el('nota-hallazgo-obs');
+      obs = t ? (t.value || '').trim() : '';
+    }
     const endpoint = ctx.pilar === 'A' ? 'marcarChecklistA'
                    : ctx.pilar === 'B' ? 'marcarChecklistB'
                                        : 'marcarChecklistC';
