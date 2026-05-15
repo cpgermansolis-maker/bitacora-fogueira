@@ -939,8 +939,8 @@ function getDesempenoSupervisor(user, payload) {
   // se están capturando hoy → daba 0/0 y confundía. Eliminado en v18.3.
   //
   // Denominador: items_D × días LABORALES + items_S × semanas + items_M × meses.
-  // Laborales = lunes a sábado (todos menos domingo). El restaurante opera
-  // los 7 días pero la supervisora descansa el domingo, así que contar ese
+  // Laborales = todos los días menos miércoles. El restaurante opera
+  // los 7 días pero Estefanía descansa el miércoles, así que contar ese
   // día castigaba injustamente la cobertura.
   const pctOrNull = (num, den) => den > 0 ? Math.round((num * 100) / den) : null;
 
@@ -956,7 +956,7 @@ function getDesempenoSupervisor(user, payload) {
     let count = 0;
     const end = new Date(d2 + 'T00:00:00Z');
     for (let cur = new Date(d1 + 'T00:00:00Z'); cur <= end; cur.setUTCDate(cur.getUTCDate() + 1)) {
-      if (cur.getUTCDay() !== 0) count++;       // 0=domingo (único día excluido)
+      if (cur.getUTCDay() !== 3) count++;       // 3=miércoles (día de descanso de Estefanía)
     }
     return count;
   }
@@ -1205,7 +1205,7 @@ function getDesempenoSupervisor(user, payload) {
   for (let cur = new Date(desde + 'T00:00:00Z'); cur <= endDt; cur.setUTCDate(cur.getUTCDate() + 1)) {
     const sw = semanaIsoStr(cur);
     const acc = bumpSemPunt(sw);
-    if (cur.getUTCDay() !== 0) acc.dias_lab++;
+    if (cur.getUTCDay() !== 3) acc.dias_lab++;
     // ¿Es último día del mes calendario? (mes cambia mañana)
     const next = new Date(cur.getTime()); next.setUTCDate(next.getUTCDate() + 1);
     if (next.getUTCMonth() !== cur.getUTCMonth() || next.getUTCFullYear() !== cur.getUTCFullYear()) acc.fines_mes++;
@@ -1380,7 +1380,7 @@ function getImpactoSupervisor(user, payload) {
     let n = 0;
     const end = new Date(d2 + 'T00:00:00Z');
     for (let cur = new Date(d1 + 'T00:00:00Z'); cur <= end; cur.setUTCDate(cur.getUTCDate() + 1)) {
-      if (cur.getUTCDay() !== 0) n++;
+      if (cur.getUTCDay() !== 3) n++;
     }
     return n;
   }
