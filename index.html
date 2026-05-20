@@ -1217,6 +1217,35 @@ body.has-modo-banner .nav { top: calc(70px + 40px); }
 .ck-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .ck-btn-si.active { background: var(--green); color: #fff; border-color: var(--green); }
 .ck-btn-no.active { background: var(--red);   color: #fff; border-color: var(--red); }
+.ck-cam-btn {
+  width: 32px; height: 32px; border: 1px dashed var(--border-strong);
+  background: none; border-radius: 3px; cursor: pointer; font-size: 1rem;
+  opacity: 0.45; transition: opacity 0.15s, border-color 0.15s;
+  display: grid; place-items: center; padding: 0;
+}
+.ck-cam-btn:hover { opacity: 0.9; border-color: var(--gold-deep); }
+.ck-cam-btn.has-foto { opacity: 1; border-style: solid; border-color: var(--green); }
+.ck-cam-btn.uploading { opacity: 0.6; cursor: wait; }
+.guiada-foto-btn {
+  margin-top: 0.35rem;
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  background: none; border: 1px dashed var(--border-strong);
+  border-radius: 999px; padding: 0.2rem 0.65rem;
+  font-size: 0.78rem; color: var(--ink-muted); cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.guiada-foto-btn:hover { background: var(--bg-paper); border-color: var(--gold-deep); color: var(--ink); }
+.guiada-foto-link {
+  margin-top: 0.35rem;
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  font-size: 0.78rem; color: var(--green);
+  border-bottom: 1px solid var(--green); text-decoration: none;
+}
+.hallazgo-foto-link {
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  font-size: 0.82rem; color: var(--green); margin-top: 0.3rem;
+  border-bottom: 1px solid var(--green); text-decoration: none;
+}
 
 /* ----- Vista guiada del Pilar A (auxiliar y otros roles operativos) ----- */
 .guiada-intro {
@@ -2688,6 +2717,7 @@ const App = {
     document.querySelectorAll('.nav-tab').forEach(tab => {
       tab.addEventListener('click', () => this.go(tab.dataset.view));
     });
+    this._initFotoInput();
   },
 
   async login() {
@@ -3740,6 +3770,104 @@ const App = {
         </div>`;
     }).join('');
     el('ck-body').innerHTML = html;
+  },
+
+  // -------- Fotos en checklist --------
+
+  // Abre el selector de archivo o la foto si ya existe.
+  abrirFotoUpload(item_id, pilar, periodo, foto_url) {
+    if (foto_url) { window.open(foto_url, '_blank', 'noopener'); return; }
+    this._fotoCtx = { item_id, pilar, periodo };
+    document.getElementById('ck-foto-input').click();
+  },
+
+  _initFotoInput() {
+    const inp = document.createElement('input');
+    inp.type = 'file'; inp.accept = 'image/*'; inp.capture = 'environment';
+    inp.id = 'ck-foto-input'; inp.style.display = 'none';
+    inp.addEventListener('change', e => this._onFotoSelected(e));
+    document.body.appendChild(inp);
+  },
+
+  async _onFotoSelected(e) {
+    const file = e.target.files[0];
+    e.target.value = '';
+    if (!file || !this._fotoCtx) return;
+    const { item_id, pilar, periodo } = this._fotoCtx;
+    this._fotoCtx = null;
+
+    // Mostrar estado loading en el botón
+    document.querySelectorAll(`[data-foto-id="${item_id}"]`)
+      .forEach(b => b.classList.add('uploading'));
+    try {
+      const dataUrl = await new Promise((res, rej) => {
+        const r = new FileReader();
+        r.onload = ev => res(ev.target.result);
+        r.onerror = rej;
+        r.readAsDataURL(file);
+      });
+      const base64 = dataUrl.split(',')[1];
+      await apiCall('subirFotoChecklist', {
+        pilar, item_id, periodo,
+        base64, mimeType: file.type,
+        nombre: `foto_${pilar}_${item_id}_${Date.now()}.jpg`
+      });
+      toast('Foto guardada');
+      await this._refreshChecklistByPilar(pilar);
+    } catch (err) {
+      toast('Error al subir foto: ' + err.message, true);
+    } finally {
+      document.querySelectorAll(`[data-foto-id="${item_id}"]`)
+        .forEach(b => b.classList.remove('uploading'));
+    }
+  },
+
+  async _refreshChecklistByPilar(pilar) {
+    if (pilar === 'A') {
+      // Modal auditor (ck view)
+      if (State.pilarAChecklistDetalle) {
+        const modulo_id = State.pilarAChecklistDetalle.items[0] && State.pilarAChecklistDetalle.items[0].modulo_id;
+        if (modulo_id) {
+          const data = await apiCall('getChecklistA', { modulo_id });
+          State.pilarAChecklistDetalle = data;
+          this.renderChecklistModalBody(modulo_id);
+        }
+      }
+      // Vista guiada
+      if (State.pilarAGuiada) {
+        const data = await apiCall('getChecklistA', {});
+        State.pilarAGuiada = data;
+        this._renderGuiadaBody();
+      }
+    } else if (pilar === 'B') {
+      if (State.pilarBChecklistDetalle) {
+        const etapa_id = State.pilarBChecklistDetalle.items[0] && State.pilarBChecklistDetalle.items[0].etapa_id;
+        if (etapa_id) {
+          const data = await apiCall('getChecklistB', { etapa_id });
+          State.pilarBChecklistDetalle = data;
+          this.renderChecklistBModalBody(etapa_id);
+        }
+      }
+      if (State.pilarBGuiada) {
+        const data = await apiCall('getChecklistB', {});
+        State.pilarBGuiada = data;
+        this._renderGuiadaBodyB();
+      }
+    } else if (pilar === 'C') {
+      if (State.pilarCChecklistDetalle) {
+        const etapa_id = State.pilarCChecklistDetalle.items[0] && State.pilarCChecklistDetalle.items[0].etapa_id;
+        if (etapa_id) {
+          const data = await apiCall('getChecklistC', { etapa_id });
+          State.pilarCChecklistDetalle = data;
+          this.renderChecklistCModalBody(etapa_id);
+        }
+      }
+      if (State.pilarCGuiada) {
+        const data = await apiCall('getChecklistC', {});
+        State.pilarCGuiada = data;
+        this._renderGuiadaBodyC();
+      }
+    }
   },
 
   async marcarChecklistItem(item_id, valor) {
@@ -7839,6 +7967,9 @@ function hallazgoCardHTML(h) {
   const obsHTML = obs
     ? `<div class="hallazgo-obs"><strong>Observación:</strong> ${escapeHtml(obs)}</div>`
     : `<div class="hallazgo-obs hallazgo-obs-empty">Sin observación capturada</div>`;
+  const fotoHTML = h.foto_url
+    ? `<a class="hallazgo-foto-link" href="${escapeHtml(h.foto_url)}" target="_blank" rel="noopener">📷 ver foto adjunta</a>`
+    : '';
 
   // Bloque acción / estado: pendiente | retroalimentado | cerrado
   const puedeAtender = State.user && (State.user.rol === 'auditor' || State.user.rol === 'gerente');
@@ -7899,6 +8030,7 @@ function hallazgoCardHTML(h) {
       <div class="hallazgo-titulo">${escapeHtml(h.titulo)}</div>
       ${h.contexto ? `<div class="hallazgo-contexto">${escapeHtml(h.contexto)}</div>` : ''}
       ${obsHTML}
+      ${fotoHTML}
       ${meta.length ? `<div class="hallazgo-meta">${meta.join(' · ')}</div>` : ''}
       ${accionHTML}
     </article>
@@ -7967,7 +8099,8 @@ function guiadaItemRowHTML(it) {
     ? `<span class="guiada-meta">marcada por ${escapeHtml(m.usuario_email || '')} · ${escapeHtml(String(m.timestamp || '').slice(11,16))}</span>`
     : '<span class="guiada-meta guiada-meta-pending">pendiente</span>';
   const sinPerm = it.puedo_marcar ? '' : '<span class="guiada-meta" style="color:var(--red);">tu rol no marca esto</span>';
-  const obsLine = guiadaObsLineHTML(it, 'A');
+  const obsLine  = guiadaObsLineHTML(it, 'A');
+  const fotoLine = guiadaFotoLineHTML(it, 'A');
   return `
     <article class="${rowClass}">
       <div class="guiada-row-info">
@@ -7978,6 +8111,7 @@ function guiadaItemRowHTML(it) {
           ${sinPerm}
         </div>
         ${obsLine}
+        ${fotoLine}
       </div>
       <div class="guiada-toggle">
         <button class="guiada-btn guiada-btn-no ${noCumplido ? 'active' : ''}" ${disabled}
@@ -7986,6 +8120,23 @@ function guiadaItemRowHTML(it) {
           onclick="App.marcarGuiada('${escapeHtml(it.id)}', 1)" aria-label="Marcar como cumplida">✓</button>
       </div>
     </article>`;
+}
+
+// Botón/link de foto (compartido A/B/C). Visible en vista guiada.
+function guiadaFotoLineHTML(it, pilar) {
+  const url  = it.foto_url || '';
+  const id   = escapeHtml(it.id);
+  const per  = escapeHtml(it.periodo || '');
+  if (url) {
+    return `<a class="guiada-foto-link" href="${escapeHtml(url)}" target="_blank" rel="noopener"
+              title="Ver foto adjunta">📷 ver foto</a>`;
+  }
+  if (!it.puedo_marcar) return '';
+  return `<button class="guiada-foto-btn" type="button"
+            onclick="App.abrirFotoUpload('${id}','${pilar}','${per}','')"
+            data-foto-id="${id}" title="Adjuntar foto como evidencia">
+            📷 adjuntar foto
+          </button>`;
 }
 
 // Línea de observación (compartida A/B/C) que aparece debajo de cada ítem ya
@@ -8019,6 +8170,12 @@ function checklistItemRowHTML(it) {
     : '<span class="ck-meta">sin marcar</span>';
   const badgeRol = `<span class="ck-rol-tag">${escapeHtml(it.responsable_rol)}</span>`;
   const noPerm = it.puedo_marcar ? '' : '<span class="ck-meta" style="color:var(--red);">tu rol no marca</span>';
+  const hasFoto = !!(it.foto_url);
+  const fotoUrl = escapeHtml(it.foto_url || '');
+  const camTitle = hasFoto ? 'Ver foto adjunta' : 'Adjuntar foto';
+  const camClick = hasFoto
+    ? `window.open('${fotoUrl}','_blank','noopener')`
+    : `App.abrirFotoUpload('${escapeHtml(it.id)}','A','${escapeHtml(it.periodo||'')}','')`;
   return `
     <div class="${rowClass}">
       <div class="ck-id">${escapeHtml(it.id)}</div>
@@ -8031,6 +8188,8 @@ function checklistItemRowHTML(it) {
           onclick="App.marcarChecklistItem('${escapeHtml(it.id)}', 0)" title="No cumplido">0</button>
         <button class="ck-btn ck-btn-si  ${cumplido   ? 'active' : ''}" ${disabled}
           onclick="App.marcarChecklistItem('${escapeHtml(it.id)}', 1)" title="Cumplido">1</button>
+        <button class="ck-cam-btn ${hasFoto ? 'has-foto' : ''}" data-foto-id="${escapeHtml(it.id)}"
+          onclick="${camClick}" title="${camTitle}">📷</button>
       </div>
     </div>`;
 }
@@ -8091,7 +8250,8 @@ function guiadaBItemRowHTML(it) {
     ? `<span class="guiada-meta">marcada por ${escapeHtml(m.usuario_email || '')} · ${escapeHtml(String(m.timestamp || '').slice(11,16))}</span>`
     : '<span class="guiada-meta guiada-meta-pending">pendiente</span>';
   const sinPerm = it.puedo_marcar ? '' : '<span class="guiada-meta" style="color:var(--red);">tu rol no marca esto</span>';
-  const obsLine = guiadaObsLineHTML(it, 'B');
+  const obsLine  = guiadaObsLineHTML(it, 'B');
+  const fotoLine = guiadaFotoLineHTML(it, 'B');
   return `
     <article class="${rowClass}">
       <div class="guiada-row-info">
@@ -8102,6 +8262,7 @@ function guiadaBItemRowHTML(it) {
           ${sinPerm}
         </div>
         ${obsLine}
+        ${fotoLine}
       </div>
       <div class="guiada-toggle">
         <button class="guiada-btn guiada-btn-no ${noCumplido ? 'active' : ''}" ${disabled}
@@ -8126,6 +8287,12 @@ function checklistBItemRowHTML(it) {
     ? `<span class="ck-meta">por ${escapeHtml(m.usuario_email || '')} · ${escapeHtml(String(m.timestamp || '').slice(0,16).replace('T',' '))}</span>`
     : '<span class="ck-meta">sin marcar</span>';
   const noPerm = it.puedo_marcar ? '' : '<span class="ck-meta" style="color:var(--red);">tu rol no marca</span>';
+  const hasFoto = !!(it.foto_url);
+  const fotoUrl = escapeHtml(it.foto_url || '');
+  const camTitle = hasFoto ? 'Ver foto adjunta' : 'Adjuntar foto';
+  const camClick = hasFoto
+    ? `window.open('${fotoUrl}','_blank','noopener')`
+    : `App.abrirFotoUpload('${escapeHtml(it.id)}','B','${escapeHtml(it.periodo||'')}','')`;
   return `
     <div class="${rowClass}">
       <div class="ck-id">${escapeHtml(it.id)}</div>
@@ -8138,6 +8305,8 @@ function checklistBItemRowHTML(it) {
           onclick="App.marcarChecklistBItem('${escapeHtml(it.id)}', 0)" title="No cumplido">0</button>
         <button class="ck-btn ck-btn-si  ${cumplido   ? 'active' : ''}" ${disabled}
           onclick="App.marcarChecklistBItem('${escapeHtml(it.id)}', 1)" title="Cumplido">1</button>
+        <button class="ck-cam-btn ${hasFoto ? 'has-foto' : ''}" data-foto-id="${escapeHtml(it.id)}"
+          onclick="${camClick}" title="${camTitle}">📷</button>
       </div>
     </div>`;
 }
@@ -8181,7 +8350,8 @@ function guiadaCItemRowHTML(it) {
     ? `<span class="guiada-meta">marcada por ${escapeHtml(m.usuario_email || '')} · ${escapeHtml(String(m.timestamp || '').slice(11,16))}</span>`
     : '<span class="guiada-meta guiada-meta-pending">pendiente</span>';
   const sinPerm = it.puedo_marcar ? '' : '<span class="guiada-meta" style="color:var(--red);">tu rol no marca esto</span>';
-  const obsLine = guiadaObsLineHTML(it, 'C');
+  const obsLine  = guiadaObsLineHTML(it, 'C');
+  const fotoLine = guiadaFotoLineHTML(it, 'C');
   return `
     <article class="${rowClass}">
       <div class="guiada-row-info">
@@ -8192,6 +8362,7 @@ function guiadaCItemRowHTML(it) {
           ${sinPerm}
         </div>
         ${obsLine}
+        ${fotoLine}
       </div>
       <div class="guiada-toggle">
         <button class="guiada-btn guiada-btn-no ${noCumplido ? 'active' : ''}" ${disabled}
@@ -8216,6 +8387,12 @@ function checklistCItemRowHTML(it) {
     ? `<span class="ck-meta">por ${escapeHtml(m.usuario_email || '')} · ${escapeHtml(String(m.timestamp || '').slice(0,16).replace('T',' '))}</span>`
     : '<span class="ck-meta">sin marcar</span>';
   const noPerm = it.puedo_marcar ? '' : '<span class="ck-meta" style="color:var(--red);">tu rol no marca</span>';
+  const hasFoto = !!(it.foto_url);
+  const fotoUrl = escapeHtml(it.foto_url || '');
+  const camTitle = hasFoto ? 'Ver foto adjunta' : 'Adjuntar foto';
+  const camClick = hasFoto
+    ? `window.open('${fotoUrl}','_blank','noopener')`
+    : `App.abrirFotoUpload('${escapeHtml(it.id)}','C','${escapeHtml(it.periodo||'')}','')`;
   return `
     <div class="${rowClass}">
       <div class="ck-id">${escapeHtml(it.id)}</div>
@@ -8228,6 +8405,8 @@ function checklistCItemRowHTML(it) {
           onclick="App.marcarChecklistCItem('${escapeHtml(it.id)}', 0)" title="No cumplido">0</button>
         <button class="ck-btn ck-btn-si  ${cumplido   ? 'active' : ''}" ${disabled}
           onclick="App.marcarChecklistCItem('${escapeHtml(it.id)}', 1)" title="Cumplido">1</button>
+        <button class="ck-cam-btn ${hasFoto ? 'has-foto' : ''}" data-foto-id="${escapeHtml(it.id)}"
+          onclick="${camClick}" title="${camTitle}">📷</button>
       </div>
     </div>`;
 }

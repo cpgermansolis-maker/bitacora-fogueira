@@ -43,13 +43,15 @@ const SHEETS = {
   HALLAZGOS_ATENDIDOS: 'Hallazgos_Atendidos',
   CURSOS_PROGRESO: 'Cursos_Progreso',
   CURSOS_CERTIFICADOS: 'Cursos_Certificados',
-  NOTIF_ULTIMA_VISTA: 'Notificaciones_UltimaVista'
+  NOTIF_ULTIMA_VISTA: 'Notificaciones_UltimaVista',
+  CHECKLIST_FOTOS: 'ChecklistFotos'
 };
 
 // Hoja Hallazgos_Atendidos: creada on-demand la primera vez que alguien marca
 // uno (ver ensureSheetExists). El key es un identificador estable del hallazgo
 // que reconstruye el frontend/backend a partir de su tipo + referencia.
 const HALLAZGOS_ATENDIDOS_HEADERS = ['key', 'atendido_por', 'atendido_at', 'nota', 'estado'];
+const CHECKLIST_FOTOS_HEADERS = ['timestamp', 'pilar', 'item_id', 'periodo', 'usuario_email', 'foto_drive_id', 'foto_url'];
 
 // El ID de la carpeta de Drive se guarda en PropertiesService al ejecutar
 // setupSheet() (ver Setup.gs). No requiere edición manual de este archivo.
@@ -116,6 +118,7 @@ function doPost(e) {
         case 'getRetroalimentaciones':   response = getRetroalimentaciones(user); break;
         case 'desmarcarHallazgoAtendido':response = desmarcarHallazgoAtendido(user, payload); break;
         case 'subirEvidencia':     response = subirEvidencia(user, payload); break;
+        case 'subirFotoChecklist': response = subirFotoChecklist(user, payload); break;
         case 'getUsuarios':        response = getUsuarios(user); break;
         case 'addUsuario':         response = addUsuario(user, payload); break;
         case 'updateUsuario':      response = updateUsuario(user, payload); break;
@@ -792,6 +795,7 @@ function getChecklistA(user, payload) {
   };
 
   const marcasAll = sheetData(SHEETS.PILAR_A_CK_MARCAS);
+  const fotos = ckFotosMap('A');
   const enriched = items.map(it => {
     const periodo = periodos[it.frecuencia];
     const marca = marcasAll
@@ -800,10 +804,13 @@ function getChecklistA(user, payload) {
       .sort((a, b) => String(b.timestamp).localeCompare(String(a.timestamp)))[0] || null;
     // Devolver la marca con el periodo ya canónico (para el frontend)
     if (marca) marca.periodo = periodoCanonico(marca.periodo, it.frecuencia);
+    const foto = fotos['A|' + it.id];
     return Object.assign({}, it, {
       periodo,
       marca,
-      puedo_marcar: puedeMarcarChecklist(user, it)
+      puedo_marcar: puedeMarcarChecklist(user, it),
+      foto_url: foto ? foto.foto_url : '',
+      foto_id:  foto ? foto.foto_drive_id : ''
     });
   });
 
@@ -943,6 +950,7 @@ function getChecklistB(user, payload) {
   };
 
   const marcasAll = sheetData(SHEETS.PILAR_B_CK_MARCAS);
+  const fotos = ckFotosMap('B');
   const enriched = items.map(it => {
     const periodo = periodos[it.frecuencia];
     const marca = marcasAll
@@ -950,10 +958,13 @@ function getChecklistB(user, payload) {
                    periodoCanonico(m.periodo, it.frecuencia) === periodo)
       .sort((a, b) => String(b.timestamp).localeCompare(String(a.timestamp)))[0] || null;
     if (marca) marca.periodo = periodoCanonico(marca.periodo, it.frecuencia);
+    const foto = fotos['B|' + it.id];
     return Object.assign({}, it, {
       periodo,
       marca,
-      puedo_marcar: puedeMarcarChecklistB(user, it)
+      puedo_marcar: puedeMarcarChecklistB(user, it),
+      foto_url: foto ? foto.foto_url : '',
+      foto_id:  foto ? foto.foto_drive_id : ''
     });
   });
 
@@ -1089,6 +1100,7 @@ function getChecklistC(user, payload) {
   };
 
   const marcasAll = sheetData(SHEETS.PILAR_C_CK_MARCAS);
+  const fotos = ckFotosMap('C');
   const enriched = items.map(it => {
     const periodo = periodos[it.frecuencia];
     const marca = marcasAll
@@ -1096,10 +1108,13 @@ function getChecklistC(user, payload) {
                    periodoCanonico(m.periodo, it.frecuencia) === periodo)
       .sort((a, b) => String(b.timestamp).localeCompare(String(a.timestamp)))[0] || null;
     if (marca) marca.periodo = periodoCanonico(marca.periodo, it.frecuencia);
+    const foto = fotos['C|' + it.id];
     return Object.assign({}, it, {
       periodo,
       marca,
-      puedo_marcar: puedeMarcarChecklistC(user, it)
+      puedo_marcar: puedeMarcarChecklistC(user, it),
+      foto_url: foto ? foto.foto_url : '',
+      foto_id:  foto ? foto.foto_drive_id : ''
     });
   });
 
@@ -1825,6 +1840,15 @@ function getHallazgos(user, payload) {
     }
   });
 
+  // Enriquecer no-cumplidos con foto de evidencia si la hay.
+  const fotosHallazgos = ckFotosMap(null);
+  hallazgos.forEach(h => {
+    if (h.tipo === 'no_cumplido') {
+      const foto = fotosHallazgos[h.pilar + '|' + h.ref];
+      h.foto_url = foto ? foto.foto_url : '';
+    }
+  });
+
   // Filtro: por default los cerrados se ocultan. El frontend pasa
   // incluir_atendidos:true cuando el usuario activa el toggle.
   // Retroalimentados siguen visibles siempre (son pendientes con feedback).
@@ -1973,6 +1997,60 @@ function desmarcarHallazgoAtendido(user, payload) {
 // =============================================================
 // EVIDENCIA — sube archivos a Drive y devuelve URL pública
 // =============================================================
+// Devuelve mapa { 'pilar|item_id' → fila } con la foto más reciente de cada ítem.
+// pilarFilter=null carga todos los pilares (para getHallazgos).
+function ckFotosMap(pilarFilter) {
+  ensureSheetExists(SHEETS.CHECKLIST_FOTOS, CHECKLIST_FOTOS_HEADERS);
+  const map = {};
+  try {
+    sheetData(SHEETS.CHECKLIST_FOTOS).forEach(r => {
+      if (pilarFilter && String(r.pilar) !== pilarFilter) return;
+      const k = String(r.pilar) + '|' + String(r.item_id);
+      if (!map[k] || String(r.timestamp) > String(map[k].timestamp)) map[k] = r;
+    });
+  } catch(e) { /* hoja vacía */ }
+  return map;
+}
+
+function subirFotoChecklist(user, payload) {
+  if (!payload.pilar || !payload.item_id || !payload.base64) {
+    throw new Error('pilar, item_id y base64 requeridos');
+  }
+  ensureSheetExists(SHEETS.CHECKLIST_FOTOS, CHECKLIST_FOTOS_HEADERS);
+  const folderId = getDriveFolderId();
+  if (!folderId) throw new Error('Configura DRIVE_FOLDER_ID ejecutando setupSheet() primero');
+
+  const folder = DriveApp.getFolderById(folderId);
+  const nombre = payload.nombre || ('foto_' + payload.pilar + '_' + payload.item_id + '_' + nowISO() + '.jpg');
+  const blob = Utilities.newBlob(
+    Utilities.base64Decode(payload.base64),
+    payload.mimeType || 'image/jpeg',
+    nombre
+  );
+  const file = folder.createFile(blob);
+  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+  const foto_url = file.getUrl();
+  const foto_id  = file.getId();
+  const pilar    = String(payload.pilar);
+  const item_id  = String(payload.item_id);
+  const periodo  = String(payload.periodo || '');
+
+  const existing = findRow(SHEETS.CHECKLIST_FOTOS,
+    r => String(r.pilar) === pilar && String(r.item_id) === item_id);
+  const rowData = {
+    timestamp: nowISO(), pilar, item_id, periodo,
+    usuario_email: user.email, foto_drive_id: foto_id, foto_url
+  };
+  if (existing) {
+    updateRow(SHEETS.CHECKLIST_FOTOS, existing.rowIdx, rowData);
+  } else {
+    appendRow(SHEETS.CHECKLIST_FOTOS, rowData);
+  }
+  logBitacora(user.email, 'subirFotoChecklist', pilar + '/' + item_id + ' → ' + foto_id);
+  return { ok: true, foto_url, foto_id };
+}
+
 function subirEvidencia(user, payload) {
   const folderId = getDriveFolderId();
   if (!folderId) {
