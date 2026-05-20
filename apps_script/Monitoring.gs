@@ -575,6 +575,40 @@ function getDiaPersona(user, payload) {
   const faltantes = []
     .concat(faltantesA, etapasBFaltantes, faltantesB, faltantesC);
 
+  // ---------- Protocolo del Turno ----------
+  let protocoloData = { items: [], marcados: 0, cumplidos: 0, pendientes: 0 };
+  try {
+    const protRes = getProtocolo(user, { fecha, email: persona.email });
+    protRes.items.filter(it => !it.marca).forEach(it => {
+      faltantes.push({
+        pilar: 'P', tipo: 'protocolo',
+        id: it.id, descripcion: it.descripcion,
+        responsable_rol: it.rol_responsable || ''
+      });
+    });
+    sheetData(SHEETS.PROTOCOLO_MARCAS)
+      .filter(m => String(m.usuario_email).toLowerCase().trim() === String(persona.email).toLowerCase().trim())
+      .filter(m => fmt(new Date(m.timestamp)) === fecha)
+      .forEach(m => {
+        const it = protRes.items.find(x => String(x.id) === String(m.item_id));
+        lineaTiempo.push({
+          timestamp: m.timestamp, pilar: 'P',
+          icon: Number(m.valor) === 1 ? '✓' : '✗',
+          titulo: 'Protocolo · ' + (it ? it.descripcion : m.item_id),
+          detalle: m.observaciones || ''
+        });
+      });
+    lineaTiempo.sort((a, b) => String(a.timestamp).localeCompare(String(b.timestamp)));
+    const marcados = protRes.items.filter(it => it.marca).length;
+    const cumplidos = protRes.items.filter(it => it.marca && Number(it.marca.valor) === 1).length;
+    protocoloData = {
+      items: protRes.items,
+      marcados,
+      cumplidos,
+      pendientes: protRes.items.length - marcados
+    };
+  } catch(e) { /* Protocolo no disponible aún */ }
+
   return {
     persona: {
       email: String(persona.email).toLowerCase().trim(),
@@ -610,8 +644,7 @@ function getDiaPersona(user, payload) {
     },
     faltantes,
     linea_tiempo: lineaTiempo,
-    // Config fresca en cada llamada — Mi Día es la home, así que aquí
-    // refrescamos modo_responsable / auxiliar_nombre sin requerir logout.
+    protocolo: protocoloData,
     config: configMap()
   };
 }

@@ -1246,6 +1246,25 @@ body.has-modo-banner .nav { top: calc(70px + 40px); }
   font-size: 0.82rem; color: var(--green); margin-top: 0.3rem;
   border-bottom: 1px solid var(--green); text-decoration: none;
 }
+/* ----- Protocolo del Turno ----- */
+.protocolo-section {
+  background: var(--bg-elevated); border: 1px solid var(--border-strong);
+  border-left: 3px solid var(--gold); border-radius: 4px;
+  margin: 1rem 0; overflow: hidden;
+}
+.protocolo-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.65rem 1rem; border-bottom: 1px solid var(--border-strong);
+  background: var(--bg-paper);
+}
+.protocolo-titulo { font-weight: 600; font-size: 0.95rem; }
+.protocolo-meta   { font-size: 0.82rem; color: var(--ink-soft); }
+.protocolo-items  { padding: 0.25rem 0; }
+.protocolo-item-hora {
+  font-size: 0.75rem; color: var(--ink-muted);
+  background: var(--bg-paper); border-radius: 99px;
+  padding: 0.1rem 0.5rem;
+}
 
 /* ----- Vista guiada del Pilar A (auxiliar y otros roles operativos) ----- */
 .guiada-intro {
@@ -3052,6 +3071,8 @@ const App = {
         </div>
       </div>
 
+      <div id="protocolo-midiaSection" class="protocolo-section" style="display:none"></div>
+
       <div id="retro-banner"></div>
 
       <div class="subtabs">
@@ -3067,10 +3088,48 @@ const App = {
       this._miDia_renderHoy();
     }
 
+    this._renderProtocoloSection();
+
     // Retroalimentaciones pendientes de Mónica (solo para Estefanía)
     if (!isAuditor) {
       this._renderRetroBanner();
     }
+  },
+
+  _renderProtocoloSection() {
+    const sec = document.getElementById('protocolo-midiaSection');
+    if (!sec || !State.miDia || !State.miDia.protocolo) return;
+    const prot = State.miDia.protocolo;
+    if (!prot.items || prot.items.length === 0) { sec.style.display = 'none'; return; }
+    sec.style.display = '';
+    const cumplidos = prot.items.filter(it => it.marca && Number(it.marca.valor) === 1).length;
+    const total = prot.items.length;
+    const fecha = State.miDia.fecha || '';
+    sec.innerHTML = `
+      <div class="protocolo-head">
+        <span class="protocolo-titulo">📋 Protocolo del turno</span>
+        <span class="protocolo-meta">${cumplidos}/${total} hechas</span>
+      </div>
+      <div class="protocolo-items">
+        ${prot.items.map(it => protocoloItemMiDiaHTML(it, fecha)).join('')}
+      </div>`;
+  },
+
+  async marcarProtocoloItem(item_id, valor, periodo, fecha) {
+    try {
+      await apiCall('marcarProtocolo', { item_id, valor, periodo });
+      const res = await apiCall('getProtocolo', { fecha, email: State.miDia && State.miDia.persona && State.miDia.persona.email });
+      if (State.miDia) {
+        State.miDia.protocolo = {
+          items: res.items,
+          marcados: res.items.filter(it => it.marca).length,
+          cumplidos: res.items.filter(it => it.marca && Number(it.marca.valor) === 1).length,
+          pendientes: res.items.filter(it => !it.marca).length
+        };
+      }
+      this._renderProtocoloSection();
+      toast(valor === 1 ? 'Hecho ✓' : 'No hecho ✗');
+    } catch(err) { toast(err.message, true); }
   },
 
   async _renderRetroBanner() {
@@ -7952,10 +8011,11 @@ function modulRowHTML(m, ck, sparkSerie) {
 //     "Reabrir" (también restringido a auditor/gerente).
 function hallazgoCardHTML(h) {
   const badges = {
-    no_cumplido:   { label: '✗ No cumplido',     cls: 'h-no-cumplido' },
-    bandera_roja:  { label: '🚩 Bandera roja',   cls: 'h-bandera' },
-    req_bloqueada: { label: '⛔ Bloqueada',       cls: 'h-bloqueada' },
-    sr12_critico:  { label: '⚠️ Zona crítica',   cls: 'h-critico' }
+    no_cumplido:        { label: '✗ No cumplido',      cls: 'h-no-cumplido' },
+    bandera_roja:       { label: '🚩 Bandera roja',    cls: 'h-bandera' },
+    req_bloqueada:      { label: '⛔ Bloqueada',        cls: 'h-bloqueada' },
+    sr12_critico:       { label: '⚠️ Zona crítica',    cls: 'h-critico' },
+    protocolo_incumplido: { label: '📋 Protocolo',     cls: 'h-no-cumplido' }
   };
   const b = badges[h.tipo] || { label: h.tipo, cls: '' };
   const hora = String(h.timestamp || '').slice(11, 16);
@@ -8118,6 +8178,44 @@ function guiadaItemRowHTML(it) {
           onclick="App.marcarGuiada('${escapeHtml(it.id)}', 0)" aria-label="Marcar como no cumplida">✗</button>
         <button class="guiada-btn guiada-btn-si ${cumplido ? 'active' : ''}" ${disabled}
           onclick="App.marcarGuiada('${escapeHtml(it.id)}', 1)" aria-label="Marcar como cumplida">✓</button>
+      </div>
+    </article>`;
+}
+
+// Fila del Protocolo del Turno en Mi Día (misma UX que guiada).
+function protocoloItemMiDiaHTML(it, fecha) {
+  const m = it.marca;
+  const valor = m ? Number(m.valor) : null;
+  const cumplido = valor === 1;
+  const noCumplido = valor === 0;
+  const rowClass = cumplido ? 'guiada-row guiada-cumplido'
+                 : noCumplido ? 'guiada-row guiada-nocumplido'
+                 : 'guiada-row';
+  const disabled = it.puedo_marcar ? '' : 'disabled';
+  const meta = m
+    ? `<span class="guiada-meta">${m.usuario_email ? 'por ' + escapeHtml(m.usuario_email) + ' · ' : ''}${escapeHtml(String(m.timestamp||'').slice(11,16))}</span>`
+    : '<span class="guiada-meta guiada-meta-pending">pendiente</span>';
+  const horaTag = it.hora_sugerida
+    ? `<span class="protocolo-item-hora">⏰ ${escapeHtml(it.hora_sugerida)}</span>` : '';
+  const fotoLine = guiadaFotoLineHTML(it, 'P');
+  const id  = escapeHtml(it.id);
+  const per = escapeHtml(it.periodo || '');
+  const fch = escapeHtml(fecha || '');
+  return `
+    <article class="${rowClass}">
+      <div class="guiada-row-info">
+        <div class="guiada-row-text">${escapeHtml(it.descripcion)}</div>
+        <div class="guiada-row-line">
+          ${horaTag}
+          ${meta}
+        </div>
+        ${fotoLine}
+      </div>
+      <div class="guiada-toggle">
+        <button class="guiada-btn guiada-btn-no ${noCumplido ? 'active' : ''}" ${disabled}
+          onclick="App.marcarProtocoloItem('${id}', 0, '${per}', '${fch}')" aria-label="No hecho">✗</button>
+        <button class="guiada-btn guiada-btn-si ${cumplido ? 'active' : ''}" ${disabled}
+          onclick="App.marcarProtocoloItem('${id}', 1, '${per}', '${fch}')" aria-label="Hecho">✓</button>
       </div>
     </article>`;
 }

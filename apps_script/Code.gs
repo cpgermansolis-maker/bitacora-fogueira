@@ -44,14 +44,18 @@ const SHEETS = {
   CURSOS_PROGRESO: 'Cursos_Progreso',
   CURSOS_CERTIFICADOS: 'Cursos_Certificados',
   NOTIF_ULTIMA_VISTA: 'Notificaciones_UltimaVista',
-  CHECKLIST_FOTOS: 'ChecklistFotos'
+  CHECKLIST_FOTOS: 'ChecklistFotos',
+  PROTOCOLO_ITEMS: 'Protocolo_Items',
+  PROTOCOLO_MARCAS: 'Protocolo_Marcas'
 };
 
 // Hoja Hallazgos_Atendidos: creada on-demand la primera vez que alguien marca
 // uno (ver ensureSheetExists). El key es un identificador estable del hallazgo
 // que reconstruye el frontend/backend a partir de su tipo + referencia.
 const HALLAZGOS_ATENDIDOS_HEADERS = ['key', 'atendido_por', 'atendido_at', 'nota', 'estado'];
-const CHECKLIST_FOTOS_HEADERS = ['timestamp', 'pilar', 'item_id', 'periodo', 'usuario_email', 'foto_drive_id', 'foto_url'];
+const CHECKLIST_FOTOS_HEADERS  = ['timestamp', 'pilar', 'item_id', 'periodo', 'usuario_email', 'foto_drive_id', 'foto_url'];
+const PROTOCOLO_ITEMS_HEADERS  = ['id', 'descripcion', 'frecuencia', 'dia_semana', 'hora_sugerida', 'rol_responsable', 'activo'];
+const PROTOCOLO_MARCAS_HEADERS = ['timestamp', 'item_id', 'periodo', 'valor', 'usuario_email', 'observaciones'];
 
 // El ID de la carpeta de Drive se guarda en PropertiesService al ejecutar
 // setupSheet() (ver Setup.gs). No requiere edición manual de este archivo.
@@ -119,6 +123,8 @@ function doPost(e) {
         case 'desmarcarHallazgoAtendido':response = desmarcarHallazgoAtendido(user, payload); break;
         case 'subirEvidencia':     response = subirEvidencia(user, payload); break;
         case 'subirFotoChecklist': response = subirFotoChecklist(user, payload); break;
+        case 'getProtocolo':       response = getProtocolo(user, payload); break;
+        case 'marcarProtocolo':    response = marcarProtocolo(user, payload); break;
         case 'getUsuarios':        response = getUsuarios(user); break;
         case 'addUsuario':         response = addUsuario(user, payload); break;
         case 'updateUsuario':      response = updateUsuario(user, payload); break;
@@ -1816,6 +1822,32 @@ function getHallazgos(user, payload) {
     });
   });
 
+  // 7. Ítems del Protocolo del Turno marcados como no cumplidos.
+  try {
+    ensureSheetExists(SHEETS.PROTOCOLO_ITEMS,  PROTOCOLO_ITEMS_HEADERS);
+    ensureSheetExists(SHEETS.PROTOCOLO_MARCAS, PROTOCOLO_MARCAS_HEADERS);
+    const protItems = {};
+    sheetData(SHEETS.PROTOCOLO_ITEMS).forEach(it => { protItems[String(it.id)] = it; });
+    sheetData(SHEETS.PROTOCOLO_MARCAS).forEach(m => {
+      if (Number(m.valor) !== 0) return;
+      const fecha = fmt(new Date(m.timestamp));
+      if (!inRange(fecha)) return;
+      const it = protItems[String(m.item_id)];
+      hallazgos.push({
+        pilar: 'P',
+        tipo: 'protocolo_incumplido',
+        ref: String(m.item_id),
+        fecha,
+        titulo: it ? it.descripcion : ('Protocolo ' + m.item_id),
+        contexto: it ? ({ D: 'Diario', S: 'Semanal', M: 'Mensual' }[it.frecuencia] || '') : '',
+        responsable_rol: it ? it.rol_responsable : '',
+        observacion: m.observaciones || '',
+        capturado_por: m.usuario_email || '',
+        timestamp: String(m.timestamp || '')
+      });
+    });
+  } catch(e) { /* Protocolo aún no inicializado */ }
+
   // Cada hallazgo necesita un key estable para poder marcarlo como "atendido"
   // sin importar el rango de fechas con que se consulte. La función de key
   // vive como helper (hallazgoKey) abajo y se reusa en marcar/desmarcar.
@@ -1997,6 +2029,112 @@ function desmarcarHallazgoAtendido(user, payload) {
 // =============================================================
 // EVIDENCIA — sube archivos a Drive y devuelve URL pública
 // =============================================================
+// =============================================================
+// PROTOCOLO DEL TURNO
+// =============================================================
+
+// dia_semana usa 1=Lunes … 7=Domingo (más legible en el Sheet).
+// Para ítems semanales (S): aparece desde ese día hasta el domingo de esa semana.
+// Para D y M: dia_semana no filtra.
+function esVisibleHoyProtocolo(item, fechaStr) {
+  const ds = String(item.dia_semana || '').trim();
+  if (!ds) return true;
+  const num = parseInt(ds);
+  if (isNaN(num)) return true;
+  if (item.frecuencia === 'S') {
+    const date = new Date(fechaStr + 'T12:00:00');
+    const dayJs = date.getDay();           // 0=Dom
+    const dayMx = dayJs === 0 ? 7 : dayJs; // 1=Lun…7=Dom
+    return dayMx >= num;
+  }
+  return true;
+}
+
+function getProtocolo(user, payload) {
+  payload = payload || {};
+  const tz = ss().getSpreadsheetTimeZone() || 'America/Mexico_City';
+  const fecha = payload.fecha || Utilities.formatDate(new Date(), tz, 'yyyy-MM-dd');
+  const emailVer = payload.email ? String(payload.email).toLowerCase().trim() : user.email;
+
+  ensureSheetExists(SHEETS.PROTOCOLO_ITEMS,  PROTOCOLO_ITEMS_HEADERS);
+  ensureSheetExists(SHEETS.PROTOCOLO_MARCAS, PROTOCOLO_MARCAS_HEADERS);
+
+  const periodos = {
+    D: periodoActual('D'),
+    S: periodoActual('S'),
+    M: periodoActual('M')
+  };
+
+  const items = sheetData(SHEETS.PROTOCOLO_ITEMS)
+    .filter(it => String(it.activo).toUpperCase() === 'TRUE')
+    .filter(it => esVisibleHoyProtocolo(it, fecha));
+
+  const marcasAll = sheetData(SHEETS.PROTOCOLO_MARCAS)
+    .filter(m => String(m.usuario_email).toLowerCase().trim() === emailVer);
+  const fotos = ckFotosMap('P');
+  const puedeMarcar = ['auditor', 'gerente', 'auxiliar'].includes(user.rol);
+
+  const enriched = items.map(it => {
+    const frec = it.frecuencia || 'D';
+    const periodo = periodos[frec] || periodos['D'];
+    const marca = marcasAll
+      .filter(m => String(m.item_id) === String(it.id) &&
+                   periodoCanonico(m.periodo, frec) === periodo)
+      .sort((a, b) => String(b.timestamp).localeCompare(String(a.timestamp)))[0] || null;
+    if (marca) marca.periodo = periodoCanonico(marca.periodo, frec);
+    const foto = fotos['P|' + it.id];
+    return Object.assign({}, it, {
+      periodo,
+      marca,
+      puedo_marcar: puedeMarcar,
+      foto_url: foto ? foto.foto_url : '',
+      foto_id:  foto ? foto.foto_drive_id : ''
+    });
+  });
+
+  return { items: enriched, periodos, fecha };
+}
+
+function marcarProtocolo(user, payload) {
+  if (!payload || !payload.item_id) throw new Error('item_id requerido');
+  ensureSheetExists(SHEETS.PROTOCOLO_ITEMS,  PROTOCOLO_ITEMS_HEADERS);
+  ensureSheetExists(SHEETS.PROTOCOLO_MARCAS, PROTOCOLO_MARCAS_HEADERS);
+
+  const item = findRow(SHEETS.PROTOCOLO_ITEMS, it => String(it.id) === String(payload.item_id));
+  if (!item) throw new Error('Ítem de protocolo no encontrado: ' + payload.item_id);
+  if (!['auditor', 'gerente', 'auxiliar'].includes(user.rol)) {
+    throw new Error('Tu rol no puede marcar ítems del protocolo');
+  }
+
+  const frec = item.data.frecuencia || 'D';
+  const periodo = payload.periodo || periodoActual(frec);
+  const valor = (payload.valor === 1 || payload.valor === '1' || payload.valor === true) ? 1
+              : (payload.valor === 0 || payload.valor === '0' || payload.valor === false) ? 0
+              : null;
+  if (valor === null) throw new Error('valor debe ser 0 o 1');
+
+  const existing = findRow(SHEETS.PROTOCOLO_MARCAS,
+    m => String(m.item_id) === String(payload.item_id) &&
+         periodoCanonico(m.periodo, frec) === periodo);
+
+  const rowData = {
+    timestamp: nowISO(),
+    item_id: payload.item_id,
+    periodo: "'" + periodo,
+    valor,
+    usuario_email: user.email,
+    observaciones: payload.observaciones || ''
+  };
+
+  if (existing) {
+    updateRow(SHEETS.PROTOCOLO_MARCAS, existing.rowIdx, rowData);
+  } else {
+    appendRow(SHEETS.PROTOCOLO_MARCAS, rowData);
+  }
+  logBitacora(user.email, 'marcarProtocolo', payload.item_id + ' / ' + periodo + ' = ' + valor);
+  return { ok: true, periodo, valor };
+}
+
 // Devuelve mapa { 'pilar|item_id' → fila } con la foto más reciente de cada ítem.
 // pilarFilter=null carga todos los pilares (para getHallazgos).
 function ckFotosMap(pilarFilter) {
