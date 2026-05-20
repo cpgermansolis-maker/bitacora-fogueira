@@ -25,12 +25,12 @@
             "id": "M1Q1",
             "texto": "¿Cuál es tu rol principal dentro del sistema?",
             "opciones": [
-              "Ejecutar las tareas operativas del restaurante (cobrar, recibir mercancía, cocinar)",
               "Vigilar que las tareas operativas se hagan bien y dejar evidencia diaria",
+              "Ejecutar las tareas operativas del restaurante (cobrar, recibir mercancía, cocinar)",
               "Aprobar las cortesías y los descuentos del día",
               "Hacer el cierre contable mensual"
             ],
-            "correcta": 1,
+            "correcta": 0,
             "explicacion": "Tú vigilas, no ejecutas. Los operativos hacen las tareas; tú revisas y dejas evidencia diaria de que se hicieron bien."
           },
           {
@@ -38,11 +38,11 @@
             "texto": "¿Qué representa una ✗ sin observación en el sistema?",
             "opciones": [
               "Un trabajo bien hecho — la X es suficiente",
-              "Un error del sistema que hay que reportar",
               "Trabajo a medias: detectaste algo pero no documentaste qué",
+              "Un error del sistema que hay que reportar",
               "Una bandera roja automática"
             ],
-            "correcta": 2,
+            "correcta": 1,
             "explicacion": "Una ✗ sin observación es trabajo a medias. El sistema mide tu profundidad: qué porcentaje de tus no-cumplidos trae texto. La meta es 100%."
           },
           {
@@ -50,11 +50,11 @@
             "texto": "¿Cuáles son los 3 pilares que vigila el sistema?",
             "opciones": [
               "Cocina, Bar y Caja",
-              "Soft Restaurant 12, Conciliación diaria, Inventarios y compras",
               "Ventas, Costos y Utilidades",
+              "Soft Restaurant 12, Conciliación diaria, Inventarios y compras",
               "Mañana, Tarde y Noche"
             ],
-            "correcta": 1,
+            "correcta": 2,
             "explicacion": "Pilar A: SR12 (el sistema). Pilar B: Conciliación diaria (el candado). Pilar C: Inventarios y compras (la arteria de insumos)."
           },
           {
@@ -63,22 +63,22 @@
             "opciones": [
               "Para automatizar las tareas operativas del restaurante",
               "Para reemplazar al gerente",
-              "Porque no había evidencia diaria de que los 3 pilares se operaran bien — las fugas se detectaban semanas tarde",
-              "Para sustituir el Soft Restaurant 12"
+              "Para sustituir el Soft Restaurant 12",
+              "Porque no había evidencia diaria de que los 3 pilares se operaran bien — las fugas se detectaban semanas tarde"
             ],
-            "correcta": 2,
+            "correcta": 3,
             "explicacion": "El problema histórico era falta de evidencia diaria. Las fugas se detectaban tarde. La bitácora deja evidencia diaria de que cada pilar fue revisado."
           },
           {
             "id": "M1Q5",
             "texto": "Si la cajera no imprime el Corte Z al cierre, ¿qué debes hacer tú?",
             "opciones": [
-              "Imprimirlo tú misma para resolver el problema",
               "Marcar ✗ en el ítem correspondiente, escribir una observación explicando qué pasó, y abrir un hallazgo si requiere seguimiento",
+              "Imprimirlo tú misma para resolver el problema",
               "Ignorarlo porque no es tu responsabilidad operativa",
               "Cerrar el restaurante hasta que se resuelva"
             ],
-            "correcta": 1,
+            "correcta": 0,
             "explicacion": "Tú no ejecutas la tarea. Tú la marcas como no cumplida, documentas qué pasó y das seguimiento mediante un hallazgo. La cajera o el gerente resuelven el problema."
           },
           {
@@ -86,11 +86,11 @@
             "texto": "¿Quién es tu jefa directa dentro de esta estructura?",
             "opciones": [
               "El C.P. Germán Solís Zamora (auditor externo)",
-              "La cajera y el almacenista",
               "Mónica Solís (Dirección Grupo Toda)",
+              "La cajera y el almacenista",
               "El cliente"
             ],
-            "correcta": 2,
+            "correcta": 1,
             "explicacion": "Mónica Solís es la Dirección de Grupo Toda y tu jefa directa. Ella revisa tu desempeño cada semana a través del semáforo y firma tu certificación. El C.P. Germán Solís es el auditor externo (otra capa de revisión)."
           }
         ]
@@ -114,11 +114,11 @@
             "texto": "Son las 9 pm. La cajera te pide que le ayudes a imprimir el Corte Z porque está saturada con clientes. ¿Qué haces?",
             "opciones": [
               "Imprimo el Corte Z yo misma para ayudarla",
-              "Le pregunto qué la tiene saturada, documento la situación, y marco el ítem como pendiente si no logra imprimirlo antes del cierre",
               "Le digo que ese es su trabajo y la dejo sola",
+              "Le pregunto qué la tiene saturada, documento la situación, y marco el ítem como pendiente si no logra imprimirlo antes del cierre",
               "Le aviso a Mónica que la cajera no quiere trabajar"
             ],
-            "correcta": 1,
+            "correcta": 2,
             "explicacion": "Las 4 acciones: revisar (¿qué pasa?), validar (¿está hecho?), documentar (escribir el detalle), escalar si requiere. Ayudarla a imprimir te convierte en cuello de botella y elimina la señal del sistema. Negarte sin entender no resuelve nada."
           },
           {
@@ -126,23 +126,23 @@
             "texto": "Almacén olvidó capturar una merma de carne de $800. Tú sabes exactamente cómo capturarla en el SR12. ¿Qué haces?",
             "opciones": [
               "La capturo yo en el SR12 para resolver el faltante",
-              "Marco ✗ con observación «Merma carne $800 sin capturar, almacenista X», y pido al almacenista que la capture antes del cierre",
+              "Llamo a Germán inmediatamente",
               "La ignoro porque $800 no es tanto",
-              "Llamo a Germán inmediatamente"
+              "Marco ✗ con observación «Merma carne $800 sin capturar, almacenista X», y pido al almacenista que la capture antes del cierre"
             ],
-            "correcta": 1,
+            "correcta": 3,
             "explicacion": "Tu rol es vigilar que se capture, no capturarla. Si tú la capturas, el almacenista no aprende y el sistema pierde la señal de que hubo un olvido."
           },
           {
             "id": "M2Q3",
             "texto": "¿Cuáles son las 4 acciones del supervisor?",
             "opciones": [
-              "Marcar, firmar, archivar, olvidar",
               "Revisar, validar, documentar, escalar",
+              "Marcar, firmar, archivar, olvidar",
               "Cocinar, cobrar, comprar, contar",
               "Felicitar, regañar, despedir, contratar"
             ],
-            "correcta": 1,
+            "correcta": 0,
             "explicacion": "Revisar (mirar el trabajo), validar (✓ o ✗), documentar (el porqué), escalar (hallazgo o conversación). Esos 4 verbos NO incluyen «hacer la tarea»."
           },
           {
@@ -150,11 +150,11 @@
             "texto": "La cortesía del día tiene la firma de Mónica pero le falta el folio. ¿Qué haces?",
             "opciones": [
               "Le pongo yo un folio que parezca razonable",
-              "Marco ✓ porque ya tiene la firma — el folio es detalle menor",
               "Marco ✗, escribo «Cortesía con firma de Mónica pero sin folio», y pido a quien la capturó que complete el folio antes del cierre",
+              "Marco ✓ porque ya tiene la firma — el folio es detalle menor",
               "Tacho la cortesía y la elimino del registro"
             ],
-            "correcta": 2,
+            "correcta": 1,
             "explicacion": "Una cortesía sin folio es trabajo incompleto. Marcar ✓ porque «casi» está bien deja pasar la falla y la próxima vez será peor. Inventar el folio es falsificar. Lo correcto es documentar y pedir que se complete."
           },
           {
@@ -175,10 +175,10 @@
             "opciones": [
               "Mejora la cobertura porque la tarea quedó hecha",
               "No tiene efecto, da lo mismo quién la haga",
-              "Contamina la medición: la actividad queda como cumplida, nadie ve el problema, el ejecutor no aprende y tú te conviertes en cuello de botella",
-              "Mejora la profundidad porque ya hay observación"
+              "Mejora la profundidad porque ya hay observación",
+              "Contamina la medición: la actividad queda como cumplida, nadie ve el problema, el ejecutor no aprende y tú te conviertes en cuello de botella"
             ],
-            "correcta": 2,
+            "correcta": 3,
             "explicacion": "Este es el daño invisible del «yo lo arreglo»: la señal del sistema se pierde, el ejecutor no aprende, tú te saturas y Mónica no se entera. El sistema necesita la verdad, no la cobertura aparente."
           }
         ]
@@ -202,24 +202,24 @@
             "id": "M3Q1",
             "texto": "¿Cuál es la fórmula del puntaje del semáforo?",
             "opciones": [
-              "Cobertura × 0.50 + Profundidad × 0.50",
               "Cobertura × 0.60 + Profundidad × 0.40",
+              "Cobertura × 0.50 + Profundidad × 0.50",
               "Cobertura × 0.40 + Profundidad × 0.60",
               "Solo cobertura"
             ],
-            "correcta": 1,
+            "correcta": 0,
             "explicacion": "Cobertura pesa 60% (la base: estuviste y marcaste); profundidad pesa 40% (lo que distingue trabajo serio de marcar por marcar)."
           },
           {
             "id": "M3Q2",
             "texto": "Marcaste 30 ✗ en el mes, pero solo 12 tienen texto en observación. ¿Cuál es tu profundidad?",
             "opciones": [
-              "40%",
               "30%",
+              "40%",
               "50%",
               "60%"
             ],
-            "correcta": 0,
+            "correcta": 1,
             "explicacion": "Profundidad = no-cumplidos con observación / total de no-cumplidos = 12 / 30 = 40%. Estarías en amarillo/naranja en ese componente."
           },
           {
@@ -227,11 +227,11 @@
             "texto": "¿Por qué los umbrales son adaptativos con rampa de 90 días?",
             "opciones": [
               "Porque el sistema tiene un bug",
-              "Porque aprender el ritmo de la supervisión toma tiempo; el sistema te da margen al arranque y endurece la barra después",
               "Porque el restaurante cambia cada mes",
+              "Porque aprender el ritmo de la supervisión toma tiempo; el sistema te da margen al arranque y endurece la barra después",
               "Porque Mónica lo decidió así sin razón técnica"
             ],
-            "correcta": 1,
+            "correcta": 2,
             "explicacion": "La rampa reconoce que el primer trimestre es de aprendizaje. Día 0: verde ≥ 60. Día 90+: verde ≥ 80. Es justo y exigente al mismo tiempo."
           },
           {
@@ -240,34 +240,34 @@
             "opciones": [
               "Es automáticamente 100",
               "Es 0 porque no hay datos para calcular profundidad",
-              "Profundidad no aplica y cobertura toma peso 100%",
-              "El sistema marca error y no calcula"
+              "El sistema marca error y no calcula",
+              "Profundidad no aplica y cobertura toma peso 100%"
             ],
-            "correcta": 2,
+            "correcta": 3,
             "explicacion": "Si no hay ✗, no hay nada que medir en profundidad. El banner explícitamente dice «profundidad no aplica» y el puntaje queda igual a tu cobertura."
           },
           {
             "id": "M3Q5",
             "texto": "Tu semáforo bajó esta semana a naranja. Cobertura sigue en 75% pero profundidad bajó a 35%. ¿Cuál es la acción correcta?",
             "opciones": [
-              "Revisar mis observaciones — probablemente estoy marcando ✗ sin escribir el porqué; cada nueva ✗ debe llevar texto",
               "Trabajar más horas para subir cobertura",
+              "Revisar mis observaciones — probablemente estoy marcando ✗ sin escribir el porqué; cada nueva ✗ debe llevar texto",
               "Ignorarlo porque cobertura está bien",
               "Borrar marcas pasadas para que no se cuenten"
             ],
-            "correcta": 0,
+            "correcta": 1,
             "explicacion": "El componente que cayó fue profundidad. Subirla es lo más fácil: cada vez que marques ✗, escribe en una línea qué pasó. Cobertura está bien."
           },
           {
             "id": "M3Q6",
             "texto": "¿Qué significa el color GRIS en el semáforo?",
             "opciones": [
-              "Que estás reprobada",
               "Que el rango es menor a 3 días laborales y no hay suficiente data para calificar",
+              "Que estás reprobada",
               "Que el sistema está caído",
               "Que vas excelente"
             ],
-            "correcta": 1,
+            "correcta": 0,
             "explicacion": "Gris = «Rango insuficiente». El sistema necesita al menos 3 días laborales para producir un puntaje confiable; si pides un rango más corto, te muestra gris."
           }
         ]
@@ -293,10 +293,10 @@
             "opciones": [
               "14",
               "25",
-              "36",
-              "50"
+              "50",
+              "36"
             ],
-            "correcta": 2,
+            "correcta": 3,
             "explicacion": "14 diarios + 11 semanales + 11 mensuales = 36 ítems totales. Los diarios son los que marcas cada día laboral; los semanales el viernes; los mensuales el último viernes del mes."
           },
           {
@@ -304,11 +304,11 @@
             "texto": "La cajera no imprimió el Corte Z porque se acabó el papel de la impresora. ¿Qué haces?",
             "opciones": [
               "Voy a comprar papel y se lo entrego para que pueda imprimir",
-              "Marco CKD01 como ✗ con observación detallada del motivo, y abro hallazgo si se repite 2 veces seguidas",
               "Imprimo yo el Corte Z desde otro lugar",
+              "Marco CKD01 como ✗ con observación detallada del motivo, y abro hallazgo si se repite 2 veces seguidas",
               "Espero a que ella resuelva sola sin marcar nada"
             ],
-            "correcta": 1,
+            "correcta": 2,
             "explicacion": "Vigilar, no ejecutar (M2). Documentar el porqué (papel terminado) y dar seguimiento mediante hallazgo si es patrón. Comprar papel tú te convierte en cuello de botella."
           },
           {
@@ -316,23 +316,23 @@
             "texto": "¿Cuál es el ítem MÁS crítico del Pilar A?",
             "opciones": [
               "CKD01 — Corte Z impreso",
-              "CKD08 — temperatura refrigeradores",
               "CKD12 — Platos vendidos sin receta cargada en SR12 = CERO",
+              "CKD08 — temperatura refrigeradores",
               "CKD13 — reporte de ventas firmado"
             ],
-            "correcta": 2,
+            "correcta": 1,
             "explicacion": "Si hay platos sin receta, el inventario teórico del SR12 se rompe. Por eso el módulo 4 (Recetas) en 40% es el más urgente de atender. CKD12 es la línea de defensa diaria."
           },
           {
             "id": "M4Q4",
             "texto": "Los ítems semanales del Pilar A se marcan:",
             "opciones": [
-              "Todos los días",
-              "Los lunes",
               "Los viernes",
+              "Los lunes",
+              "Todos los días",
               "Cualquier día de la semana"
             ],
-            "correcta": 2,
+            "correcta": 0,
             "explicacion": "Frecuencia S = semanal, marcados los viernes. Los mensuales (frecuencia M) se marcan el último viernes del mes."
           },
           {
@@ -341,10 +341,10 @@
             "opciones": [
               "Actualizar yo los porcentajes para que suban",
               "Cargar las recetas faltantes para que el módulo 4 mejore",
-              "Nada en los % — los actualiza el auditor; tu trabajo es operar el checklist diario, que es lo que SÍ te toca",
-              "Reportar a Mónica que tengo que reconfigurar el SR12"
+              "Reportar a Mónica que tengo que reconfigurar el SR12",
+              "Nada en los % — los actualiza el auditor; tu trabajo es operar el checklist diario, que es lo que SÍ te toca"
             ],
-            "correcta": 2,
+            "correcta": 3,
             "explicacion": "Los % de los 12 módulos los maneja el auditor en su ciclo de revisión de configuración. Tú no los tocas. Tu trabajo del Pilar A es marcar el checklist de los 36 ítems."
           },
           {
@@ -352,11 +352,11 @@
             "texto": "La cocina vendió 10 hamburguesas pero el SR12 solo descargó 7 recetas. ¿Qué haces?",
             "opciones": [
               "Cargo yo las 3 recetas faltantes en el SR12",
-              "Marco CKD12 como ✗, observación «3 hamburguesas sin descarga de receta», hallazgo a cocina con CC al contralor",
               "Lo ignoro porque las hamburguesas se cobraron correctamente",
+              "Marco CKD12 como ✗, observación «3 hamburguesas sin descarga de receta», hallazgo a cocina con CC al contralor",
               "Bajo las ventas del POS para que cuadre con las recetas descargadas"
             ],
-            "correcta": 1,
+            "correcta": 2,
             "explicacion": "Detectar y reportar, no cargar. Las recetas las carga cocina. Tu valor es asegurar que se enteren del problema y se cierre el ciclo — no taparlo cargando recetas tú."
           }
         ]
@@ -381,23 +381,23 @@
             "texto": "¿Cuál es la bandera roja MÁS crítica del cierre del Pilar B?",
             "opciones": [
               "Bandera 4 (% cancelaciones ≤ 3%)",
-              "Bandera 2 (Δ arqueo ciego ≤ $200)",
               "Bandera 10 (sin saltos en folios POS — un salto puede indicar ticket borrado a propósito)",
+              "Bandera 2 (Δ arqueo ciego ≤ $200)",
               "Bandera 5 (no-sales del día ≤ 2)"
             ],
-            "correcta": 2,
+            "correcta": 1,
             "explicacion": "La bandera 10 es crítica porque un folio faltante puede significar que un ticket fue eliminado intencionalmente — esa es la fuga más grave que el sistema puede detectar. Requiere hallazgo inmediato + WhatsApp a Germán esa misma noche."
           },
           {
             "id": "M5Q2",
             "texto": "El arqueo ciego presenta diferencia de $1,500 sin causa identificada. ¿Qué haces?",
             "opciones": [
-              "Firmo el cierre porque la diferencia es manejable",
               "NO firmo, marco ✗ en bandera 2, abro hallazgo prioritario y mando WhatsApp a Mónica/Germán esa misma noche",
+              "Firmo el cierre porque la diferencia es manejable",
               "Repongo la diferencia del fondo de cambio para que cuadre",
               "Ignoro porque es responsabilidad de la cajera"
             ],
-            "correcta": 1,
+            "correcta": 0,
             "explicacion": "$1,500 supera el umbral crítico de $1,000. Las reglas son claras: NO firmar, hallazgo prioritario, escalación inmediata esa misma noche. Reponer del fondo de cambio sería ocultar la fuga."
           },
           {
@@ -405,11 +405,11 @@
             "texto": "Una cortesía tiene firma de Mónica y motivo escrito, pero le falta el folio del ticket. ¿Es válida?",
             "opciones": [
               "Sí, lo importante es la firma de autorización",
-              "No, requiere los 3 datos completos (autoriza · folio · motivo) — marca ✗ en CKBD14 y pide que completen el folio antes de cierre",
+              "No, hay que tachar la cortesía y registrarla como venta normal",
               "Sí, el folio es opcional",
-              "No, hay que tachar la cortesía y registrarla como venta normal"
+              "No, requiere los 3 datos completos (autoriza · folio · motivo) — marca ✗ en CKBD14 y pide que completen el folio antes de cierre"
             ],
-            "correcta": 1,
+            "correcta": 3,
             "explicacion": "Los 3 datos son obligatorios. Sin folio, no se puede vincular la cortesía al ticket POS, y esa es la fuga más común. Pide que completen, no tachas ni firmas como inventas."
           },
           {
@@ -417,11 +417,11 @@
             "texto": "¿Cuántos depósitos se hacen cada cierre del día y cuáles son?",
             "opciones": [
               "1 — solo la venta del día",
-              "2 — venta del día (efectivo) + comisiones bancarias",
               "3 — efectivo, tarjetas y propinas",
+              "2 — venta del día (efectivo) + comisiones bancarias",
               "Variable según el monto del día"
             ],
-            "correcta": 1,
+            "correcta": 2,
             "explicacion": "Siempre 2: Depósito 1 = venta del día (efectivo del arqueo). Depósito 2 = comisiones bancarias. Cada uno con folio de tesorería capturado en SR12."
           },
           {
@@ -440,12 +440,12 @@
             "id": "M5Q6",
             "texto": "Detectas 3 banderas rojas activas al cierre. ¿Qué incluye tu reporte breve por WhatsApp esa noche?",
             "opciones": [
-              "Solo «hay problemas, mañana hablamos»",
               "Fecha, número y lista de banderas activas, monto en riesgo, referencia a la bitácora B7, próxima acción",
+              "Solo «hay problemas, mañana hablamos»",
               "Una descripción larga de cada cliente del día y lo que comió",
               "Solo se lo mando a Germán, no a Mónica"
             ],
-            "correcta": 1,
+            "correcta": 0,
             "explicacion": "El reporte breve tiene estructura clara: fecha · banderas · monto · referencia · próxima acción. Va a Mónica Y Germán para que ambos tengan info esa noche. El detalle largo vive en la bitácora del sistema."
           }
         ]
@@ -470,11 +470,11 @@
             "texto": "¿Quién recibe físicamente la mercancía en C07 según el control crítico de segregación?",
             "opciones": [
               "El comprador (porque sabe qué pidió)",
-              "El almacenista — el comprador NUNCA recibe (separación de funciones)",
               "Cualquier persona que esté disponible",
+              "El almacenista — el comprador NUNCA recibe (separación de funciones)",
               "La supervisora (tú)"
             ],
-            "correcta": 1,
+            "correcta": 2,
             "explicacion": "Si el mismo recibe que compra, puede inventar mercancía fantasma o cambiarla por menor calidad. La separación es uno de los controles más importantes del restaurante y NO es negociable."
           },
           {
@@ -482,23 +482,23 @@
             "texto": "Descubres que el comprador firmó la recepción de la carne porque «no estaba el almacenista». ¿Qué haces?",
             "opciones": [
               "Lo dejo pasar porque era una emergencia",
-              "Marco CKCD11 ✗ con observación detallada, abro hallazgo prioritario y mando WhatsApp a Mónica/Germán esa misma noche",
+              "Firmo yo la recepción retroactivamente",
               "Pido al comprador que firme también el siguiente día para «compensar»",
-              "Firmo yo la recepción retroactivamente"
+              "Marco CKCD11 ✗ con observación detallada, abro hallazgo prioritario y mando WhatsApp a Mónica/Germán esa misma noche"
             ],
-            "correcta": 1,
+            "correcta": 3,
             "explicacion": "Segregación rota = riesgo grave de fuga, sin excepciones por emergencia. Documentar y escalar esa misma noche para que se investigue el contexto y se prevenga repetición."
           },
           {
             "id": "M6Q3",
             "texto": "El mismo proveedor «gana» las cotizaciones 8 de 10 veces durante un mes. ¿Cómo lo lees y qué haces?",
             "opciones": [
-              "Excelente, ese proveedor es el mejor automáticamente",
               "Puede ser legítimo (mejor precio/calidad) o puede ser favoritismo / comisión oculta — tu trabajo es documentar el patrón y escalarlo (CKCM04) para auditoría",
+              "Excelente, ese proveedor es el mejor automáticamente",
               "Bloqueo a ese proveedor sin más",
               "Compro yo de otro proveedor para diversificar"
             ],
-            "correcta": 1,
+            "correcta": 0,
             "explicacion": "Concentración &gt;70% es señal a investigar, no a juzgar tú directamente. Tu valor es el reporte mensual: documentas el patrón y escalas para que Germán/Mónica audita las cotizaciones."
           },
           {
@@ -518,23 +518,23 @@
             "texto": "El 3-way match consiste en verificar que coinciden:",
             "opciones": [
               "Cocina, almacén, caja",
-              "Orden de compra · factura del proveedor · recepción física en almacén",
+              "Comprador, almacenista, gerente",
               "3 cotizaciones distintas",
-              "Comprador, almacenista, gerente"
+              "Orden de compra · factura del proveedor · recepción física en almacén"
             ],
-            "correcta": 1,
+            "correcta": 3,
             "explicacion": "Tres documentos: lo que se pidió (OC) · lo que se facturó · lo que llegó. Si los 3 no cuadran en cantidad o precio, hay problema (merma, factura inflada, cambio de precio sin avisar)."
           },
           {
             "id": "M6Q6",
             "texto": "Llega una recepción de carne y solo la firmó el almacenista. ¿Qué haces?",
             "opciones": [
-              "Marco CKCD13 ✗ — para insumos especiales (carnes/pescados) la inspección de calidad la hace el área usuaria (cocina); pido que cocina la revise antes de mover el producto",
-              "Está bien porque el almacenista firmó",
               "Firmo yo como cocina",
+              "Está bien porque el almacenista firmó",
+              "Marco CKCD13 ✗ — para insumos especiales (carnes/pescados) la inspección de calidad la hace el área usuaria (cocina); pido que cocina la revise antes de mover el producto",
               "Rechazo toda la recepción"
             ],
-            "correcta": 0,
+            "correcta": 2,
             "explicacion": "C08 separa funciones: almacén cuenta y captura, cocina valida calidad. Si solo firmó almacén, cocina no validó. Marca, documenta y pide la revisión antes de que la carne se mueva al uso."
           }
         ]
@@ -558,12 +558,12 @@
             "id": "M7Q1",
             "texto": "¿Cuál es la diferencia entre observación y hallazgo?",
             "opciones": [
-              "Son lo mismo, solo cambia el nombre",
               "Observación es el texto que escribes en una ✗ del checklist (se queda con esa marca); hallazgo es un item independiente con seguimiento abierto hasta que dirección lo cierre",
+              "Son lo mismo, solo cambia el nombre",
               "Hallazgo es para Pilar A, observación para Pilar B",
               "Observación es opcional; hallazgo obligatorio"
             ],
-            "correcta": 1,
+            "correcta": 0,
             "explicacion": "Toda ✗ debe tener observación. Pero solo abres hallazgo cuando requiere acción más allá del día, es patrón, tiene monto material, o toca control crítico (segregación/banderas)."
           },
           {
@@ -583,11 +583,11 @@
             "texto": "La cajera no imprimió el Corte Z hoy, pero lo imprimió media hora tarde el mismo día. Es la primera vez. ¿Abres hallazgo?",
             "opciones": [
               "Sí, todo ✗ requiere hallazgo",
-              "No: se resolvió el mismo día, no es patrón, no hay monto en riesgo. Solo observación en CKD01.",
               "Sí, hallazgo prioritario",
+              "No: se resolvió el mismo día, no es patrón, no hay monto en riesgo. Solo observación en CKD01.",
               "Depende del humor de la cajera"
             ],
-            "correcta": 1,
+            "correcta": 2,
             "explicacion": "Hallazgo es la artillería pesada. Para casos resueltos en el día, sin patrón y sin monto, basta la observación. Reservas hallazgo para lo que realmente requiere seguimiento."
           },
           {
@@ -595,23 +595,23 @@
             "texto": "Detectas que el comprador firmó una recepción física. ¿Cuál es la acción correcta?",
             "opciones": [
               "Marco ✗ y lo dejo para la junta del viernes",
-              "Marco ✗ + hallazgo prioritario con los 4 datos + WhatsApp esa misma noche a Mónica y Germán (uno de los 2 casos de escalación inmediata)",
+              "Lo ignoro porque era emergencia",
               "Pido al comprador que no lo vuelva a hacer y cierro yo",
-              "Lo ignoro porque era emergencia"
+              "Marco ✗ + hallazgo prioritario con los 4 datos + WhatsApp esa misma noche a Mónica y Germán (uno de los 2 casos de escalación inmediata)"
             ],
-            "correcta": 1,
+            "correcta": 3,
             "explicacion": "Segregación rota (C07) y salto en folios POS (bandera 10) son los 2 casos de escalación inmediata, sin esperar a la junta semanal. Riesgo de fraude = acción esa misma noche."
           },
           {
             "id": "M7Q5",
             "texto": "Un hallazgo lleva 18 días abierto y te preocupa. ¿Qué haces?",
             "opciones": [
-              "Lo cierro yo para que se vea bien la lista",
-              "Resuelvo yo la próxima acción para acelerar",
               "Lo llevo a la junta semanal con Mónica como tema; pregunto: «¿lo cierras esta semana o lo escalamos a Germán?»",
+              "Resuelvo yo la próxima acción para acelerar",
+              "Lo cierro yo para que se vea bien la lista",
               "Lo borro del sistema"
             ],
-            "correcta": 2,
+            "correcta": 0,
             "explicacion": "TÚ abres, ELLAS cierran. La edad alta es señal a llevar a junta, no a resolver tú. Cerrar sin resolución es la trampa simétrica del M2. Tu valor es mantener la lista visible."
           },
           {
@@ -648,11 +648,11 @@
             "texto": "¿En qué día y con qué ritmo mandas el reporte semanal a Mónica?",
             "opciones": [
               "Lunes, después de la apertura",
-              "Viernes, después del cierre — 5-6 líneas con las 5 secciones (semáforo, hallazgos, banderas, patrones, pregunta a Mónica)",
+              "Solo cuando hay problemas",
               "Cualquier día que te acuerdes",
-              "Solo cuando hay problemas"
+              "Viernes, después del cierre — 5-6 líneas con las 5 secciones (semáforo, hallazgos, banderas, patrones, pregunta a Mónica)"
             ],
-            "correcta": 1,
+            "correcta": 3,
             "explicacion": "Viernes es el ritmo del ciclo semanal del sistema (mismo día del cierre semanal de los checklists). 5-6 líneas con estructura fija son suficientes — el detalle vive en la bitácora."
           },
           {
@@ -660,11 +660,11 @@
             "texto": "Para el reporte mensual, ¿qué haces con el texto ejecutivo que genera la sub-pestaña Calificación?",
             "opciones": [
               "Lo reescribo con mis palabras para suavizarlo",
-              "Lo copio y pego tal cual como encabezado del reporte — es la versión oficial del semáforo del mes",
               "Lo ignoro y mando solo números",
+              "Lo copio y pego tal cual como encabezado del reporte — es la versión oficial del semáforo del mes",
               "Le pido a Mónica que lo redacte ella"
             ],
-            "correcta": 1,
+            "correcta": 2,
             "explicacion": "El texto ejecutivo está diseñado para esto: pegable, neutro, con calibración técnica del periodo. Reescribirlo introduce subjetividad y pierde la autoridad del dato del sistema."
           },
           {
@@ -672,23 +672,23 @@
             "texto": "¿Cuál sección del reporte mensual NO viene del sistema sino de TU juicio?",
             "opciones": [
               "El texto ejecutivo del semáforo",
-              "El Δ del puntaje compuesto vs mes anterior",
               "Top 3 patrones + recomendaciones para Dirección",
+              "El Δ del puntaje compuesto vs mes anterior",
               "Conteos de hallazgos y banderas rojas del mes"
             ],
-            "correcta": 2,
+            "correcta": 1,
             "explicacion": "Datos (texto ejecutivo, Δ, conteos) vienen del sistema. Juicio narrativo (qué patrones destacar, qué recomendar) es tu aporte. La regla: donde hay dato del sistema, usa el dato; donde no, agrega juicio."
           },
           {
             "id": "M8Q4",
             "texto": "¿Cuántas secciones tiene el reporte semanal?",
             "opciones": [
-              "1 — solo el puntaje",
               "5 — puntaje, hallazgos abiertos, banderas, patrones, pregunta a Mónica",
+              "1 — solo el puntaje",
               "10 con detalle exhaustivo",
               "Variable según el día"
             ],
-            "correcta": 1,
+            "correcta": 0,
             "explicacion": "5 secciones fijas en 5-6 líneas. Estructura corta y consistente es lo que permite a Mónica leerlo en 30 segundos antes de la junta semanal. El detalle vive en el sistema."
           },
           {
@@ -696,11 +696,11 @@
             "texto": "¿En qué momento mandas un WhatsApp con reporte breve antes del reporte semanal/mensual?",
             "opciones": [
               "Cada día sin excepción",
-              "Cuando hay banderas rojas activas al cierre del día (CKBD31): esa misma noche a Mónica y Germán",
               "Solo si el restaurante se incendia",
+              "Cuando hay banderas rojas activas al cierre del día (CKBD31): esa misma noche a Mónica y Germán",
               "Nunca"
             ],
-            "correcta": 1,
+            "correcta": 2,
             "explicacion": "El WhatsApp del mismo día (M5) es para banderas rojas críticas. Permite intervención inmediata sin esperar al reporte semanal. Los 2 reportes (semanal/mensual) son para el flujo normal del ciclo."
           },
           {
@@ -709,10 +709,10 @@
             "opciones": [
               "Marcar todo rápido para tener buen semáforo",
               "Hacer las tareas que los demás no terminan",
-              "Tu valor está en la conversación que provocas. Eso es la supervisión.",
-              "Reportar los problemas y olvidarte"
+              "Reportar los problemas y olvidarte",
+              "Tu valor está en la conversación que provocas. Eso es la supervisión."
             ],
-            "correcta": 2,
+            "correcta": 3,
             "explicacion": "La frase atraviesa todos los módulos: el círculo virtuoso del supervisor (M2), la trampa del «yo lo arreglo» (M2, M4-M7), TÚ ABRES, ELLAS CIERRAN (M7). El valor de la supervisión es generar las conversaciones correctas para que el sistema avance."
           }
         ]
