@@ -531,6 +531,50 @@ function setupSheet() {
 }
 
 /**
+ * Crea las hojas Protocolo_Items y Protocolo_Marcas con un ítem de ejemplo.
+ * Ejecutar UNA VEZ desde el editor de Apps Script (Ejecutar → initProtocolo).
+ * Si las hojas ya existen, no las toca (operación segura).
+ */
+function initProtocolo() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const log = [];
+
+  // --- Protocolo_Items ---
+  let items = ss.getSheetByName('Protocolo_Items');
+  if (!items) {
+    items = ss.insertSheet('Protocolo_Items');
+    const hdr = ['id', 'descripcion', 'frecuencia', 'dia_semana', 'hora_sugerida', 'rol_responsable', 'activo'];
+    items.getRange(1, 1, 1, hdr.length).setValues([hdr]).setFontWeight('bold');
+    items.setFrozenRows(1);
+    // Ejemplo: distribución de propinas los martes
+    items.appendRow(['PROT01', 'Distribución de propinas del turno', 'S', '2', '17:00', 'auditor', 'TRUE']);
+    log.push('✅ Hoja Protocolo_Items creada con 1 ítem de ejemplo.');
+  } else {
+    log.push('ℹ️  Protocolo_Items ya existía — no se modificó.');
+  }
+
+  // --- Protocolo_Marcas ---
+  let marcas = ss.getSheetByName('Protocolo_Marcas');
+  if (!marcas) {
+    marcas = ss.insertSheet('Protocolo_Marcas');
+    const hdr = ['timestamp', 'item_id', 'periodo', 'valor', 'usuario_email', 'observaciones'];
+    marcas.getRange(1, 1, 1, hdr.length).setValues([hdr]).setFontWeight('bold');
+    marcas.setFrozenRows(1);
+    // Formato texto en columna periodo (col 3) para evitar conversión de fecha
+    marcas.getRange(1, 3, marcas.getMaxRows(), 1).setNumberFormat('@');
+    log.push('✅ Hoja Protocolo_Marcas creada.');
+  } else {
+    log.push('ℹ️  Protocolo_Marcas ya existía — no se modificó.');
+  }
+
+  log.push('');
+  log.push('Listo. Abre la app y verifica que el "Protocolo del turno" aparezca en Mi Día.');
+  log.push('Para agregar más ítems: edita directamente la hoja Protocolo_Items.');
+  log.forEach(l => Logger.log(l));
+  return log.join('\n');
+}
+
+/**
  * Helper para leer la información del setup desde el editor.
  * Útil para verificar que todo quedó bien instalado.
  */
