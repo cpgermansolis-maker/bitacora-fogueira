@@ -4543,14 +4543,16 @@ const App = {
           <div class="meta">${data.reqs.length} requisiciones · ${data.etapas.length} etapas con segregación de funciones</div>
         </div>
         <div class="subtabs">
-          <button class="subtab ${subview === 'estado'    ? 'active' : ''}" onclick="App.pilarC_setView('estado')">Estado actual</button>
-          <button class="subtab ${subview === 'evolucion' ? 'active' : ''}" onclick="App.pilarC_setView('evolucion')">Evolución</button>
+          <button class="subtab ${subview === 'estado'      ? 'active' : ''}" onclick="App.pilarC_setView('estado')" title="Kanban de requisiciones activas por etapa y detalle de bloqueos">Estado actual</button>
+          <button class="subtab ${subview === 'evolucion'   ? 'active' : ''}" onclick="App.pilarC_setView('evolucion')" title="Throughput semanal, tiempo de ciclo y cuellos de botella en las últimas 8 semanas">Evolución</button>
+          <button class="subtab ${subview === 'inventarios' ? 'active' : ''}" onclick="App.pilarC_setView('inventarios')" title="Inventarios cíclicos programados: cumplimiento diario, cierre semanal y mensual automático">Inventarios</button>
         </div>
         <div id="pilar-c-subcontent"><div class="empty-state"><div class="spinner"></div></div></div>
       `;
 
-      if (subview === 'estado')         this._pilarC_renderEstado();
-      else if (subview === 'evolucion') await this._pilarC_renderEvolucion();
+      if (subview === 'estado')             this._pilarC_renderEstado();
+      else if (subview === 'evolucion')   await this._pilarC_renderEvolucion();
+      else if (subview === 'inventarios') await this._pilarC_renderInventarios();
     } catch (err) {
       c.innerHTML = `<div class="empty-state"><div class="big-icon">!</div><p>${escapeHtml(err.message)}</p></div>`;
     }
@@ -4730,31 +4732,330 @@ const App = {
     }
   },
 
-  // Vista guiada para Estefanía (administracion) y la auxiliar:
-  // las secciones del flujo (Solicitud → Compra → Recepción → Surtimiento →
-  // Bloqueos) en bloques cronológicos, agrupados por frecuencia (Hoy / Esta semana / Este mes).
+  // ---- Inventarios cíclicos (compartido auditor + supervisora) ----
+  async _pilarC_renderInventarios() {
+    const sub = el('pilar-c-subcontent');
+    sub.innerHTML = '<div class="empty-state"><div class="spinner"></div></div>';
+    try {
+      const [diaData, cierreData, cfgData] = await Promise.all([
+        apiCall('getInventariosDia', {}),
+        apiCall('getInventariosCierre', {}),
+        apiCall('getInventariosConfig', {})
+      ]);
+      State.invDia    = diaData;
+      State.invCierre = cierreData;
+      State.invCfg    = cfgData;
+      this._renderInvBody();
+    } catch (err) {
+      sub.innerHTML = `<div class="empty-state"><div class="big-icon">!</div><p>${escapeHtml(err.message)}</p></div>`;
+    }
+  },
+
+  _renderInvBody() {
+    const sub = el('pilar-c-subcontent');
+    if (!sub) return;
+    const diaData   = State.invDia    || { items: [], fecha: '' };
+    const cierreData = State.invCierre || { semanal: [], mensual: [], semana: {}, mes: {} };
+    const cfgData   = State.invCfg    || { items: [] };
+    const rol       = State.user ? State.user.rol : '';
+    const puedeConf = rol === 'administracion' || rol === 'auditor' || rol === 'gerente';
+    const diasNombre = ['', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+
+    // ── Sección HOY ──
+    const fechaHoy = diaData.fecha || '';
+    const fechaLabel = fechaHoy ? new Date(fechaHoy + 'T12:00:00')
+      .toLocaleDateString('es-MX', { weekday:'long', day:'numeric', month:'long' }) : 'Hoy';
+
+    const itemsHoy = diaData.items || [];
+    const hayHoy = itemsHoy.length > 0;
+    const htmlHoy = hayHoy
+      ? itemsHoy.map(it => {
+          const m = it.marca;
+          const valor = m ? Number(m.valor) : null;
+          const cumplido   = valor === 1;
+          const noCumplido = valor === 0;
+          const rowClass = cumplido ? 'guiada-row guiada-cumplido' : noCumplido ? 'guiada-row guiada-nocumplido' : 'guiada-row';
+          const meta = m
+            ? `<span class="guiada-meta">por ${escapeHtml(m.usuario_email||'')} · ${escapeHtml(String(m.timestamp||'').slice(11,16))}</span>`
+            : '<span class="guiada-meta guiada-meta-pending">pendiente</span>';
+          const esMiMarca = m && (m.usuario_email||'').toLowerCase() === ((State.user&&State.user.email)||'').toLowerCase();
+          const fotoHtml = it.foto_url
+            ? `<a class="guiada-foto-link" href="${escapeHtml(it.foto_url)}" target="_blank" rel="noopener" title="Ver foto adjunta">📷 ver foto</a>`
+            : `<button class="guiada-foto-btn" type="button" onclick="App.abrirFotoUpload('${escapeHtml(it.id)}','I','${escapeHtml(fechaHoy)}','')" title="Adjuntar foto como evidencia del conteo">📷</button>`;
+          const noTip = cumplido
+            ? 'No cumplido — registra que este inventario no se realizó. Escribe qué impidió el conteo'
+            : 'No cumplido — registra que este inventario no se realizó. Escribe qué impidió el conteo';
+          const siTip = 'Cumplido — confirmas que el inventario cíclico de esta área se realizó correctamente hoy';
+          const noAct = (noCumplido && esMiMarca) ? 'active' : '';
+          const siAct = (cumplido   && esMiMarca) ? 'active' : '';
+          return `<article class="${rowClass}">
+            <div class="guiada-row-info">
+              <div class="guiada-row-text">${escapeHtml(it.descripcion)}</div>
+              <div class="guiada-row-line">
+                <span class="guiada-rol-tag">${it.frecuencia === 'M' ? 'Mensual' : 'Semanal'}</span>
+                ${meta}
+              </div>
+              <div class="guiada-row-line">${fotoHtml}</div>
+            </div>
+            <div class="guiada-toggle">
+              <button class="guiada-btn guiada-btn-no ${noAct}" aria-label="No realizado"
+                onclick="App.marcarInvCiclo('${escapeHtml(it.id)}',0,'${escapeHtml(fechaHoy)}')"
+                title="${noTip}">✗</button>
+              <button class="guiada-btn guiada-btn-si ${siAct}" aria-label="Realizado"
+                onclick="App.marcarInvCiclo('${escapeHtml(it.id)}',1,'${escapeHtml(fechaHoy)}')"
+                title="${siTip}">✓</button>
+            </div>
+          </article>`;
+        }).join('')
+      : `<p class="guiada-meta" style="padding:1rem 0;">No hay inventarios cíclicos programados para hoy.</p>`;
+
+    // ── Sección CIERRE ──
+    function renderCierre(rows, titulo) {
+      if (!rows || rows.length === 0) return `<p class="guiada-meta">Sin ciclos configurados.</p>`;
+      const rowsHtml = rows.map(r => {
+        const pct = r.esperadas > 0 ? Math.round((r.cumplidos / r.esperadas) * 100) : null;
+        const pctLabel = pct !== null ? `${pct}%` : '—';
+        const sclass   = pct === null ? '' : pct >= 80 ? 'green' : pct >= 50 ? 'amber' : 'red';
+        const incHtml  = r.incumplidos.length > 0
+          ? '<ul style="margin:0.4rem 0 0 1rem; font-size:0.82rem; color:var(--red);">' +
+            r.incumplidos.map(i => `<li>${escapeHtml(i.fecha)}${i.observaciones ? ' — ' + escapeHtml(i.observaciones) : ''}</li>`).join('') +
+            '</ul>'
+          : '';
+        const sinHtml = r.sin_marcar > 0
+          ? `<span style="color:var(--amber); font-size:0.82rem;"> · ${r.sin_marcar} sin marcar</span>` : '';
+        return `<div style="padding:0.7rem 0; border-bottom:1px solid var(--divider);">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <strong>${escapeHtml(r.descripcion)}</strong>
+            <span class="modulo-pct ${sclass}" style="font-size:0.85rem;">${r.cumplidos}/${r.esperadas} ✓ ${sinHtml}</span>
+          </div>
+          ${incHtml}
+        </div>`;
+      }).join('');
+      return `<h4 style="margin:0 0 0.5rem; font-size:0.9rem; color:var(--ink-soft);">${escapeHtml(titulo)}</h4>${rowsHtml}`;
+    }
+
+    const semLabel = cierreData.semana && cierreData.semana.start
+      ? `Semana ${escapeHtml(cierreData.semana.start)} — ${escapeHtml(cierreData.semana.end)}`
+      : 'Esta semana';
+    const mesLabel = cierreData.mes && cierreData.mes.start
+      ? `Mes ${escapeHtml(cierreData.mes.start.slice(0,7))}`
+      : 'Este mes';
+
+    // ── Sección CONFIGURAR ──
+    const cfgItems = cfgData.items || [];
+    const cfgHtml = puedeConf ? `
+      <section style="margin-top:2rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
+          <h3 style="margin:0; font-size:1rem;">Ciclos configurados</h3>
+          <button class="btn-primary" style="width:auto; margin:0; padding:0.4rem 0.9rem; font-size:0.85rem;"
+            onclick="App.abrirModalNuevoCiclo()" title="Agregar un nuevo ciclo de inventario cíclico al programa">+ Nuevo ciclo</button>
+        </div>
+        ${cfgItems.length === 0
+          ? '<p class="guiada-meta">Sin ciclos. Agrega el primero.</p>'
+          : cfgItems.map(c => {
+              const activo = String(c.activo).toUpperCase() === 'TRUE';
+              return `<div style="display:flex; justify-content:space-between; align-items:center; padding:0.55rem 0; border-bottom:1px solid var(--divider); opacity:${activo ? 1 : 0.5};">
+                <div>
+                  <strong>${escapeHtml(c.descripcion)}</strong>
+                  <span class="guiada-rol-tag" style="margin-left:0.5rem;">${diasNombre[Number(c.dia_semana)] || ''}</span>
+                  <span class="guiada-rol-tag">${c.frecuencia === 'M' ? 'Mensual' : 'Semanal'}</span>
+                </div>
+                <div style="display:flex; gap:0.5rem;">
+                  <button class="btn-ghost" style="font-size:0.78rem; padding:0.25rem 0.6rem;"
+                    onclick="App.abrirModalEditarCiclo('${escapeHtml(c.id)}')" title="Editar descripción, día o frecuencia de este ciclo">Editar</button>
+                  <button class="btn-ghost" style="font-size:0.78rem; padding:0.25rem 0.6rem; color:${activo ? 'var(--red)' : 'var(--green)'};"
+                    onclick="App.toggleCiclo('${escapeHtml(c.id)}',${!activo})"
+                    title="${activo ? 'Desactivar este ciclo — dejará de aparecer en el checklist diario' : 'Reactivar este ciclo'}">
+                    ${activo ? 'Desactivar' : 'Reactivar'}</button>
+                </div>
+              </div>`;
+            }).join('')
+        }
+      </section>` : '';
+
+    sub.innerHTML = `
+      <section style="margin-bottom:1.5rem;">
+        <h3 style="margin:0 0 0.8rem; font-size:1rem; text-transform:capitalize;">${fechaLabel}</h3>
+        ${htmlHoy}
+      </section>
+      <section style="margin-bottom:1.5rem; padding:1rem; background:var(--bg-paper); border-radius:8px;">
+        ${renderCierre(cierreData.semanal, semLabel)}
+      </section>
+      <section style="margin-bottom:1rem; padding:1rem; background:var(--bg-paper); border-radius:8px;">
+        ${renderCierre(cierreData.mensual, mesLabel)}
+      </section>
+      ${cfgHtml}
+    `;
+  },
+
+  async marcarInvCiclo(config_id, valor, fecha) {
+    const items  = (State.invDia && State.invDia.items) || [];
+    const it     = items.find(x => x.id === config_id);
+    const esMiMarca = it && it.marca &&
+      Number(it.marca.valor) === valor &&
+      (it.marca.usuario_email || '').toLowerCase() === ((State.user && State.user.email) || '').toLowerCase();
+    if (esMiMarca) {
+      try {
+        await apiCall('limpiarMarcaInventario', { config_id, fecha });
+        State.invDia = await apiCall('getInventariosDia', {});
+        State.invCierre = await apiCall('getInventariosCierre', {});
+        this._renderInvBody();
+        toast('Marca eliminada');
+      } catch (err) { toast(err.message, true); }
+      return;
+    }
+    if (valor === 0) {
+      this.openModal(`
+        <div class="modal-head"><h2>¿Qué impidió el conteo?</h2>
+          <div class="sub">${escapeHtml(it ? it.descripcion : config_id)}</div>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="inv-obs">Observación (obligatoria)</label>
+            <textarea id="inv-obs" rows="3" placeholder="Explica qué impidió realizar el inventario cíclico hoy…"></textarea>
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button class="btn-ghost" onclick="App.closeModal()">Cancelar</button>
+          <button class="btn-primary" style="width:auto;margin:0;"
+            onclick="App._confirmarMarcarInv('${escapeHtml(config_id)}',0,'${escapeHtml(fecha)}')">Guardar ✗</button>
+        </div>
+      `);
+      return;
+    }
+    try {
+      await apiCall('marcarInventario', { config_id, fecha, valor });
+      State.invDia    = await apiCall('getInventariosDia', {});
+      State.invCierre = await apiCall('getInventariosCierre', {});
+      this._renderInvBody();
+      toast('Inventario confirmado ✓');
+    } catch (err) { toast(err.message, true); }
+  },
+
+  async _confirmarMarcarInv(config_id, valor, fecha) {
+    const obs = (el('inv-obs') && el('inv-obs').value.trim()) || '';
+    if (!obs) { toast('La observación es obligatoria para un incumplimiento', true); return; }
+    this.closeModal();
+    try {
+      await apiCall('marcarInventario', { config_id, fecha, valor, observaciones: obs });
+      State.invDia    = await apiCall('getInventariosDia', {});
+      State.invCierre = await apiCall('getInventariosCierre', {});
+      this._renderInvBody();
+      toast('Incumplimiento registrado ✗');
+    } catch (err) { toast(err.message, true); }
+  },
+
+  abrirModalNuevoCiclo() {
+    this._modalCiclo(null);
+  },
+
+  abrirModalEditarCiclo(id) {
+    const cfg = (State.invCfg && State.invCfg.items || []).find(c => c.id === id);
+    this._modalCiclo(cfg || null);
+  },
+
+  _modalCiclo(ciclo) {
+    const dias = ['', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+    const selDia = v => dias.map((d,i) => i === 0 ? '' :
+      `<option value="${i}" ${ciclo && Number(ciclo.dia_semana) === i ? 'selected' : ''}>${d}</option>`).join('');
+    const selFreq = v => ['S','M'].map(f =>
+      `<option value="${f}" ${ciclo && ciclo.frecuencia === f ? 'selected' : f==='S'&&!ciclo ? 'selected' : ''}>${f==='S'?'Semanal':'Mensual'}</option>`).join('');
+    this.openModal(`
+      <div class="modal-head">
+        <h2>${ciclo ? 'Editar ciclo' : 'Nuevo ciclo de inventario'}</h2>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Área o descripción</label>
+          <input type="text" id="inv-cfg-desc" placeholder="Ej. Bebidas, Carnes, Abarrotes…"
+            value="${escapeHtml(ciclo ? ciclo.descripcion : '')}">
+        </div>
+        <div class="form-group">
+          <label>Día de la semana</label>
+          <select id="inv-cfg-dia"><option value="">— selecciona —</option>${selDia()}</select>
+        </div>
+        <div class="form-group">
+          <label>Frecuencia</label>
+          <select id="inv-cfg-freq">${selFreq()}</select>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn-ghost" onclick="App.closeModal()">Cancelar</button>
+        <button class="btn-primary" style="width:auto;margin:0;"
+          onclick="App._guardarCiclo('${escapeHtml(ciclo ? ciclo.id : '')}')">Guardar</button>
+      </div>
+    `);
+  },
+
+  async _guardarCiclo(id) {
+    const desc = el('inv-cfg-desc') && el('inv-cfg-desc').value.trim();
+    const dia  = el('inv-cfg-dia')  && el('inv-cfg-dia').value;
+    const freq = el('inv-cfg-freq') && el('inv-cfg-freq').value;
+    if (!desc) { toast('La descripción es obligatoria', true); return; }
+    if (!dia)  { toast('Selecciona el día de la semana', true); return; }
+    this.closeModal();
+    try {
+      await apiCall('saveInventarioConfig', { id: id || undefined, descripcion: desc, dia_semana: Number(dia), frecuencia: freq });
+      const [d, ci, cfg] = await Promise.all([
+        apiCall('getInventariosDia', {}),
+        apiCall('getInventariosCierre', {}),
+        apiCall('getInventariosConfig', {})
+      ]);
+      State.invDia = d; State.invCierre = ci; State.invCfg = cfg;
+      this._renderInvBody();
+      toast(id ? 'Ciclo actualizado' : 'Ciclo agregado');
+    } catch (err) { toast(err.message, true); }
+  },
+
+  async toggleCiclo(id, activo) {
+    try {
+      await apiCall('toggleInventarioConfig', { id, activo });
+      const [d, ci, cfg] = await Promise.all([
+        apiCall('getInventariosDia', {}),
+        apiCall('getInventariosCierre', {}),
+        apiCall('getInventariosConfig', {})
+      ]);
+      State.invDia = d; State.invCierre = ci; State.invCfg = cfg;
+      this._renderInvBody();
+      toast(activo ? 'Ciclo reactivado' : 'Ciclo desactivado');
+    } catch (err) { toast(err.message, true); }
+  },
+
+  // Vista guiada (administracion/auxiliar): Check list + Inventarios cíclicos.
   async render_pilar_c_guiada() {
     const c = el('pilar-c-content');
-    c.innerHTML = '<div class="empty-state"><div class="spinner"></div></div>';
+    const subview = State.pilarCGuiadaSubview || 'checklist';
+    c.innerHTML = `
+      <div class="section-head">
+        <h1><span class="badge">Pilar C</span> Inventarios y Compras</h1>
+      </div>
+      <div class="subtabs">
+        <button class="subtab ${subview === 'checklist'   ? 'active' : ''}" onclick="App.pilarCG_setView('checklist')" title="Check list de supervisión del flujo de requisiciones: solicitud, compra, recepción y surtimiento">Check list</button>
+        <button class="subtab ${subview === 'inventarios' ? 'active' : ''}" onclick="App.pilarCG_setView('inventarios')" title="Inventarios cíclicos por área: programa, marca el cumplimiento diario y revisa el cierre automático">Inventarios cíclicos</button>
+      </div>
+      <div id="pilar-c-subcontent"><div class="empty-state"><div class="spinner"></div></div></div>
+    `;
+    if (subview === 'inventarios') { await this._pilarC_renderInventarios(); return; }
+    // Checklist guiado (flujo de requisiciones)
     try {
       const data = await apiCall('getChecklistC', {});
       State.pilarCGuiada = data;
       if (!data.items || data.items.length === 0) {
-        c.innerHTML = `<div class="empty-state">
+        el('pilar-c-subcontent').innerHTML = `<div class="empty-state">
           <div class="big-icon">!</div>
-          <p>El check list de inventarios aún no está cargado en el Sheet. Pídele al auditor que ejecute <code>setupSheet()</code> y haga <code>clasp redeploy</code> del backend.</p>
+          <p>El check list aún no está cargado. Pídele al auditor que ejecute <code>setupSheet()</code>.</p>
         </div>`;
         return;
       }
       this._renderGuiadaBodyC();
     } catch (err) {
-      c.innerHTML = `<div class="empty-state"><div class="big-icon">!</div>
-        <p>${escapeHtml(err.message)}</p>
-        <p style="margin-top:0.6rem; font-size:0.85rem; color:var(--ink-soft);">
-          Si dice que la acción no existe, falta hacer <code>clasp redeploy</code> del backend.
-        </p>
-      </div>`;
+      el('pilar-c-subcontent').innerHTML = `<div class="empty-state"><div class="big-icon">!</div><p>${escapeHtml(err.message)}</p></div>`;
     }
+  },
+
+  pilarCG_setView(view) {
+    State.pilarCGuiadaSubview = view;
+    this.render_pilar_c_guiada();
   },
 
   // Render aislado del body — se llama también después de marcar para refrescar

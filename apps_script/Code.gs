@@ -46,7 +46,9 @@ const SHEETS = {
   NOTIF_ULTIMA_VISTA: 'Notificaciones_UltimaVista',
   CHECKLIST_FOTOS: 'ChecklistFotos',
   PROTOCOLO_ITEMS: 'Protocolo_Items',
-  PROTOCOLO_MARCAS: 'Protocolo_Marcas'
+  PROTOCOLO_MARCAS: 'Protocolo_Marcas',
+  INVENTARIOS_CONFIG: 'Inventarios_Config',
+  INVENTARIOS_MARCAS: 'Inventarios_Marcas'
 };
 
 // Hoja Hallazgos_Atendidos: creada on-demand la primera vez que alguien marca
@@ -55,7 +57,9 @@ const SHEETS = {
 const HALLAZGOS_ATENDIDOS_HEADERS = ['key', 'atendido_por', 'atendido_at', 'nota', 'estado'];
 const CHECKLIST_FOTOS_HEADERS  = ['timestamp', 'pilar', 'item_id', 'periodo', 'usuario_email', 'foto_drive_id', 'foto_url'];
 const PROTOCOLO_ITEMS_HEADERS  = ['id', 'descripcion', 'frecuencia', 'dia_semana', 'hora_sugerida', 'rol_responsable', 'activo'];
-const PROTOCOLO_MARCAS_HEADERS = ['timestamp', 'item_id', 'periodo', 'valor', 'usuario_email', 'observaciones'];
+const PROTOCOLO_MARCAS_HEADERS   = ['timestamp', 'item_id', 'periodo', 'valor', 'usuario_email', 'observaciones'];
+const INVENTARIOS_CONFIG_HEADERS = ['id', 'descripcion', 'dia_semana', 'frecuencia', 'activo'];
+const INVENTARIOS_MARCAS_HEADERS = ['timestamp', 'config_id', 'fecha', 'valor', 'usuario_email', 'observaciones'];
 
 // El ID de la carpeta de Drive se guarda en PropertiesService al ejecutar
 // setupSheet() (ver Setup.gs). No requiere edición manual de este archivo.
@@ -113,7 +117,14 @@ function doPost(e) {
         case 'avanzarRequisicion': response = avanzarRequisicion(user, payload); break;
         case 'getChecklistC':      response = getChecklistC(user, payload); break;
         case 'marcarChecklistC':   response = marcarChecklistC(user, payload); break;
-        case 'getChecklistResumenC': response = getChecklistResumenC(user); break;
+        case 'getChecklistResumenC':     response = getChecklistResumenC(user); break;
+        case 'getInventariosConfig':     response = getInventariosConfig(user); break;
+        case 'saveInventarioConfig':     response = saveInventarioConfig(user, payload); break;
+        case 'toggleInventarioConfig':   response = toggleInventarioConfig(user, payload); break;
+        case 'getInventariosDia':        response = getInventariosDia(user, payload); break;
+        case 'marcarInventario':         response = marcarInventario(user, payload); break;
+        case 'limpiarMarcaInventario':   response = limpiarMarcaInventario(user, payload); break;
+        case 'getInventariosCierre':     response = getInventariosCierre(user); break;
         case 'getReporte':         response = getReporte(user, payload); break;
         case 'getHallazgos':       response = getHallazgos(user, payload); break;
         case 'getAlertaHallazgos': response = getAlertaHallazgos(user); break;
@@ -1661,6 +1672,197 @@ function getPilarCEvolucion(user) {
     },
     cuellos: cuellosTop,
     bloqueadas: bloqueadasDetalle
+  };
+}
+
+// =============================================================
+// INVENTARIOS CÍCLICOS
+// =============================================================
+
+function getInventariosConfig(user) {
+  ensureSheetExists(SHEETS.INVENTARIOS_CONFIG, INVENTARIOS_CONFIG_HEADERS);
+  ensureSheetExists(SHEETS.INVENTARIOS_MARCAS, INVENTARIOS_MARCAS_HEADERS);
+  return { items: sheetData(SHEETS.INVENTARIOS_CONFIG) };
+}
+
+function saveInventarioConfig(user, payload) {
+  if (!['administracion', 'auditor', 'gerente'].includes(user.rol)) {
+    throw new Error('Solo administracion puede configurar inventarios');
+  }
+  ensureSheetExists(SHEETS.INVENTARIOS_CONFIG, INVENTARIOS_CONFIG_HEADERS);
+  const existingId = payload.id;
+  const rowData = {
+    id:          existingId || ('INV' + Date.now()),
+    descripcion: String(payload.descripcion || '').trim(),
+    dia_semana:  Number(payload.dia_semana) || 1,
+    frecuencia:  String(payload.frecuencia || 'S'),
+    activo:      true
+  };
+  if (!rowData.descripcion) throw new Error('La descripción es obligatoria');
+  if (existingId) {
+    const row = findRow(SHEETS.INVENTARIOS_CONFIG, r => String(r.id) === String(existingId));
+    if (row) { updateRow(SHEETS.INVENTARIOS_CONFIG, row.rowIdx, rowData); }
+    else { appendRow(SHEETS.INVENTARIOS_CONFIG, rowData); }
+  } else {
+    appendRow(SHEETS.INVENTARIOS_CONFIG, rowData);
+  }
+  logBitacora(user.email, 'saveInventarioConfig', rowData.id + ': ' + rowData.descripcion);
+  return { ok: true, id: rowData.id };
+}
+
+function toggleInventarioConfig(user, payload) {
+  if (!['administracion', 'auditor', 'gerente'].includes(user.rol)) {
+    throw new Error('Solo administracion puede modificar inventarios');
+  }
+  const row = findRow(SHEETS.INVENTARIOS_CONFIG, r => String(r.id) === String(payload.id));
+  if (!row) throw new Error('Ciclo no encontrado: ' + payload.id);
+  updateRow(SHEETS.INVENTARIOS_CONFIG, row.rowIdx, Object.assign({}, row.data, { activo: payload.activo }));
+  logBitacora(user.email, 'toggleInventarioConfig', payload.id + ' activo=' + payload.activo);
+  return { ok: true };
+}
+
+function getInventariosDia(user, payload) {
+  ensureSheetExists(SHEETS.INVENTARIOS_CONFIG, INVENTARIOS_CONFIG_HEADERS);
+  ensureSheetExists(SHEETS.INVENTARIOS_MARCAS, INVENTARIOS_MARCAS_HEADERS);
+  const tz = ss().getSpreadsheetTimeZone() || 'America/Mexico_City';
+  const fecha = (payload && payload.fecha) || Utilities.formatDate(new Date(), tz, 'yyyy-MM-dd');
+  const dateObj = new Date(fecha + 'T12:00:00');
+  const dayJs  = dateObj.getDay();
+  const dayMx  = dayJs === 0 ? 7 : dayJs;
+
+  // ¿Es la última ocurrencia de este día de la semana en el mes? (para frecuencia M)
+  const enSieteDias = new Date(dateObj); enSieteDias.setDate(dateObj.getDate() + 7);
+  const esUltimaOcurrencia = enSieteDias.getMonth() !== dateObj.getMonth();
+
+  const configs = sheetData(SHEETS.INVENTARIOS_CONFIG)
+    .filter(r => String(r.activo).toUpperCase() === 'TRUE');
+
+  const todayCycles = configs.filter(c => {
+    const d = Number(c.dia_semana), f = String(c.frecuencia);
+    if (f === 'S') return d === dayMx;
+    if (f === 'M') return d === dayMx && esUltimaOcurrencia;
+    return false;
+  });
+
+  const marcaMap = {};
+  sheetData(SHEETS.INVENTARIOS_MARCAS)
+    .filter(m => String(m.fecha) === fecha)
+    .forEach(m => { marcaMap[String(m.config_id)] = m; });
+
+  const fotosMap = ckFotosMap('I');
+
+  const items = todayCycles.map(c => ({
+    id: c.id, descripcion: c.descripcion, frecuencia: c.frecuencia,
+    dia_semana: c.dia_semana, fecha,
+    marca:    marcaMap[String(c.id)] || null,
+    foto_url: (fotosMap['I|' + c.id] || {}).foto_url || ''
+  }));
+
+  return { items, fecha };
+}
+
+function marcarInventario(user, payload) {
+  if (!payload.config_id || !payload.fecha) throw new Error('config_id y fecha requeridos');
+  ensureSheetExists(SHEETS.INVENTARIOS_MARCAS, INVENTARIOS_MARCAS_HEADERS);
+  const valor = (payload.valor === 1 || payload.valor === '1') ? 1 : 0;
+  const existing = findRow(SHEETS.INVENTARIOS_MARCAS,
+    m => String(m.config_id) === String(payload.config_id) && String(m.fecha) === String(payload.fecha));
+  const rowData = {
+    timestamp: nowISO(), config_id: String(payload.config_id),
+    fecha: String(payload.fecha), valor,
+    usuario_email: user.email, observaciones: payload.observaciones || ''
+  };
+  if (existing) { updateRow(SHEETS.INVENTARIOS_MARCAS, existing.rowIdx, rowData); }
+  else          { appendRow(SHEETS.INVENTARIOS_MARCAS, rowData); }
+  logBitacora(user.email, 'marcarInventario', payload.config_id + '/' + payload.fecha + '=' + valor);
+  return { ok: true };
+}
+
+function limpiarMarcaInventario(user, payload) {
+  if (!payload.config_id || !payload.fecha) throw new Error('config_id y fecha requeridos');
+  const marcaRow = findRow(SHEETS.INVENTARIOS_MARCAS,
+    m => String(m.config_id) === String(payload.config_id) && String(m.fecha) === String(payload.fecha));
+  if (!marcaRow) return { ok: true, no_existia: true };
+  if (String(marcaRow.data.usuario_email).toLowerCase() !== String(user.email).toLowerCase()) {
+    throw new Error('Solo quien marcó puede eliminar la marca');
+  }
+  sheet(SHEETS.INVENTARIOS_MARCAS).deleteRow(marcaRow.rowIdx);
+  // También limpia foto de ChecklistFotos (pilar='I', item_id=config_id)
+  const fotoRow = findRow(SHEETS.CHECKLIST_FOTOS,
+    r => String(r.pilar) === 'I' && String(r.item_id) === String(payload.config_id));
+  if (fotoRow) {
+    if (fotoRow.data.foto_drive_id) {
+      try { DriveApp.getFileById(String(fotoRow.data.foto_drive_id)).setTrashed(true); } catch(e) {}
+    }
+    sheet(SHEETS.CHECKLIST_FOTOS).deleteRow(fotoRow.rowIdx);
+  }
+  logBitacora(user.email, 'limpiarMarcaInventario', payload.config_id + '/' + payload.fecha);
+  return { ok: true };
+}
+
+function getInventariosCierre(user) {
+  ensureSheetExists(SHEETS.INVENTARIOS_CONFIG, INVENTARIOS_CONFIG_HEADERS);
+  ensureSheetExists(SHEETS.INVENTARIOS_MARCAS, INVENTARIOS_MARCAS_HEADERS);
+  const tz = ss().getSpreadsheetTimeZone() || 'America/Mexico_City';
+  const hoy = new Date();
+  const fechaHoy = Utilities.formatDate(hoy, tz, 'yyyy-MM-dd');
+
+  // Rango de la semana (lunes a domingo)
+  const dayJs = hoy.getDay();
+  const diffMon = dayJs === 0 ? -6 : 1 - dayJs;
+  const lunes = new Date(hoy); lunes.setDate(hoy.getDate() + diffMon);
+  const domingo = new Date(lunes); domingo.setDate(lunes.getDate() + 6);
+  const semStart = Utilities.formatDate(lunes,   tz, 'yyyy-MM-dd');
+  const semEnd   = Utilities.formatDate(domingo,  tz, 'yyyy-MM-dd');
+
+  // Rango del mes
+  const mesStart = Utilities.formatDate(new Date(hoy.getFullYear(), hoy.getMonth(), 1),  tz, 'yyyy-MM-dd');
+  const mesEnd   = Utilities.formatDate(new Date(hoy.getFullYear(), hoy.getMonth()+1, 0), tz, 'yyyy-MM-dd');
+
+  const configs  = sheetData(SHEETS.INVENTARIOS_CONFIG).filter(r => String(r.activo).toUpperCase() === 'TRUE');
+  const allMarcas = sheetData(SHEETS.INVENTARIOS_MARCAS);
+
+  function fechasEsperadas(c, start, end) {
+    const dias = [];
+    const diaSemana = Number(c.dia_semana), freq = String(c.frecuencia);
+    let cur = new Date(start + 'T12:00:00');
+    const endD = new Date(end + 'T12:00:00');
+    while (cur <= endD) {
+      const dm = cur.getDay() === 0 ? 7 : cur.getDay();
+      if (freq === 'S' && dm === diaSemana) {
+        dias.push(Utilities.formatDate(cur, tz, 'yyyy-MM-dd'));
+      } else if (freq === 'M' && dm === diaSemana) {
+        const sig = new Date(cur); sig.setDate(cur.getDate() + 7);
+        if (sig.getMonth() !== cur.getMonth()) {
+          dias.push(Utilities.formatDate(cur, tz, 'yyyy-MM-dd'));
+        }
+      }
+      cur.setDate(cur.getDate() + 1);
+    }
+    return dias;
+  }
+
+  function buildResumen(rangeStart, rangeEnd) {
+    const marcasRango = allMarcas.filter(m => String(m.fecha) >= rangeStart && String(m.fecha) <= rangeEnd);
+    return configs.map(c => {
+      const esperadas = fechasEsperadas(c, rangeStart, rangeEnd);
+      const marcaMap  = {};
+      marcasRango.filter(m => String(m.config_id) === String(c.id)).forEach(m => { marcaMap[String(m.fecha)] = m; });
+      const cumplidos   = esperadas.filter(f => marcaMap[f] && Number(marcaMap[f].valor) === 1).length;
+      const incumplidos = esperadas
+        .filter(f => marcaMap[f] && Number(marcaMap[f].valor) === 0)
+        .map(f => ({ fecha: f, observaciones: marcaMap[f].observaciones || '' }));
+      const sinMarcar = esperadas.filter(f => !marcaMap[f] && f <= fechaHoy).length;
+      return { config_id: c.id, descripcion: c.descripcion, frecuencia: c.frecuencia,
+               esperadas: esperadas.length, cumplidos, sin_marcar: sinMarcar, incumplidos };
+    });
+  }
+
+  return {
+    semanal: buildResumen(semStart, semEnd),
+    mensual: buildResumen(mesStart, mesEnd),
+    semana:  { start: semStart, end: semEnd },
+    mes:     { start: mesStart, end: mesEnd }
   };
 }
 
