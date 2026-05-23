@@ -3116,6 +3116,12 @@ const App = {
   },
 
   async marcarProtocoloItem(item_id, valor, periodo, fecha) {
+    const prot = State.miDia && State.miDia.protocolo;
+    const it = prot && (prot.items || []).find(x => x.id === item_id);
+    if (it && it.marca && Number(it.marca.valor) === valor &&
+        (it.marca.usuario_email || '').toLowerCase() === (State.user && State.user.email || '').toLowerCase()) {
+      return this._limpiarMarcaProtocolo(item_id, periodo, fecha);
+    }
     try {
       await apiCall('marcarProtocolo', { item_id, valor, periodo });
       const res = await apiCall('getProtocolo', { fecha, email: State.miDia && State.miDia.persona && State.miDia.persona.email });
@@ -3657,9 +3663,14 @@ const App = {
   // ✗ abre el modal de nota para capturar el "por qué" — alimenta el informe de
   // hallazgos. Si la guiada se llama con valor=0 desde el botón "editar nota", el
   // modal precarga la observación existente.
+  // Clic en el botón YA activo (misma persona) → elimina la marca y su foto.
   async marcarGuiada(item_id, valor) {
+    const it = (State.pilarAGuiada && State.pilarAGuiada.items || []).find(x => x.id === item_id);
+    if (it && it.marca && Number(it.marca.valor) === valor &&
+        (it.marca.usuario_email || '').toLowerCase() === (State.user && State.user.email || '').toLowerCase()) {
+      return this._limpiarMarca('A', item_id);
+    }
     if (valor === 0) {
-      const it = (State.pilarAGuiada && State.pilarAGuiada.items || []).find(x => x.id === item_id);
       return this.openNotaHallazgoModal({
         item_id, pilar: 'A', valor: 0,
         descripcion: it ? it.descripcion : '',
@@ -3674,6 +3685,40 @@ const App = {
       State.pilarAGuiada = data;
       this._renderGuiadaBody();
       toast('Cumplido ✓');
+    } catch (err) { toast(err.message, true); }
+  },
+
+  async _limpiarMarca(pilar, item_id) {
+    try {
+      await apiCall('limpiarMarca', { pilar, item_id });
+      if (pilar === 'A') {
+        State.pilarAGuiada = await apiCall('getChecklistA', {});
+        this._renderGuiadaBody();
+      } else if (pilar === 'B') {
+        State.pilarBGuiada = await apiCall('getChecklistB', {});
+        this._renderGuiadaBodyB();
+      } else if (pilar === 'C') {
+        State.pilarCGuiada = await apiCall('getChecklistC', {});
+        this._renderGuiadaBodyC();
+      }
+      toast('Marca y foto eliminadas');
+    } catch (err) { toast(err.message, true); }
+  },
+
+  async _limpiarMarcaProtocolo(item_id, periodo, fecha) {
+    try {
+      await apiCall('limpiarMarcaProtocolo', { item_id, periodo });
+      const res = await apiCall('getProtocolo', { fecha, email: State.miDia && State.miDia.persona && State.miDia.persona.email });
+      if (State.miDia) {
+        State.miDia.protocolo = {
+          items: res.items,
+          marcados: res.items.filter(it => it.marca).length,
+          cumplidos: res.items.filter(it => it.marca && Number(it.marca.valor) === 1).length,
+          pendientes: res.items.filter(it => !it.marca).length
+        };
+      }
+      this._renderProtocoloSection();
+      toast('Marca y foto eliminadas');
     } catch (err) { toast(err.message, true); }
   },
 
@@ -4271,8 +4316,12 @@ const App = {
   },
 
   async marcarGuiadaB(item_id, valor) {
+    const it = (State.pilarBGuiada && State.pilarBGuiada.items || []).find(x => x.id === item_id);
+    if (it && it.marca && Number(it.marca.valor) === valor &&
+        (it.marca.usuario_email || '').toLowerCase() === (State.user && State.user.email || '').toLowerCase()) {
+      return this._limpiarMarca('B', item_id);
+    }
     if (valor === 0) {
-      const it = (State.pilarBGuiada && State.pilarBGuiada.items || []).find(x => x.id === item_id);
       return this.openNotaHallazgoModal({
         item_id, pilar: 'B', valor: 0,
         descripcion: it ? it.descripcion : '',
@@ -4792,8 +4841,12 @@ const App = {
   },
 
   async marcarGuiadaC(item_id, valor) {
+    const it = (State.pilarCGuiada && State.pilarCGuiada.items || []).find(x => x.id === item_id);
+    if (it && it.marca && Number(it.marca.valor) === valor &&
+        (it.marca.usuario_email || '').toLowerCase() === (State.user && State.user.email || '').toLowerCase()) {
+      return this._limpiarMarca('C', item_id);
+    }
     if (valor === 0) {
-      const it = (State.pilarCGuiada && State.pilarCGuiada.items || []).find(x => x.id === item_id);
       return this.openNotaHallazgoModal({
         item_id, pilar: 'C', valor: 0,
         descripcion: it ? it.descripcion : '',

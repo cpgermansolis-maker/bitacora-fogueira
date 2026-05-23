@@ -123,8 +123,10 @@ function doPost(e) {
         case 'desmarcarHallazgoAtendido':response = desmarcarHallazgoAtendido(user, payload); break;
         case 'subirEvidencia':     response = subirEvidencia(user, payload); break;
         case 'subirFotoChecklist': response = subirFotoChecklist(user, payload); break;
-        case 'getProtocolo':       response = getProtocolo(user, payload); break;
-        case 'marcarProtocolo':    response = marcarProtocolo(user, payload); break;
+        case 'getProtocolo':          response = getProtocolo(user, payload); break;
+        case 'marcarProtocolo':       response = marcarProtocolo(user, payload); break;
+        case 'limpiarMarca':          response = limpiarMarca(user, payload); break;
+        case 'limpiarMarcaProtocolo': response = limpiarMarcaProtocolo(user, payload); break;
         case 'getUsuarios':        response = getUsuarios(user); break;
         case 'addUsuario':         response = addUsuario(user, payload); break;
         case 'updateUsuario':      response = updateUsuario(user, payload); break;
@@ -779,10 +781,11 @@ function periodoCanonico(value, frecuencia) {
 }
 
 // Quién puede marcar qué.
-// El responsable del rol del ítem y siempre auditor/auxiliar/gerente (Mónica supervisa).
+// El responsable del rol del ítem y siempre auditor/auxiliar/administracion/gerente.
 function puedeMarcarChecklist(user, item) {
   if (!user) return false;
-  if (user.rol === 'auditor' || user.rol === 'auxiliar' || user.rol === 'gerente') return true;
+  if (user.rol === 'auditor' || user.rol === 'auxiliar' ||
+      user.rol === 'gerente' || user.rol === 'administracion') return true;
   return user.rol === item.responsable_rol;
 }
 
@@ -2133,6 +2136,75 @@ function marcarProtocolo(user, payload) {
   }
   logBitacora(user.email, 'marcarProtocolo', payload.item_id + ' / ' + periodo + ' = ' + valor);
   return { ok: true, periodo, valor };
+}
+
+// Elimina una marca de checklist (A/B/C) y su foto asociada.
+// Solo puede hacerlo quien la marcó originalmente.
+function limpiarMarca(user, payload) {
+  if (!payload || !payload.pilar || !payload.item_id) throw new Error('pilar e item_id requeridos');
+  const pilar = String(payload.pilar).toUpperCase();
+  const marcaSheets = { A: SHEETS.PILAR_A_CK_MARCAS, B: SHEETS.PILAR_B_CK_MARCAS, C: SHEETS.PILAR_C_CK_MARCAS };
+  const itemSheets  = { A: SHEETS.PILAR_A_CK_ITEMS,  B: SHEETS.PILAR_B_CK_ITEMS,  C: SHEETS.PILAR_C_CK_ITEMS  };
+  if (!marcaSheets[pilar]) throw new Error('Pilar inválido: ' + pilar);
+
+  const item = findRow(itemSheets[pilar], it => it.id === payload.item_id);
+  if (!item) throw new Error('Ítem no encontrado: ' + payload.item_id);
+  const periodo = periodoActual(item.data.frecuencia);
+
+  const marcaRow = findRow(marcaSheets[pilar],
+    m => String(m.item_id) === String(payload.item_id) &&
+         periodoCanonico(m.periodo, item.data.frecuencia) === periodo);
+  if (!marcaRow) return { ok: true, no_existia: true };
+
+  if (String(marcaRow.data.usuario_email).toLowerCase() !== String(user.email).toLowerCase()) {
+    throw new Error('Solo quien marcó el ítem puede eliminar la marca');
+  }
+
+  sheet(marcaSheets[pilar]).deleteRow(marcaRow.rowIdx);
+
+  const fotoRow = findRow(SHEETS.CHECKLIST_FOTOS,
+    r => String(r.pilar) === pilar && String(r.item_id) === String(payload.item_id));
+  if (fotoRow) {
+    if (fotoRow.data.foto_drive_id) {
+      try { DriveApp.getFileById(String(fotoRow.data.foto_drive_id)).setTrashed(true); } catch(e) {}
+    }
+    sheet(SHEETS.CHECKLIST_FOTOS).deleteRow(fotoRow.rowIdx);
+  }
+
+  logBitacora(user.email, 'limpiarMarca', pilar + ' / ' + payload.item_id + ' / ' + periodo);
+  return { ok: true, pilar, item_id: payload.item_id };
+}
+
+// Elimina una marca de Protocolo del Turno y su foto asociada.
+function limpiarMarcaProtocolo(user, payload) {
+  if (!payload || !payload.item_id) throw new Error('item_id requerido');
+
+  const item = findRow(SHEETS.PROTOCOLO_ITEMS, it => it.id === payload.item_id);
+  if (!item) throw new Error('Ítem de protocolo no encontrado: ' + payload.item_id);
+  const periodo = payload.periodo || periodoActual(item.data.frecuencia);
+
+  const marcaRow = findRow(SHEETS.PROTOCOLO_MARCAS,
+    m => String(m.item_id) === String(payload.item_id) &&
+         periodoCanonico(m.periodo, item.data.frecuencia) === periodo);
+  if (!marcaRow) return { ok: true, no_existia: true };
+
+  if (String(marcaRow.data.usuario_email).toLowerCase() !== String(user.email).toLowerCase()) {
+    throw new Error('Solo quien marcó el ítem puede eliminar la marca');
+  }
+
+  sheet(SHEETS.PROTOCOLO_MARCAS).deleteRow(marcaRow.rowIdx);
+
+  const fotoRow = findRow(SHEETS.CHECKLIST_FOTOS,
+    r => String(r.pilar) === 'P' && String(r.item_id) === String(payload.item_id));
+  if (fotoRow) {
+    if (fotoRow.data.foto_drive_id) {
+      try { DriveApp.getFileById(String(fotoRow.data.foto_drive_id)).setTrashed(true); } catch(e) {}
+    }
+    sheet(SHEETS.CHECKLIST_FOTOS).deleteRow(fotoRow.rowIdx);
+  }
+
+  logBitacora(user.email, 'limpiarMarcaProtocolo', payload.item_id + ' / ' + periodo);
+  return { ok: true, item_id: payload.item_id };
 }
 
 // Devuelve mapa { 'pilar|item_id' → fila } con la foto más reciente de cada ítem.
