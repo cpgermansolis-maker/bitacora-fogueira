@@ -6,11 +6,11 @@ Guía de contexto para Claude Code al trabajar en este proyecto.
 
 ## Qué es el sistema
 
-Aplicación web de supervisión operativa para el restaurante Fogueira (Grupo Toda). Estefanía Martínez López (Supervisora de Conciliación) vigila que los tres pilares operativos se ejecuten bien. Germán y Mónica miden a Estefanía desde el dashboard de Supervisión.
+Aplicación web de supervisión operativa para el restaurante Fogueira (Grupo Toda). Xochitl Martínez Patricio (Supervisora de Conciliación) vigila que los tres pilares operativos se ejecuten bien. Germán y Mónica miden a Xochitl desde el dashboard de Supervisión.
 
 **Frase ancla del sistema: TÚ ABRES, ELLAS CIERRAN.**
-Estefanía detecta y abre hallazgos. Germán/Mónica los resuelven y cierran.
-Estefanía NO ejecuta tareas operativas; las vigila.
+Xochitl detecta y abre hallazgos. Germán/Mónica los resuelven y cierran.
+Xochitl NO ejecuta tareas operativas; las vigila.
 
 ---
 
@@ -23,9 +23,9 @@ GitHub Pages (index.html)  ←→  Google Apps Script Web App  ←→  Google Sh
       (contenido de cursos)           Setup.gs
 ```
 
-- **Frontend:** `index.html` (~8500+ líneas). SPA con tabs. Sirve desde GitHub Pages.
+- **Frontend:** `index.html` (~9000+ líneas). SPA con tabs. Sirve desde GitHub Pages.
 - **Backend:** Google Apps Script, expuesto como Web App (POST único). Dispatcher en `doPost()` por campo `action`.
-- **Base de datos:** Google Sheets. Helpers: `sheetData()`, `appendRow()`, `updateRow()`, `findRow()`.
+- **Base de datos:** Google Sheets. Helpers: `sheetData()`, `appendRow()`, `updateRow()`, `findRow()`, `deleteRow()`.
 - **Cursos:** JSON estáticos en `cursos/` servidos vía GitHub Pages — **no requieren clasp para iterar contenido**.
 
 ---
@@ -38,7 +38,7 @@ GitHub Pages (index.html)  ←→  Google Apps Script Web App  ←→  Google Sh
 | `apps_script/Code.gs` | Backend principal. Actions, helpers de Sheet, lógica de negocio. |
 | `apps_script/Monitoring.gs` | `getDiaPersona()` — datos del día para Mi Día. |
 | `apps_script/Setup.gs` | `setupSheet()` (idempotente) + helpers de inicialización. `initProtocolo()` para hojas de Protocolo. |
-| `cursos/estefania.json` | Curso "Supervisión Operativa" (rol administracion). 8 módulos, 48 preguntas. |
+| `cursos/estefania.json` | Curso "Supervisión Operativa" (rol administracion). 8 módulos, 48 preguntas. Destinatario: Xochitl. |
 | `cursos/monica.json` | Curso "Supervisión Estratégica" (rol gerente). 8 módulos, 48 preguntas. |
 | `PUBLISHED.md` | URLs, IDs y deployment ID de producción. |
 
@@ -88,12 +88,12 @@ No requiere clasp. GitHub Pages sirve los JSON directamente.
 
 ---
 
-## Pestañas del sistema (versión actual: v37.1)
+## Pestañas del sistema (versión actual: v40)
 
 - **Mi Día:** Detalle | Tendencia 7d | Protocolo del Turno
 - **Pilar A:** Estado SR12 | Evolución | Check list (por módulo, con foto adjunta)
 - **Pilar B:** Estado | Evolución | Check list (conciliación diaria, con foto adjunta)
-- **Pilar C:** Kanban | Check list (inventarios/compras, con foto adjunta)
+- **Pilar C:** Kanban | Check list (muestreo del flujo de requisiciones, con foto) | Inventarios cíclicos (muestreo diario por área, cierre auto S/M)
 - **Supervisión:** Cobertura · Profundidad · Hallazgos (3 estados + foto + protocolo_incumplido) · Impacto · Calificación · Informe ejecutivo
 - **Capacitación:** Cursos por rol. Certificado firmado por Mónica.
 - **Reporte:** Semanal / Mensual
@@ -105,27 +105,30 @@ No requiere clasp. GitHub Pages sirve los JSON directamente.
 
 Hojas estables (nunca modificar manualmente sin saber qué hacen):
 
-`Usuarios`, `Config`, `Bitacora_Sistema`, `PilarA_Historico`, `PilarA_ChecklistItems`, `PilarA_ChecklistMarcas`, `PilarB_Diario`, `PilarB_ChecklistItems`, `PilarB_ChecklistMarcas`, `PilarC_Requisiciones`, `PilarC_Movimientos`, `PilarC_ChecklistItems`, `PilarC_ChecklistMarcas`, `Hallazgos`, `Semaforo_Semanal`, `ChecklistFotos`, `Protocolo_Items`, `Protocolo_Marcas`
+`Usuarios`, `Config`, `Bitacora_Sistema`, `PilarA_Historico`, `PilarA_ChecklistItems`, `PilarA_ChecklistMarcas`, `PilarB_Diario`, `PilarB_ChecklistItems`, `PilarB_ChecklistMarcas`, `PilarC_Requisiciones`, `PilarC_Movimientos`, `PilarC_ChecklistItems`, `PilarC_ChecklistMarcas`, `Hallazgos`, `Semaforo_Semanal`, `ChecklistFotos`, `Protocolo_Items`, `Protocolo_Marcas`, `Inventarios_Config`, `Inventarios_Marcas`
 
 Hojas que Germán/Mónica gestionan directamente:
 - `Protocolo_Items` — ítems del Protocolo del Turno (id, descripcion, frecuencia D/S/M, dia_semana 1-7, hora_sugerida, rol_responsable, activo)
+- `Inventarios_Config` — ciclos de inventario (id, descripcion, dia_semana 1-7, frecuencia S/M, activo)
 
 ---
 
 ## Roles válidos
 
-`auditor` (Germán) · `gerente` (Mónica, Luis Altamirano) · `administracion` (Estefanía) · `auxiliar` · `cajera` · `almacen` · `compras` · `cocina` · `controlador` · `host` · `area`
+`auditor` (Germán) · `gerente` (Mónica, Luis Altamirano) · `administracion` (Xochitl) · `auxiliar` · `cajera` · `almacen` · `compras` · `cocina` · `controlador` · `host` · `area`
 
 ---
 
-## Usuarios del sistema (al 20-may-2026)
+## Usuarios del sistema (al 22-may-2026)
 
-| Nombre | Rol | Función |
-|---|---|---|
-| C.P. Germán Solís Zamora | auditor | Diseñador del sistema. Auditor externo. Mismos privilegios que gerente. |
-| Mónica Solís | gerente | Jefa de Estefanía. Revisa desempeño. Firma certificados. |
-| Estefanía Martínez López | administracion | Supervisora. Captura los checklists diariamente. |
-| Luis Alfredo Altamirano Zurita | gerente | Gerente Administrativo. Junto a Mónica supervisa a Estefanía. |
+| Nombre | Rol | Email | Función |
+|---|---|---|---|
+| C.P. Germán Solís Zamora | auditor | cpgermansolis@gmail.com | Diseñador del sistema. Auditor externo. Mismos privilegios que gerente. |
+| Mónica Solís | gerente | — | Jefa de Xochitl. Revisa desempeño. Firma certificados. |
+| Mónica Xochitl Martínez Patricio | administracion | xochitlmartinez421@gmail.com | Supervisora. Reemplazó a Estefanía. Captura checklists diariamente. |
+| Luis Alfredo Altamirano Zurita | gerente | — | Gerente Administrativo. Junto a Mónica supervisa a Xochitl. |
+
+Estefanía Martínez López fue relevada (desactivada en el sistema).
 
 ---
 
@@ -147,22 +150,44 @@ function ensureSheetExists(name, headers) {
 Todas las operaciones de marca usan upsert: `findRow` → si existe `updateRow`, si no `appendRow`.
 
 ### ckFotosMap(pilarFilter)
-Retorna `{'pilar|item_id' → row}`. Pilar 'P' funciona para fotos del Protocolo.
+Retorna `{'pilar|item_id' → row}`. Claves de pilar en uso:
+- `'A'`, `'B'`, `'C'` — checklists de pilares
+- `'P'` — Protocolo del Turno
+- `'I'` — Inventarios cíclicos
 
 ### Foto por ítem: semántica de reemplazo
-ChecklistFotos tiene clave lógica `(pilar, item_id)` — no incluye período. Subir foto nueva reemplaza la anterior del mismo ítem para siempre.
+`ChecklistFotos` tiene clave lógica `(pilar, item_id)` — no incluye período. Subir foto nueva reemplaza la anterior del mismo ítem para siempre.
+
+### Desmarcar (toggle-off, v39)
+Si el usuario pulsa el botón ya activo de SU propia marca (mismo `usuario_email`), se llama `limpiarMarca` / `limpiarMarcaProtocolo` / `limpiarMarcaInventario`. Estas funciones eliminan la fila de la hoja de marcas y también limpian la foto asociada en `ChecklistFotos` y Google Drive (`setTrashed(true)`).
 
 ### Protocolo del Turno — visibilidad por día
 `esVisibleHoyProtocolo(item, fechaStr)`: ítems semanales (frecuencia=S) aparecen desde `dia_semana` hasta fin de semana. `dayMx = dayJs === 0 ? 7 : dayJs` convierte JS getDay() (0=Dom) a 1=Lun…7=Dom.
 
 ### getDiaPersona — persona vs user
-Cuando Germán ve el día de Estefanía: `user` = Germán, `persona` = Estefanía. `getProtocolo` y funciones similares reciben el `email` de persona para filtrar marcas del día correcto; `puedo_marcar` usa `user.rol`.
+Cuando Germán ve el día de Xochitl: `user` = Germán, `persona` = Xochitl. `getProtocolo` y funciones similares reciben el `email` de persona para filtrar marcas del día correcto; `puedo_marcar` usa `user.rol`.
+
+### Inventarios cíclicos (v40)
+- Hojas: `Inventarios_Config` / `Inventarios_Marcas`
+- `getInventariosDia`: retorna ciclos del día enriquecidos con marcas y fotos
+- `getInventariosCierre`: retorna `{semanal, mensual}` — esperadas, cumplidos, incumplidos[] por ciclo
+- Cierre S/M en el Check list Pilar C: se muestra como tarjeta de resumen automático (read-only), calculado desde las marcas D del día. No es markable manualmente.
+- Ambas secciones del Pilar C (Check list e Inventarios) tienen banner amarillo de muestreo: no se valida el 100% de las operaciones.
+
+### puedeMarcarChecklist — rol administracion
+`administracion` tiene acceso wildcard (puede marcar cualquier ítem de A, B y C), igual que `auditor`, `gerente` y `auxiliar`. No está restringido a `responsable_rol` del ítem.
 
 ### Cursos — distribución de respuestas
 Cada archivo JSON tiene 48 preguntas (8 módulos × 6 preguntas). La posición correcta está distribuida 25% por opción (12 A, 12 B, 12 C, 12 D). No concentrar en una posición.
 
 ### JSON estático por GitHub Pages
 El contenido editorial de los cursos vive en `cursos/*.json`. Cambios solo requieren git push — sin clasp.
+
+---
+
+## Pendiente próxima sesión
+
+- **Acceso con contraseña:** implementar autenticación por contraseña para los usuarios. Actualmente el login es solo por email (sin contraseña). Diseñar antes de codear: dónde se guarda el hash (hoja `Usuarios`), flujo de primer acceso, recuperación.
 
 ---
 
@@ -173,3 +198,5 @@ El contenido editorial de los cursos vive en `cursos/*.json`. Cambios solo requi
 - Protocolo del Turno ≠ Pilar D: actividades del turno viven en Mi Día + Supervisión, no merecen dashboard propio.
 - El deploy de clasp fue la fuente de errores recurrente. Siempre verificar con `clasp deployments` que producción quedó en la versión nueva.
 - El comando correcto es `clasp deploy -i <id> -V N`, no `clasp redeploy`.
+- `_renderGuiadaBodyC()` escribe en `pilar-c-subcontent` (no `pilar-c-content`). El contenedor exterior lo arma `render_pilar_c_guiada()`.
+- `applyModoBanner()`: el rol `administracion` debe omitirse del banner de modo auxiliar_unica — la supervisora siempre es la responsable.
