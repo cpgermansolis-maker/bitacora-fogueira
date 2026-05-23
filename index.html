@@ -2228,12 +2228,12 @@ body.has-modo-banner .nav { top: calc(70px + 40px); }
      ============================================================ -->
 <nav class="nav" id="nav-bar" style="display:none;">
   <div class="nav-inner">
-    <button class="nav-tab active" data-view="mi-dia">Mi Día</button>
-    <button class="nav-tab" data-view="pilar-a">Pilar A · Soft Restaurant</button>
-    <button class="nav-tab" data-view="pilar-b">Pilar B · Conciliación</button>
-    <button class="nav-tab" data-view="pilar-c">Pilar C · Inventarios</button>
+    <button class="nav-tab active" data-view="mi-dia" title="Tu resumen operativo del día: checklist personal, métricas de desempeño y protocolo del turno">Mi Día</button>
+    <button class="nav-tab" data-view="pilar-a" title="Supervisión de Soft Restaurant 12: módulos de configuración, captura y cierre. Revisa que el equipo opere el sistema correctamente">Pilar A · Soft Restaurant</button>
+    <button class="nav-tab" data-view="pilar-b" title="Supervisión de la conciliación diaria: arqueo de caja, banderas rojas, cortesías y depósitos. Tu responsabilidad más crítica del día">Pilar B · Conciliación</button>
+    <button class="nav-tab" data-view="pilar-c" title="Supervisión del flujo de inventarios y compras: desde la solicitud de insumos hasta su recepción y surtimiento">Pilar C · Inventarios</button>
     <button class="nav-tab" data-view="supervision" data-roles="auditor,gerente" style="display:none;">Supervisión<span class="nav-badge" id="badge-supervision" style="display:none;">0</span></button>
-    <button class="nav-tab" data-view="capacitacion">Capacitación</button>
+    <button class="nav-tab" data-view="capacitacion" title="Tu curso de certificación como Supervisora Operativa de Fogueira — aprueba con ≥ 80% para obtener el certificado firmado por Mónica">Capacitación</button>
     <button class="nav-tab" data-view="reporte">Reporte</button>
     <button class="nav-tab" data-view="usuarios" data-rol="auditor" style="display:none;">Usuarios</button>
   </div>
@@ -3076,8 +3076,8 @@ const App = {
       <div id="retro-banner"></div>
 
       <div class="subtabs">
-        <button class="subtab ${State.miDiaSubview === 'hoy'       ? 'active' : ''}" onclick="App.miDia_setView('hoy')">Detalle del día</button>
-        <button class="subtab ${State.miDiaSubview === 'tendencia' ? 'active' : ''}" onclick="App.miDia_setView('tendencia')">Tendencia 7 días</button>
+        <button class="subtab ${State.miDiaSubview === 'hoy'       ? 'active' : ''}" onclick="App.miDia_setView('hoy')" title="Vista del día de hoy: checklists pendientes, métricas del turno y protocolo del turno. Aquí captura todo lo que ocurre hoy">Detalle del día</button>
+        <button class="subtab ${State.miDiaSubview === 'tendencia' ? 'active' : ''}" onclick="App.miDia_setView('tendencia')" title="Evolución de tu cobertura y cumplimiento en los últimos 7 días — útil para detectar si hay días que consistentemente quedan sin capturar">Tendencia 7 días</button>
       </div>
       <div id="mi-dia-subcontent"><div class="empty-state"><div class="spinner"></div></div></div>
     `;
@@ -7991,8 +7991,8 @@ function modulRowHTML(m, ck, sparkSerie) {
       </div>
       <div class="modulo-pct ${sclass}">${pct}%</div>
       <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
-        <button class="modulo-action" onclick="App.openModuloModal('${escapeHtml(m.id)}')">Actualizar</button>
-        <button class="btn-ghost" onclick="App.openPlanModal('${escapeHtml(m.id)}')">+ Tarea</button>
+        <button class="modulo-action" onclick="App.openModuloModal('${escapeHtml(m.id)}')" title="Registra el avance de este módulo: ingresa el porcentaje de cumplimiento y deja una observación si algo no está funcionando bien">Actualizar</button>
+        <button class="btn-ghost" onclick="App.openPlanModal('${escapeHtml(m.id)}')" title="Agrega una acción correctiva a este módulo: documenta qué se va a hacer, quién lo hará y para cuándo — queda como evidencia de seguimiento">+ Tarea</button>
         ${ckButton}
       </div>
     </div>
@@ -8175,9 +8175,11 @@ function guiadaItemRowHTML(it) {
       </div>
       <div class="guiada-toggle">
         <button class="guiada-btn guiada-btn-no ${noCumplido ? 'active' : ''}" ${disabled}
-          onclick="App.marcarGuiada('${escapeHtml(it.id)}', 0)" aria-label="Marcar como no cumplida">✗</button>
+          onclick="App.marcarGuiada('${escapeHtml(it.id)}', 0)" aria-label="Marcar como no cumplida"
+          title="No cumplida — registra que esta actividad no se realizó correctamente. Se te pedirá una observación: explica qué falló y qué acción se tomará">✗</button>
         <button class="guiada-btn guiada-btn-si ${cumplido ? 'active' : ''}" ${disabled}
-          onclick="App.marcarGuiada('${escapeHtml(it.id)}', 1)" aria-label="Marcar como cumplida">✓</button>
+          onclick="App.marcarGuiada('${escapeHtml(it.id)}', 1)" aria-label="Marcar como cumplida"
+          title="Cumplida — confirmas que revisaste esta actividad y el equipo la realizó correctamente">✓</button>
       </div>
     </article>`;
 }
@@ -8213,9 +8215,11 @@ function protocoloItemMiDiaHTML(it, fecha) {
       </div>
       <div class="guiada-toggle">
         <button class="guiada-btn guiada-btn-no ${noCumplido ? 'active' : ''}" ${disabled}
-          onclick="App.marcarProtocoloItem('${id}', 0, '${per}', '${fch}')" aria-label="No hecho">✗</button>
+          onclick="App.marcarProtocoloItem('${id}', 0, '${per}', '${fch}')" aria-label="No hecho"
+          title="No hecho — registra que este paso del protocolo del turno no se completó. Si se incumple seguido, se generará un hallazgo automático en Supervisión">✗</button>
         <button class="guiada-btn guiada-btn-si ${cumplido ? 'active' : ''}" ${disabled}
-          onclick="App.marcarProtocoloItem('${id}', 1, '${per}', '${fch}')" aria-label="Hecho">✓</button>
+          onclick="App.marcarProtocoloItem('${id}', 1, '${per}', '${fch}')" aria-label="Hecho"
+          title="Hecho — confirmas que completaste este paso del protocolo del turno en el horario indicado">✓</button>
       </div>
     </article>`;
 }
@@ -8325,7 +8329,7 @@ function etapaCardHTML(e, ck) {
       </div>
       <div class="etapa-actions">
         <div class="check-btn ${completada ? 'checked' : ''}" onclick="App.toggleEtapaB('${escapeHtml(e.id)}', ${!completada})" title="${completada ? 'Reabrir' : 'Marcar completada'}">${completada ? '✓' : ''}</div>
-        <button class="btn-ghost" style="font-size:0.78rem;" onclick="App.openEtapaBModal('${escapeHtml(e.id)}')">Detalles</button>
+        <button class="btn-ghost" style="font-size:0.78rem;" onclick="App.openEtapaBModal('${escapeHtml(e.id)}')" title="Ver el detalle completo de esta etapa: observaciones registradas, hora de cierre, quién la capturó y el check list de ítems asociados">Detalles</button>
         ${ckButton}
       </div>
     </div>
@@ -8364,9 +8368,11 @@ function guiadaBItemRowHTML(it) {
       </div>
       <div class="guiada-toggle">
         <button class="guiada-btn guiada-btn-no ${noCumplido ? 'active' : ''}" ${disabled}
-          onclick="App.marcarGuiadaB('${escapeHtml(it.id)}', 0)" aria-label="Marcar como no cumplida">✗</button>
+          onclick="App.marcarGuiadaB('${escapeHtml(it.id)}', 0)" aria-label="Marcar como no cumplida"
+          title="No cumplida — registra que este paso de la conciliación no se realizó. Una ✗ en conciliación sin observación baja tu índice de profundidad: explica siempre qué faltó">✗</button>
         <button class="guiada-btn guiada-btn-si ${cumplido ? 'active' : ''}" ${disabled}
-          onclick="App.marcarGuiadaB('${escapeHtml(it.id)}', 1)" aria-label="Marcar como cumplida">✓</button>
+          onclick="App.marcarGuiadaB('${escapeHtml(it.id)}', 1)" aria-label="Marcar como cumplida"
+          title="Cumplida — confirmas que supervisaste este paso de la conciliación y se realizó correctamente">✓</button>
       </div>
     </article>`;
 }
@@ -8464,9 +8470,11 @@ function guiadaCItemRowHTML(it) {
       </div>
       <div class="guiada-toggle">
         <button class="guiada-btn guiada-btn-no ${noCumplido ? 'active' : ''}" ${disabled}
-          onclick="App.marcarGuiadaC('${escapeHtml(it.id)}', 0)" aria-label="Marcar como no cumplida">✗</button>
+          onclick="App.marcarGuiadaC('${escapeHtml(it.id)}', 0)" aria-label="Marcar como no cumplida"
+          title="No cumplida — registra que este paso del flujo de inventarios o compras no se cumplió. Documenta en la observación qué parte del proceso se rompió">✗</button>
         <button class="guiada-btn guiada-btn-si ${cumplido ? 'active' : ''}" ${disabled}
-          onclick="App.marcarGuiadaC('${escapeHtml(it.id)}', 1)" aria-label="Marcar como cumplida">✓</button>
+          onclick="App.marcarGuiadaC('${escapeHtml(it.id)}', 1)" aria-label="Marcar como cumplida"
+          title="Cumplida — confirmas que revisaste este paso del flujo de inventarios y se realizó según el procedimiento">✓</button>
       </div>
     </article>`;
 }
