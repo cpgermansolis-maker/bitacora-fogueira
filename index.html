@@ -2873,6 +2873,14 @@ const App = {
       return;
     }
 
+    // administracion = supervisora; no necesita el banner de modo auxiliar
+    if (rol === 'administracion') {
+      banner.style.display = 'none';
+      banner.classList.remove('is-self');
+      document.body.classList.remove('has-modo-banner');
+      return;
+    }
+
     let msg = '';
     if (rol === 'auxiliar') {
       banner.classList.add('is-self');
@@ -5077,7 +5085,7 @@ const App = {
   // Render aislado del body — se llama también después de marcar para refrescar
   // sin perder scroll ni reentrar a la red dos veces.
   _renderGuiadaBodyC() {
-    const c = el('pilar-c-content');
+    const c = el('pilar-c-subcontent');
     const data = State.pilarCGuiada;
     if (!data) return;
     const items = data.items;
@@ -5096,9 +5104,46 @@ const App = {
       return i === -1 ? 999 : i;
     };
 
+    // D items para calcular resumen automático de cierres S/M
+    const dItems = items.filter(it => it.frecuencia === 'D');
+    const dCumplidos  = dItems.filter(it => it.marca && Number(it.marca.valor) === 1).length;
+    const dNoCumplidos = dItems.filter(it => it.marca && Number(it.marca.valor) === 0).length;
+    const dTotal = dItems.length;
+    const dPct  = dTotal > 0 ? Math.round((dCumplidos  / dTotal) * 100) : 0;
+    const dPctNo = dTotal > 0 ? Math.round((dNoCumplidos / dTotal) * 100) : 0;
+
     const cuerpoGrupos = grupos.map(g => {
       const grupo = items.filter(it => it.frecuencia === g.freq);
       if (grupo.length === 0) return '';
+
+      if (g.freq === 'S' || g.freq === 'M') {
+        const fallidos = dItems.filter(it => it.marca && Number(it.marca.valor) === 0);
+        const listaFallidos = fallidos.length > 0
+          ? fallidos.map(it => `<li style="margin:4px 0;color:#c0392b;">✗ ${escapeHtml(it.descripcion)}${it.marca.observaciones ? ` — <em>${escapeHtml(it.marca.observaciones)}</em>` : ''}</li>`).join('')
+          : `<li style="margin:4px 0;color:#27ae60;">Sin incidencias diarias hoy</li>`;
+        const labelCierre = g.freq === 'S' ? 'semanal' : 'mensual';
+        return `
+        <section class="guiada-grupo">
+          <div class="guiada-grupo-head">
+            <div class="guiada-grupo-titulo">
+              <span class="guiada-grupo-emoji">${g.emoji}</span>
+              <h2>${g.label}</h2>
+              <span class="guiada-grupo-hint">${escapeHtml(g.hint)}</span>
+            </div>
+            <div class="guiada-grupo-conteo"><strong>${dCumplidos}</strong> de ${dTotal} hoy</div>
+          </div>
+          <div class="guiada-bar-wrap" title="${dCumplidos} cumplidas, ${dNoCumplidos} no cumplidas">
+            <div class="guiada-bar guiada-bar-ok" style="width:${dPct}%;"></div>
+            <div class="guiada-bar guiada-bar-no" style="width:${dPctNo}%;"></div>
+          </div>
+          <div style="margin:12px 0;padding:14px 16px;background:#f8f9fa;border-radius:10px;border-left:4px solid #6c5ce7;">
+            <div style="font-size:.75rem;font-weight:700;color:#6c5ce7;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">📊 Cierre ${labelCierre} — generado automáticamente</div>
+            <p style="margin:0 0 8px;font-size:.85rem;color:#555;">Basado en las marcas diarias de hoy · <strong>${dCumplidos}/${dTotal}</strong> ítems cumplidos (${dPct}%)</p>
+            <ul style="margin:0;padding-left:18px;font-size:.82rem;">${listaFallidos}</ul>
+          </div>
+        </section>`;
+      }
+
       const cumplidos = grupo.filter(it => it.marca && Number(it.marca.valor) === 1).length;
       const noCumplidos = grupo.filter(it => it.marca && Number(it.marca.valor) === 0).length;
       const total = grupo.length;
