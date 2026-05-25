@@ -78,9 +78,13 @@ function doPost(e) {
     const payload = body.payload || {};
     const userEmail = (body.userEmail || '').toLowerCase().trim();
 
-    // login es la única acción que no requiere usuario validado previo
+    // Acciones que no requieren usuario validado previo
     if (action === 'login') {
       response = login(payload);
+    } else if (action === 'requestPasswordReset') {
+      response = requestPasswordReset(payload);
+    } else if (action === 'resetPassword') {
+      response = resetPassword(payload);
     } else {
       // Toda otra acción requiere usuario válido
       const user = validarUsuario(userEmail);
@@ -142,6 +146,8 @@ function doPost(e) {
         case 'addUsuario':         response = addUsuario(user, payload); break;
         case 'updateUsuario':      response = updateUsuario(user, payload); break;
         case 'deleteUsuario':      response = deleteUsuario(user, payload); break;
+        case 'setPassword':        response = setPassword(user, payload); break;
+        case 'changePassword':     response = changePassword(user, payload); break;
         case 'getCursoUsuario':    response = getCursoUsuario(user); break;
         case 'enviarRespuestasQuiz': response = enviarRespuestasQuiz(user, payload); break;
         case 'getCertificado':     response = getCertificado(user, payload); break;
@@ -300,7 +306,8 @@ function getUsuarios(user) {
     email: String(u.email || '').toLowerCase().trim(),
     nombre: String(u.nombre || ''),
     rol: String(u.rol || ''),
-    activo: String(u.activo).toUpperCase() === 'TRUE'
+    activo: String(u.activo).toUpperCase() === 'TRUE',
+    has_password: !!(String(u.password_hash || '').trim())
   }));
 }
 
@@ -425,19 +432,179 @@ function deleteUsuario(user, payload) {
 }
 
 // =============================================================
+// CONTRASEÑAS
+// =============================================================
+
+function sha256GS(str) {
+  const bytes = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, str, Utilities.Charset.UTF_8);
+  return bytes.map(b => (b < 0 ? b + 256 : b).toString(16).padStart(2, '0')).join('');
+}
+
+// Auditor asigna contraseña a cualquier usuario (marca force_change=TRUE).
+function setPassword(user, payload) {
+  requireAuditor(user);
+  const email = String(payload.email || '').toLowerCase().trim();
+  const newHash = String(payload.new_hash || '').trim();
+  if (!newHash) throw new Error('Falta el hash de contraseña');
+
+  const found = findRow(SHEETS.USUARIOS, u =>
+    String(u.email).toLowerCase().trim() === email
+  );
+  if (!found) throw new Error('Usuario no encontrado: ' + email);
+
+  updateRow(SHEETS.USUARIOS, found.rowIdx, {
+    password_hash: newHash,
+    force_change: 'TRUE',
+    reset_token_hash: '',
+    reset_token_expires: ''
+  });
+  return { ok: true };
+}
+
+// Usuario autenticado cambia su propia contraseña.
+// En modo force_change no se pide la contraseña antigua (ya autenticado).
+function changePassword(user, payload) {
+  const email = user.email;
+  const oldHash = String(payload.old_hash || '').trim();
+  const newHash = String(payload.new_hash || '').trim();
+  if (!newHash) throw new Error('Falta la nueva contraseña');
+
+  const found = findRow(SHEETS.USUARIOS, u =>
+    String(u.email).toLowerCase().trim() === email
+  );
+  if (!found) throw new Error('Usuario no encontrado');
+
+  const storedHash = String(found.data.password_hash || '').trim();
+  const isForceChange = String(found.data.force_change || '').toUpperCase() === 'TRUE';
+
+  if (!isForceChange) {
+    if (!oldHash) throw new Error('Falta la contraseña actual');
+    if (storedHash !== oldHash) throw new Error('Contraseña actual incorrecta');
+  }
+
+  updateRow(SHEETS.USUARIOS, found.rowIdx, {
+    password_hash: newHash,
+    force_change: 'FALSE',
+    reset_token_hash: '',
+    reset_token_expires: ''
+  });
+  return { ok: true };
+}
+
+// Genera token de reset y lo envía por correo. No revela si el email existe.
+function requestPasswordReset(payload) {
+  const email = String(payload.email || '').toLowerCase().trim();
+
+  const found = findRow(SHEETS.USUARIOS, u =>
+    String(u.email).toLowerCase().trim() === email &&
+    String(u.activo).toUpperCase() === 'TRUE'
+  );
+  if (!found) return { ok: true };
+
+  const token = Utilities.getUuid();
+  const tokenHash = sha256GS(token);
+  const expires = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+
+  updateRow(SHEETS.USUARIOS, found.rowIdx, {
+    reset_token_hash: tokenHash,
+    reset_token_expires: expires
+  });
+
+  const nombre = String(found.data.nombre || email);
+  const resetUrl = 'https://cpgermansolis-maker.github.io/bitacora-fogueira/?reset_email=' +
+    encodeURIComponent(email) + '&reset_token=' + encodeURIComponent(token);
+
+  try {
+    MailApp.sendEmail({
+      to: email,
+      subject: 'Restablecer contraseña — Bitácora Fogueira',
+      body: 'Hola ' + nombre + ',\n\nSe solicitó restablecer tu contraseña en el sistema Bitácora Fogueira.\n\n' +
+            'Haz clic en el siguiente enlace (válido por 24 horas):\n\n' + resetUrl +
+            '\n\nSi no solicitaste esto, ignora este mensaje.\n\n— Sistema Bitácora Fogueira'
+    });
+  } catch (e) {
+    logBitacora(email, 'requestPasswordReset_error', e.message);
+  }
+
+  return { ok: true };
+}
+
+// Valida el token de reset y establece la nueva contraseña.
+function resetPassword(payload) {
+  const email = String(payload.email || '').toLowerCase().trim();
+  const token = String(payload.token || '').trim();
+  const newHash = String(payload.new_hash || '').trim();
+
+  if (!email || !token || !newHash) throw new Error('Datos incompletos');
+
+  const found = findRow(SHEETS.USUARIOS, u =>
+    String(u.email).toLowerCase().trim() === email &&
+    String(u.activo).toUpperCase() === 'TRUE'
+  );
+  if (!found) throw new Error('Enlace inválido o expirado');
+
+  const storedTokenHash = String(found.data.reset_token_hash || '').trim();
+  const expires = String(found.data.reset_token_expires || '').trim();
+
+  if (!storedTokenHash || !expires) throw new Error('Enlace inválido o expirado');
+  if (new Date() > new Date(expires)) throw new Error('El enlace de recuperación ha expirado');
+
+  const tokenHash = sha256GS(token);
+  if (storedTokenHash !== tokenHash) throw new Error('Enlace inválido o expirado');
+
+  updateRow(SHEETS.USUARIOS, found.rowIdx, {
+    password_hash: newHash,
+    force_change: 'FALSE',
+    reset_token_hash: '',
+    reset_token_expires: ''
+  });
+  return { ok: true };
+}
+
+// Ejecutar UNA VEZ desde el editor de Apps Script para agregar las columnas
+// de contraseña a la hoja Usuarios existente.
+function migratePasswordColumns() {
+  const s = sheet(SHEETS.USUARIOS);
+  const lastCol = s.getLastColumn();
+  const headers = s.getRange(1, 1, 1, lastCol).getValues()[0].map(h => String(h).trim());
+  const newCols = ['password_hash', 'force_change', 'reset_token_hash', 'reset_token_expires'];
+  const toAdd = newCols.filter(c => headers.indexOf(c) === -1);
+  if (toAdd.length === 0) return 'Usuarios ya tiene todas las columnas de contraseña.';
+  const startCol = lastCol + 1;
+  toAdd.forEach((col, i) => {
+    const cell = s.getRange(1, startCol + i);
+    cell.setValue(col);
+    cell.setFontWeight('bold').setBackground('#1A1410').setFontColor('#F5EFE3');
+  });
+  return 'Columnas agregadas a Usuarios: ' + toAdd.join(', ');
+}
+
+// =============================================================
 // LOGIN
 // =============================================================
 function login(payload) {
   const email = (payload.email || '').toLowerCase().trim();
-  const u = validarUsuario(email);
+  const passwordHash = String(payload.password_hash || '').trim();
+
+  const usuarios = sheetData(SHEETS.USUARIOS);
+  const u = usuarios.find(x =>
+    String(x.email).toLowerCase().trim() === email &&
+    String(x.activo).toUpperCase() === 'TRUE'
+  );
   if (!u) throw new Error('Email no autorizado o inactivo');
+
+  const storedHash = String(u.password_hash || '').trim();
+  if (!storedHash) throw new Error('Sin contraseña asignada. Contacta al administrador.');
+  if (storedHash !== passwordHash) throw new Error('Contraseña incorrecta');
+
   const config = configMap();
   logBitacora(email, 'login', '');
   return {
     email: u.email,
     nombre: u.nombre,
     rol: u.rol,
-    config: config
+    config: config,
+    force_change: String(u.force_change || '').toUpperCase() === 'TRUE'
   };
 }
 

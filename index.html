@@ -2257,14 +2257,21 @@ body.has-modo-banner .nav { top: calc(70px + 40px); }
     <div class="login-shell">
       <div class="login-card">
         <h1 class="login-title">Acceso al sistema</h1>
-        <p class="login-sub">Ingresa con el correo Google que esté registrado en la pestaña <em>Usuarios</em> del Sheet.</p>
+        <p class="login-sub">Ingresa con el correo y contraseña registrados en el sistema.</p>
         <form onsubmit="event.preventDefault(); App.login();">
           <div style="margin-bottom:1rem;">
             <label for="login-email">Correo electrónico</label>
             <input type="email" id="login-email" placeholder="tu@correo.com" autocomplete="email" required>
           </div>
+          <div style="margin-bottom:1rem;">
+            <label for="login-password">Contraseña</label>
+            <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" required>
+          </div>
           <button type="submit" class="btn-primary" id="btn-login">Entrar</button>
         </form>
+        <div style="margin-top:0.75rem;text-align:center;">
+          <a href="#" onclick="App.abrirRecuperarPassword(); return false;" style="font-size:0.85rem;color:var(--ink-soft);">Olvidé mi contraseña</a>
+        </div>
         <div class="login-error" id="login-error"></div>
       </div>
     </div>
@@ -2387,6 +2394,11 @@ const State = {
 /* =========================================================
    API CLIENT — patrón anti-CORS (text/plain + body JSON)
    ========================================================= */
+async function sha256hex(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 async function apiCall(action, payload) {
   if (!BACKEND_URL || BACKEND_URL.indexOf('PEGA_AQUI') === 0) {
     throw new Error('Falta configurar BACKEND_URL en el HTML');
@@ -2724,6 +2736,17 @@ const App = {
     if (!BACKEND_URL || BACKEND_URL.indexOf('PEGA_AQUI') === 0) {
       el('config-warning').style.display = 'block';
     }
+    // Detectar link de reset de contraseña en la URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const resetEmail = urlParams.get('reset_email');
+    const resetToken = urlParams.get('reset_token');
+    if (resetEmail && resetToken) {
+      // Limpiar params de la URL sin recargar
+      window.history.replaceState({}, '', window.location.pathname);
+      // Mostrar modal de restablecer contraseña
+      setTimeout(() => this.abrirRestablecerPassword(resetEmail, resetToken), 100);
+      return;
+    }
     // Recuperar sesión
     const saved = localStorage.getItem('fogueira_user');
     if (saved) {
@@ -2741,18 +2764,23 @@ const App = {
 
   async login() {
     const email = el('login-email').value.trim().toLowerCase();
+    const password = el('login-password').value;
     const errBox = el('login-error');
     const btn = el('btn-login');
     errBox.classList.remove('show');
-    if (!email) return;
+    if (!email || !password) return;
     btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
     try {
-      const data = await apiCall('login', { email });
+      const passwordHash = await sha256hex(password);
+      const data = await apiCall('login', { email, password_hash: passwordHash });
       State.user = { email: data.email, nombre: data.nombre, rol: data.rol };
       State.config = data.config || {};
       localStorage.setItem('fogueira_user', JSON.stringify(State.user));
       localStorage.setItem('fogueira_config', JSON.stringify(State.config));
       this.afterLogin();
+      if (data.force_change) {
+        this.abrirCambioPasswordForzado();
+      }
     } catch (err) {
       errBox.textContent = err.message;
       errBox.classList.add('show');
@@ -7657,6 +7685,186 @@ const App = {
     el('modal').classList.remove('modal-wide');
   },
 
+  /* =========== CONTRASEÑAS =========== */
+
+  // Modal: "Olvidé mi contraseña" — envía email de reset
+  abrirRecuperarPassword() {
+    this.openModal(`
+      <div class="modal-head">
+        <h2>Recuperar contraseña</h2>
+      </div>
+      <div class="modal-body">
+        <p style="margin-bottom:1rem;color:var(--ink-soft);font-size:0.9rem;">
+          Ingresa tu correo registrado y te enviaremos un enlace para restablecer tu contraseña.
+        </p>
+        <div style="margin-bottom:0.85rem;">
+          <label for="rec-email">Correo electrónico</label>
+          <input type="email" id="rec-email" placeholder="tu@correo.com" autocomplete="email">
+        </div>
+        <div id="rec-msg" style="font-size:0.85rem;margin-top:0.5rem;"></div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn-primary" style="width:auto;margin:0;" onclick="App.enviarRecuperarPassword()">Enviar enlace</button>
+        <button class="btn-ghost" onclick="App.closeModal()">Cancelar</button>
+      </div>
+    `);
+    setTimeout(() => { const i = el('rec-email'); if (i) i.focus(); }, 50);
+  },
+
+  async enviarRecuperarPassword() {
+    const email = (el('rec-email').value || '').trim().toLowerCase();
+    const msg = el('rec-msg');
+    if (!email) { msg.textContent = 'Ingresa tu correo.'; msg.style.color = 'var(--rojo)'; return; }
+    msg.textContent = 'Enviando...'; msg.style.color = 'var(--ink-soft)';
+    try {
+      await apiCall('requestPasswordReset', { email });
+      msg.textContent = 'Si el correo está registrado, recibirás un enlace en los próximos minutos.';
+      msg.style.color = 'var(--verde)';
+    } catch (err) {
+      msg.textContent = err.message;
+      msg.style.color = 'var(--rojo)';
+    }
+  },
+
+  // Modal: restablecer contraseña con token (llegó por link de email)
+  abrirRestablecerPassword(resetEmail, resetToken) {
+    this.openModal(`
+      <div class="modal-head">
+        <h2>Nueva contraseña</h2>
+        <div class="sub">${escapeHtml(resetEmail)}</div>
+      </div>
+      <div class="modal-body">
+        <div style="margin-bottom:0.85rem;">
+          <label for="rst-pass1">Nueva contraseña</label>
+          <input type="password" id="rst-pass1" placeholder="Mínimo 8 caracteres" autocomplete="new-password">
+        </div>
+        <div style="margin-bottom:0.85rem;">
+          <label for="rst-pass2">Confirmar contraseña</label>
+          <input type="password" id="rst-pass2" placeholder="Repite la contraseña" autocomplete="new-password">
+        </div>
+        <div id="rst-msg" style="font-size:0.85rem;margin-top:0.5rem;"></div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn-primary" style="width:auto;margin:0;"
+          onclick="App.confirmarRestablecerPassword('${escapeHtml(resetEmail)}', '${escapeHtml(resetToken)}')">
+          Guardar contraseña
+        </button>
+      </div>
+    `);
+    setTimeout(() => { const i = el('rst-pass1'); if (i) i.focus(); }, 50);
+  },
+
+  async confirmarRestablecerPassword(resetEmail, resetToken) {
+    const p1 = el('rst-pass1').value;
+    const p2 = el('rst-pass2').value;
+    const msg = el('rst-msg');
+    if (!p1 || p1.length < 8) { msg.textContent = 'La contraseña debe tener al menos 8 caracteres.'; msg.style.color = 'var(--rojo)'; return; }
+    if (p1 !== p2) { msg.textContent = 'Las contraseñas no coinciden.'; msg.style.color = 'var(--rojo)'; return; }
+    msg.textContent = 'Guardando...'; msg.style.color = 'var(--ink-soft)';
+    try {
+      const newHash = await sha256hex(p1);
+      await apiCall('resetPassword', { email: resetEmail, token: resetToken, new_hash: newHash });
+      msg.textContent = '¡Contraseña actualizada! Ya puedes iniciar sesión.';
+      msg.style.color = 'var(--verde)';
+      setTimeout(() => this.closeModal(), 2000);
+    } catch (err) {
+      msg.textContent = err.message;
+      msg.style.color = 'var(--rojo)';
+    }
+  },
+
+  // Modal: cambio forzado de contraseña (primer login con contraseña asignada por admin)
+  abrirCambioPasswordForzado() {
+    this.openModal(`
+      <div class="modal-head">
+        <h2>Crea tu contraseña</h2>
+        <div class="sub">El administrador asignó una contraseña temporal. Debes crear una nueva para continuar.</div>
+      </div>
+      <div class="modal-body">
+        <div style="margin-bottom:0.85rem;">
+          <label for="fcp-pass1">Nueva contraseña</label>
+          <input type="password" id="fcp-pass1" placeholder="Mínimo 8 caracteres" autocomplete="new-password">
+        </div>
+        <div style="margin-bottom:0.85rem;">
+          <label for="fcp-pass2">Confirmar contraseña</label>
+          <input type="password" id="fcp-pass2" placeholder="Repite la contraseña" autocomplete="new-password">
+        </div>
+        <div id="fcp-msg" style="font-size:0.85rem;margin-top:0.5rem;"></div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn-primary" style="width:auto;margin:0;" onclick="App.confirmarCambioPasswordForzado()">Guardar y continuar</button>
+      </div>
+    `);
+    setTimeout(() => { const i = el('fcp-pass1'); if (i) i.focus(); }, 50);
+  },
+
+  async confirmarCambioPasswordForzado() {
+    const p1 = el('fcp-pass1').value;
+    const p2 = el('fcp-pass2').value;
+    const msg = el('fcp-msg');
+    if (!p1 || p1.length < 8) { msg.textContent = 'La contraseña debe tener al menos 8 caracteres.'; msg.style.color = 'var(--rojo)'; return; }
+    if (p1 !== p2) { msg.textContent = 'Las contraseñas no coinciden.'; msg.style.color = 'var(--rojo)'; return; }
+    msg.textContent = 'Guardando...'; msg.style.color = 'var(--ink-soft)';
+    try {
+      const newHash = await sha256hex(p1);
+      await apiCall('changePassword', { new_hash: newHash });
+      this.closeModal();
+    } catch (err) {
+      msg.textContent = err.message;
+      msg.style.color = 'var(--rojo)';
+    }
+  },
+
+  // Modal: auditor asigna contraseña a un usuario desde la pestaña Usuarios
+  usuariosAbrirPassword(email) {
+    this.openModal(`
+      <div class="modal-head">
+        <h2>Asignar contraseña</h2>
+        <div class="sub">${escapeHtml(email)}</div>
+      </div>
+      <div class="modal-body">
+        <p style="margin-bottom:1rem;color:var(--ink-soft);font-size:0.9rem;">
+          El usuario deberá cambiarla en su próximo inicio de sesión.
+        </p>
+        <div style="margin-bottom:0.85rem;">
+          <label for="asgn-pass1">Contraseña temporal</label>
+          <input type="password" id="asgn-pass1" placeholder="Mínimo 8 caracteres" autocomplete="new-password">
+        </div>
+        <div style="margin-bottom:0.85rem;">
+          <label for="asgn-pass2">Confirmar</label>
+          <input type="password" id="asgn-pass2" placeholder="Repite la contraseña" autocomplete="new-password">
+        </div>
+        <div id="asgn-msg" style="font-size:0.85rem;margin-top:0.5rem;"></div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn-primary" style="width:auto;margin:0;"
+          onclick="App.usuariosConfirmarPassword('${escapeHtml(email)}')">
+          Asignar
+        </button>
+        <button class="btn-ghost" onclick="App.closeModal()">Cancelar</button>
+      </div>
+    `);
+    setTimeout(() => { const i = el('asgn-pass1'); if (i) i.focus(); }, 50);
+  },
+
+  async usuariosConfirmarPassword(email) {
+    const p1 = el('asgn-pass1').value;
+    const p2 = el('asgn-pass2').value;
+    const msg = el('asgn-msg');
+    if (!p1 || p1.length < 8) { msg.textContent = 'La contraseña debe tener al menos 8 caracteres.'; msg.style.color = 'var(--rojo)'; return; }
+    if (p1 !== p2) { msg.textContent = 'Las contraseñas no coinciden.'; msg.style.color = 'var(--rojo)'; return; }
+    msg.textContent = 'Guardando...'; msg.style.color = 'var(--ink-soft)';
+    try {
+      const newHash = await sha256hex(p1);
+      await apiCall('setPassword', { email, new_hash: newHash });
+      this.closeModal();
+      this.render_usuarios();
+    } catch (err) {
+      msg.textContent = err.message;
+      msg.style.color = 'var(--rojo)';
+    }
+  },
+
   /* =========== NOTA DE HALLAZGO (vista guiada A/B/C) =========== */
   // Modal compartido: al marcar ✗ en la vista guiada abrimos esto para que la auxiliar
   // (u otro rol con permiso) deje el "por qué". También se reusa para editar la nota
@@ -8357,6 +8565,8 @@ function rolesSelectOptionsHTML(seleccionado) {
 
 function usuarioRowHTML(u) {
   const isMe = State.user && State.user.email.toLowerCase() === u.email.toLowerCase();
+  const passLabel = u.has_password ? '🔒 contraseña' : '⚠ sin contraseña';
+  const passCls = u.has_password ? 'color:var(--verde)' : 'color:var(--rojo)';
   return `
     <tr class="user-row ${u.activo ? '' : 'inactive'}">
       <td>
@@ -8369,9 +8579,11 @@ function usuarioRowHTML(u) {
         <span class="status-badge ${u.activo ? 'active' : 'inactive'}">
           ${u.activo ? '● activo' : '○ inactivo'}
         </span>
+        <br><span style="font-size:0.78rem;${passCls}">${passLabel}</span>
       </td>
       <td style="text-align:right; white-space:nowrap;">
         <button class="btn-link" onclick="App.usuariosOpenEdit('${escapeHtml(u.email)}')">Editar</button>
+        <button class="btn-link" onclick="App.usuariosAbrirPassword('${escapeHtml(u.email)}')">${u.has_password ? 'Cambiar contraseña' : 'Asignar contraseña'}</button>
         <button class="btn-link" onclick="App.usuariosToggleActivo('${escapeHtml(u.email)}', ${!u.activo})">
           ${u.activo ? 'Desactivar' : 'Activar'}
         </button>
