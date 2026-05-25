@@ -107,6 +107,8 @@ Hojas estables (nunca modificar manualmente sin saber qué hacen):
 
 `Usuarios`, `Config`, `Bitacora_Sistema`, `PilarA_Historico`, `PilarA_ChecklistItems`, `PilarA_ChecklistMarcas`, `PilarB_Diario`, `PilarB_ChecklistItems`, `PilarB_ChecklistMarcas`, `PilarC_Requisiciones`, `PilarC_Movimientos`, `PilarC_ChecklistItems`, `PilarC_ChecklistMarcas`, `Hallazgos`, `Semaforo_Semanal`, `ChecklistFotos`, `Protocolo_Items`, `Protocolo_Marcas`, `Inventarios_Config`, `Inventarios_Marcas`
 
+Columnas de `Usuarios` (v41): `email`, `nombre`, `rol`, `activo`, `password_hash`, `force_change`, `reset_token_hash`, `reset_token_expires`. Las 4 últimas se agregan con `migratePasswordColumns()` en instancias anteriores a v41; ya están en `Setup.gs` para instalaciones nuevas.
+
 Hojas que Germán/Mónica gestionan directamente:
 - `Protocolo_Items` — ítems del Protocolo del Turno (id, descripcion, frecuencia D/S/M, dia_semana 1-7, hora_sugerida, rol_responsable, activo)
 - `Inventarios_Config` — ciclos de inventario (id, descripcion, dia_semana 1-7, frecuencia S/M, activo)
@@ -119,7 +121,7 @@ Hojas que Germán/Mónica gestionan directamente:
 
 ---
 
-## Usuarios del sistema (al 22-may-2026)
+## Usuarios del sistema (al 25-may-2026)
 
 | Nombre | Rol | Email | Función |
 |---|---|---|---|
@@ -138,13 +140,17 @@ Estefanía Martínez López fue relevada (desactivada en el sistema).
 Para features nuevas que necesitan hojas propias, usar este patrón en lugar de volver a correr `setupSheet()`:
 ```javascript
 function ensureSheetExists(name, headers) {
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  if (!ss.getSheetByName(name)) {
-    const sh = ss.insertSheet(name);
-    sh.appendRow(headers);
+  let s = ss().getSheetByName(name);
+  if (!s) {
+    s = ss().insertSheet(name);
+    s.getRange(1, 1, 1, headers.length).setValues([headers]);
+    s.getRange(1, 1, 1, headers.length).setFontWeight('bold');
+    s.setFrozenRows(1);
   }
+  return s;
 }
 ```
+(`ss()` es el helper interno = `SpreadsheetApp.getActiveSpreadsheet()`. No usar `openById`; el Web App corre en el contexto del spreadsheet activo.)
 
 ### Upsert en hojas de marcas
 Todas las operaciones de marca usan upsert: `findRow` → si existe `updateRow`, si no `appendRow`.

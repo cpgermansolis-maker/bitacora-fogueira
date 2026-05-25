@@ -43,8 +43,10 @@ const SHEET_DEFINITIONS = [
     ]
   },
   {
+    // v41: columnas password_hash, force_change, reset_token_hash, reset_token_expires
+    // agregadas vía migratePasswordColumns() en instancias existentes.
     name: 'Usuarios',
-    headers: ['email', 'nombre', 'rol', 'activo'],
+    headers: ['email', 'nombre', 'rol', 'activo', 'password_hash', 'force_change', 'reset_token_hash', 'reset_token_expires'],
     rows: [
       // Se rellena dinámicamente con el correo del propietario en setupSheet()
     ]
