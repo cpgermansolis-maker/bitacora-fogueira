@@ -88,7 +88,7 @@ No requiere clasp. GitHub Pages sirve los JSON directamente.
 
 ---
 
-## Pestañas del sistema (versión actual: v40)
+## Pestañas del sistema (versión actual: v41)
 
 - **Mi Día:** Detalle | Tendencia 7d | Protocolo del Turno
 - **Pilar A:** Estado SR12 | Evolución | Check list (por módulo, con foto adjunta)
@@ -174,6 +174,15 @@ Cuando Germán ve el día de Xochitl: `user` = Germán, `persona` = Xochitl. `ge
 - Cierre S/M en el Check list Pilar C: se muestra como tarjeta de resumen automático (read-only), calculado desde las marcas D del día. No es markable manualmente.
 - Ambas secciones del Pilar C (Check list e Inventarios) tienen banner amarillo de muestreo: no se valida el 100% de las operaciones.
 
+### Autenticación por contraseña (v41)
+- Hash en frontend: `sha256hex(password)` via `SubtleCrypto` — nunca viaja la contraseña en claro.
+- Backend almacena SHA-256 hex en columna `password_hash` de `Usuarios`.
+- Columnas adicionales en `Usuarios`: `force_change`, `reset_token_hash`, `reset_token_expires`.
+- `force_change=TRUE` → el usuario debe crear contraseña nueva en su próximo login (modal bloqueante).
+- Auditor asigna contraseña desde tab Usuarios → automáticamente marca `force_change=TRUE`.
+- Reset por email: token UUID generado en backend → hash almacenado en sheet → link con token plano enviado por MailApp → expira 24h.
+- `migratePasswordColumns()` — función en Code.gs, ejecutar una vez para agregar columnas al Sheet existente.
+
 ### puedeMarcarChecklist — rol administracion
 `administracion` tiene acceso wildcard (puede marcar cualquier ítem de A, B y C), igual que `auditor`, `gerente` y `auxiliar`. No está restringido a `responsable_rol` del ítem.
 
@@ -187,7 +196,7 @@ El contenido editorial de los cursos vive en `cursos/*.json`. Cambios solo requi
 
 ## Pendiente próxima sesión
 
-- **Acceso con contraseña:** implementar autenticación por contraseña para los usuarios. Actualmente el login es solo por email (sin contraseña). Diseñar antes de codear: dónde se guarda el hash (hoja `Usuarios`), flujo de primer acceso, recuperación.
+- (sin pendientes registrados — v41 completa)
 
 ---
 
