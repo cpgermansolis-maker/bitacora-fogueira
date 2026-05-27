@@ -17,6 +17,7 @@
  *   - Setup.gs      → crea las 13 pestañas y la carpeta Drive
  */
 
+
 // =============================================================
 // CONSTANTES — ajusta solo si cambias nombres de hojas
 // =============================================================
@@ -524,6 +525,7 @@ function requestPasswordReset(payload) {
     });
   } catch (e) {
     logBitacora(email, 'requestPasswordReset_error', e.message);
+    throw new Error('No se pudo enviar el correo: ' + e.message);
   }
 
   return { ok: true };

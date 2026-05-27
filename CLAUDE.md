@@ -188,6 +188,9 @@ Cuando Germán ve el día de Xochitl: `user` = Germán, `persona` = Xochitl. `ge
 - Auditor asigna contraseña desde tab Usuarios → automáticamente marca `force_change=TRUE`.
 - Reset por email: token UUID generado en backend → hash almacenado en sheet → link con token plano enviado por MailApp → expira 24h.
 - `migratePasswordColumns()` — función en Code.gs, ejecutar una vez para agregar columnas al Sheet existente.
+- **⚠️ Requisito de migración:** en instancias pre-v41 las 4 columnas de contraseña NO existen en el Sheet hasta que se corra `migratePasswordColumns()` desde el editor de Apps Script. Sin eso, el login falla con "Sin contraseña asignada" y el reset no guarda el token.
+- **⚠️ Scope de MailApp:** `appsscript.json` debe declarar `https://www.googleapis.com/auth/script.send_mail` en `oauthScopes`. Sin este scope, `MailApp.sendEmail` falla silenciosamente. Después de agregar el scope hay que re-autorizar ejecutando cualquier función desde el editor de Apps Script.
+- El error de `MailApp` ahora se propaga al frontend (no es silencioso) — si falla, el usuario ve el mensaje de error exacto.
 
 ### puedeMarcarChecklist — rol administracion
 `administracion` tiene acceso wildcard (puede marcar cualquier ítem de A, B y C), igual que `auditor`, `gerente` y `auxiliar`. No está restringido a `responsable_rol` del ítem.
@@ -215,3 +218,5 @@ El contenido editorial de los cursos vive en `cursos/*.json`. Cambios solo requi
 - El comando correcto es `clasp deploy -i <id> -V N`, no `clasp redeploy`.
 - `_renderGuiadaBodyC()` escribe en `pilar-c-subcontent` (no `pilar-c-content`). El contenedor exterior lo arma `render_pilar_c_guiada()`.
 - `applyModoBanner()`: el rol `administracion` debe omitirse del banner de modo auxiliar_unica — la supervisora siempre es la responsable.
+- `updateRow` es silencioso si la columna no existe en los headers del Sheet — no lanza error. Siempre verificar que la migración de columnas se haya corrido antes de depender de `updateRow` para columnas nuevas.
+- Al agregar un scope nuevo a `appsscript.json`, el Web App NO lo usa hasta que el propietario re-autorice ejecutando cualquier función desde el editor de Apps Script (Google muestra el diálogo de permisos). `clasp push` + `clasp deploy` solos no son suficientes.
