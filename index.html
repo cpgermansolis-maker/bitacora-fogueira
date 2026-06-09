@@ -949,11 +949,25 @@ body.has-modo-banner .nav { top: calc(70px + 40px); }
 }
 
 @media print {
-  /* Solo el certificado debe imprimirse */
-  body * { visibility: hidden; }
-  .certificado, .certificado * { visibility: visible; }
-  .certificado { position: absolute; top: 0; left: 0; right: 0; box-shadow: none; }
-  .nav, .footer, .modo-banner, .cap-cert-controles, .btn-primary, .btn-secondary { display: none !important; }
+  /* Solo el certificado debe imprimirse. Scopeado a printing-cert para no
+     afectar otras impresiones de la app (p.ej. el Papel de trabajo). */
+  body.printing-cert * { visibility: hidden; }
+  body.printing-cert .certificado, body.printing-cert .certificado * { visibility: visible; }
+  body.printing-cert .certificado { position: absolute; top: 0; left: 0; right: 0; box-shadow: none; }
+  body.printing-cert .nav, body.printing-cert .footer, body.printing-cert .modo-banner,
+  body.printing-cert .cap-cert-controles, body.printing-cert .btn-primary,
+  body.printing-cert .btn-secondary { display: none !important; }
+}
+
+@media print {
+  /* Modo print del Papel de trabajo de supervisión (pestaña Reporte).
+     Solo el contenido generado (#report-output) se imprime. */
+  body.printing-papel * { visibility: hidden; }
+  body.printing-papel #report-output,
+  body.printing-papel #report-output * { visibility: visible; }
+  body.printing-papel #report-output {
+    position: absolute; top: 0; left: 0; right: 0;
+  }
 }
 @media (max-width: 700px) {
   .cap-resultado-hero { grid-template-columns: 1fr; text-align: center; }
@@ -5853,7 +5867,7 @@ const App = {
       <div class="cap-modulo-shell">
         <button class="btn-secondary" style="margin:0 0 1rem 0;width:auto;" onclick="App.cap_setView('curso')">← Volver al curso</button>
         <div class="cap-cert-controles">
-          <button class="btn-primary" style="margin:0;width:auto;" onclick="window.print()">Imprimir / Guardar PDF</button>
+          <button class="btn-primary" style="margin:0;width:auto;" onclick="App.imprimirCert()">Imprimir / Guardar PDF</button>
         </div>
         <div class="certificado">
           <div class="cert-bordes">
@@ -6273,7 +6287,20 @@ const App = {
     `;
   },
 
-  imprimir() { window.print(); },
+  imprimir() {
+    // Activa @media print scopeado al Papel de trabajo: solo #report-output.
+    // Sin esto, la regla global del certificado dejaba la hoja en blanco.
+    document.body.classList.add('printing-papel');
+    window.print();
+    setTimeout(() => document.body.classList.remove('printing-papel'), 500);
+  },
+
+  imprimirCert() {
+    // Impresión del certificado, scopeada con su propia clase.
+    document.body.classList.add('printing-cert');
+    window.print();
+    setTimeout(() => document.body.classList.remove('printing-cert'), 500);
+  },
 
   /* =========== SUPERVISIÓN — desempeño de la supervisora =========== */
   // Una sola llamada a getDesempenoSupervisor trae los 4 bloques (cobertura
