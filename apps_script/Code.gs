@@ -126,6 +126,7 @@ function doPost(e) {
         case 'getInventariosConfig':     response = getInventariosConfig(user); break;
         case 'saveInventarioConfig':     response = saveInventarioConfig(user, payload); break;
         case 'toggleInventarioConfig':   response = toggleInventarioConfig(user, payload); break;
+        case 'toggleChecklistItem':      response = toggleChecklistItem(user, payload); break;
         case 'getInventariosDia':        response = getInventariosDia(user, payload); break;
         case 'marcarInventario':         response = marcarInventario(user, payload); break;
         case 'limpiarMarcaInventario':   response = limpiarMarcaInventario(user, payload); break;
@@ -1887,6 +1888,27 @@ function toggleInventarioConfig(user, payload) {
   if (!row) throw new Error('Ciclo no encontrado: ' + payload.id);
   updateRow(SHEETS.INVENTARIOS_CONFIG, row.rowIdx, Object.assign({}, row.data, { activo: payload.activo }));
   logBitacora(user.email, 'toggleInventarioConfig', payload.id + ' activo=' + payload.activo);
+  return { ok: true };
+}
+
+// Activa/desactiva un ítem del catálogo de checklists (PilarX_ChecklistItems).
+// Desactivar lo quita de la lista del día y del denominador de cobertura;
+// las marcas históricas se conservan en la hoja de marcas.
+function toggleChecklistItem(user, payload) {
+  if (!['auditor', 'gerente'].includes(user.rol)) {
+    throw new Error('Solo auditor o gerente pueden modificar el catálogo de checklists');
+  }
+  const sheetByPilar = {
+    A: SHEETS.PILAR_A_CK_ITEMS,
+    B: SHEETS.PILAR_B_CK_ITEMS,
+    C: SHEETS.PILAR_C_CK_ITEMS
+  };
+  const sheetName = sheetByPilar[String(payload.pilar || '').toUpperCase()];
+  if (!sheetName) throw new Error('Pilar inválido: ' + payload.pilar);
+  const row = findRow(sheetName, r => String(r.id) === String(payload.id));
+  if (!row) throw new Error('Ítem no encontrado: ' + payload.id);
+  updateRow(sheetName, row.rowIdx, Object.assign({}, row.data, { activo: payload.activo ? 'TRUE' : 'FALSE' }));
+  logBitacora(user.email, 'toggleChecklistItem', payload.pilar + '/' + payload.id + ' activo=' + payload.activo);
   return { ok: true };
 }
 

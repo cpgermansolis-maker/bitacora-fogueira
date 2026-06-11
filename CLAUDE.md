@@ -192,6 +192,9 @@ Cuando Germán ve el día de Xochitl: `user` = Germán, `persona` = Xochitl. `ge
 - **⚠️ Scope de MailApp:** `appsscript.json` debe declarar `https://www.googleapis.com/auth/script.send_mail` en `oauthScopes`. Sin este scope, `MailApp.sendEmail` falla silenciosamente. Después de agregar el scope hay que re-autorizar ejecutando cualquier función desde el editor de Apps Script.
 - El error de `MailApp` ahora se propaga al frontend (no es silencioso) — si falla, el usuario ve el mensaje de error exacto.
 
+### toggleChecklistItem — activar/desactivar ítems del catálogo (v41.1)
+Action `toggleChecklistItem` (solo auditor/gerente), payload `{pilar:'A'|'B'|'C', id, activo:bool}`. Desactivar quita el ítem del checklist del día Y del denominador de cobertura (todo filtra por `activo==='TRUE'`); las marcas históricas se conservan. Se usó en jun-2026 para desactivar `CKBD29` (Conclusión del auditor — Xochitl ya no la hace). El Pilar B quedó con 47 ítems activos (30 diarios).
+
 ### puedeMarcarChecklist — rol administracion
 `administracion` tiene acceso wildcard (puede marcar cualquier ítem de A, B y C), igual que `auditor`, `gerente` y `auxiliar`. No está restringido a `responsable_rol` del ítem.
 

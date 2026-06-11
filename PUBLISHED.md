@@ -157,7 +157,7 @@ Si tu instancia se publicó **antes del 7 de mayo 2026**, agregamos el check lis
 
 Si tu instancia se publicó **antes del 7 de mayo 2026**, agregamos el check list de supervisión de Conciliación dentro del Pilar B (derivado del manual operativo de Estefanía Martínez). Para activarlo, mismos pasos que el upgrade SR12:
 
-1. **Backend** — Abre el editor Apps Script y vuelve a correr `setupSheet()`. Crea las 2 pestañas nuevas (`PilarB_ChecklistItems` con 48 ítems precargados y `PilarB_ChecklistMarcas` vacía) sin tocar el resto del Sheet.
+1. **Backend** — Abre el editor Apps Script y vuelve a correr `setupSheet()`. Crea las 2 pestañas nuevas (`PilarB_ChecklistItems` con 48 ítems precargados — 47 activos, CKBD29 nace desactivado — y `PilarB_ChecklistMarcas` vacía) sin tocar el resto del Sheet.
 2. **Re-deploy del Web App** (mantiene la URL):
    ```bash
    cd apps_script
@@ -169,8 +169,8 @@ Si tu instancia se publicó **antes del 7 de mayo 2026**, agregamos el check lis
    - Como `auditor` → Pilar B muestra píldora "X% disciplina" y botón **📋 Check list** en cada etapa.
    - Como `administracion` (compras@fogueira.mx) o `auxiliar` → Pilar B abre directo en la **vista guiada** con los bloques cronológicos del manual.
 
-**Cobertura del check list (48 ítems):**
-- **Diario (31):** Apertura (5) · Durante el servicio (5) · Cierre profundo (8) · 10 Banderas rojas (10) · Firma final (3)
+**Cobertura del check list (47 ítems activos):**
+- **Diario (30):** Apertura (5) · Durante el servicio (5) · Cierre profundo (8) · 10 Banderas rojas (10) · Firma final (2)
 - **Semanal (6):** revisión de viernes (histórico, banderas, arqueos recurrentes, cortesías por host, no-sales)
 - **Mensual (11):** último viernes — top motivos/montos de cortesías, balance de firmas Mónica/Gabriel, overrides admin, reporte mensual a dirección
 

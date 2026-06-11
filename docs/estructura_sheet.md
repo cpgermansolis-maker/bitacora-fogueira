@@ -163,7 +163,7 @@ El cumplimiento de cada día, una fila por día y por etapa.
 
 ## Pestaña 8.1: `PilarB_ChecklistItems` *(catálogo, agregada en mayo 2026)*
 
-Catálogo de los **48 ítems del check list de supervisión de Conciliación** (derivado del manual operativo de Estefanía Martínez, Supervisora de Conciliación). Cada ítem se ata a una de las 8 etapas del Pilar B (`etapa_id`) y a una **sección cronológica** del manual: Apertura → Durante → Cierre profundo → Banderas rojas → Firma final → Cierre semanal → Cierre mensual.
+Catálogo del check list de supervisión de Conciliación — **48 ítems sembrados, 47 activos** (derivado del manual operativo de Estefanía Martínez, Supervisora de Conciliación; CKBD29 «Conclusión del auditor capturada» se desactivó en jun-2026 porque esa actividad ya no la hace la supervisora). Cada ítem se ata a una de las 8 etapas del Pilar B (`etapa_id`) y a una **sección cronológica** del manual: Apertura → Durante → Cierre profundo → Banderas rojas → Firma final → Cierre semanal → Cierre mensual.
 
 | id | etapa_id | seccion | frecuencia | responsable_rol | descripcion | activo |
 |---|---|---|---|---|---|---|
@@ -174,7 +174,7 @@ Catálogo de los **48 ítems del check list de supervisión de Conciliación** (
 | CKBM11 | B8 | Cierre mensual | M | administracion | Reporte mensual a dirección generado y enviado (Anexo A) | TRUE |
 | ... | | | | | | |
 
-**Distribución:** 31 diarios (Apertura 5 · Durante 5 · Cierre profundo 8 · Banderas rojas 10 · Firma final 3) + 6 semanales (viernes) + 11 mensuales (último viernes) = **48 ítems**.
+**Distribución (activos):** 30 diarios (Apertura 5 · Durante 5 · Cierre profundo 8 · Banderas rojas 10 · Firma final 2) + 6 semanales (viernes) + 11 mensuales (último viernes) = **47 ítems**. CKBD29 conserva su fila con `activo=FALSE` para preservar las marcas históricas.
 
 > El `responsable_rol` del catálogo es `administracion` porque así nació el modelo (la supervisora original tenía ese rol). Hoy Estefanía es `auxiliar` y por eso puede marcar todo igual: el rol `auxiliar` es super-capturista en los tres pilares. La persona que ejecuta operativamente cada ítem está descrita en el texto. El backend permite que `auditor`, `auxiliar`, `gerente` o `administracion` marquen cualquier ítem.
 

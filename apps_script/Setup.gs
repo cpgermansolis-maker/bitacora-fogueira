@@ -205,7 +205,8 @@ const SHEET_DEFINITIONS = [
       ['CKBD27', 'B7', 'Banderas rojas',    'D', 'administracion', 'Bandera 9: Δ Operaciones vs Vouchers físicos = 0',                           'TRUE'],
       ['CKBD28', 'B7', 'Banderas rojas',    'D', 'administracion', 'Bandera 10: Sin saltos en folios POS consecutivos (crítico)',                'TRUE'],
       // ----- Diario · Firma final (3) — etapas B7/B8 -----
-      ['CKBD29', 'B7', 'Firma final',       'D', 'administracion', 'Conclusión del auditor capturada (estatus + comentarios + plan)',            'TRUE'],
+      // CKBD29 desactivado (jun-2026): la conclusión del auditor ya no la captura la supervisora.
+      ['CKBD29', 'B7', 'Firma final',       'D', 'administracion', 'Conclusión del auditor capturada (estatus + comentarios + plan)',            'FALSE'],
       ['CKBD30', 'B7', 'Firma final',       'D', 'administracion', 'Sello de cierre del supervisor firmado en el sistema',                       'TRUE'],
       ['CKBD31', 'B8', 'Firma final',       'D', 'administracion', 'Reporte breve a Germán/Mónica enviado por WhatsApp si hubo banderas',        'TRUE'],
       // ----- Semanal · viernes (6) — etapas B7/B8 -----
