@@ -88,7 +88,7 @@ No requiere clasp. GitHub Pages sirve los JSON directamente.
 
 ---
 
-## Pestañas del sistema (versión actual: v41)
+## Pestañas del sistema (versión actual: v41.1 — backend @40)
 
 - **Mi Día:** Detalle | Tendencia 7d | Protocolo del Turno
 - **Pilar A:** Estado SR12 | Evolución | Check list (por módulo, con foto adjunta)
@@ -208,7 +208,7 @@ El contenido editorial de los cursos vive en `cursos/*.json`. Cambios solo requi
 
 ## Pendiente próxima sesión
 
-- (sin pendientes registrados — v41 completa)
+- Confirmar que Germán le avisó a Xochitl que CKBD29 ya no aparece en su checklist (borrador en Gmail + texto WhatsApp entregados el 11-jun-2026).
 
 ---
 
@@ -223,3 +223,4 @@ El contenido editorial de los cursos vive en `cursos/*.json`. Cambios solo requi
 - `applyModoBanner()`: el rol `administracion` debe omitirse del banner de modo auxiliar_unica — la supervisora siempre es la responsable.
 - `updateRow` es silencioso si la columna no existe en los headers del Sheet — no lanza error. Siempre verificar que la migración de columnas se haya corrido antes de depender de `updateRow` para columnas nuevas.
 - Al agregar un scope nuevo a `appsscript.json`, el Web App NO lo usa hasta que el propietario re-autorice ejecutando cualquier función desde el editor de Apps Script (Google muestra el diálogo de permisos). `clasp push` + `clasp deploy` solos no son suficientes.
+- Para mutar datos de producción sin entrar al editor de Apps Script: desplegar una action y llamarla con POST al Web App (la auth de actions es solo `userEmail` validado). `curl -L` falla con error 411 en el redirect de Google; usar PowerShell `Invoke-RestMethod -Method Post -Body $json -ContentType "application/json"`, que sí lo sigue bien.
