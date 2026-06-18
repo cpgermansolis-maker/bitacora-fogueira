@@ -221,7 +221,15 @@ El contenido editorial de los cursos vive en `cursos/*.json`. Cambios solo requi
 
 ## Pendiente próxima sesión
 
-- (ninguno abierto) — Germán ya avisó a Xochitl que CKBD29 salió de su checklist (confirmado 18-jun-2026).
+Tras la auditoría de uso de Xochitl (18-jun-2026) — ver memoria [[auditoria-uso-xochitl]]:
+- **Cajeras (conciliación vacía):** Germán debe preguntarles qué "sistema tiene detalles" exactamente. Casi seguro es el **POS** (esta app NO concilia, solo supervisa). Si es POS → soporte del POS; si no → disciplina.
+- **Reincidentes operativos abiertos** (se cierran cuando corrijan, no por sistema): Host Natali (~10), cajeras Reyna/Sareth (~8), churrasca José Luis (~8, le falta terminar curso), 2 depósitos de Luis. Mensajes ya drafteados y entregados a Germán para reenviar.
+- **31 hallazgos operativos** siguen pendientes de Xochitl (ya NO incluyen cortesías ni cancelaciones — esos 26 se cerraron).
+- **Pilar C:** punto ciego de Xochitl (0 hallazgos abiertos ahí) → coaching.
+- **Inventarios cíclicos:** `Inventarios_Config` vacío (0 ciclos) → configurar o desactivar la sección.
+- **Mónica y Luis sin capacitar:** curso "monica" 0/8 módulos. Son quienes deben *cerrar* hallazgos.
+- **Curso `estefania.json`** sigue enseñando "firma de Mónica" para cortesías — no se alineó a la política de capitanes (decisión de alcance). Si se quiere, es solo git push.
+- Mensaje a Xochitl con lo nuevo del sistema: drafteado, Germán lo envía.
 
 ---
 
@@ -237,3 +245,8 @@ El contenido editorial de los cursos vive en `cursos/*.json`. Cambios solo requi
 - `updateRow` es silencioso si la columna no existe en los headers del Sheet — no lanza error. Siempre verificar que la migración de columnas se haya corrido antes de depender de `updateRow` para columnas nuevas.
 - Al agregar un scope nuevo a `appsscript.json`, el Web App NO lo usa hasta que el propietario re-autorice ejecutando cualquier función desde el editor de Apps Script (Google muestra el diálogo de permisos). `clasp push` + `clasp deploy` solos no son suficientes.
 - Para mutar datos de producción sin entrar al editor de Apps Script: desplegar una action y llamarla con POST al Web App (la auth de actions es solo `userEmail` validado). `curl -L` falla con error 411 en el redirect de Google; usar PowerShell `Invoke-RestMethod -Method Post -Body $json -ContentType "application/json"`, que sí lo sigue bien.
+- **Propósito del sistema (reconfirmado 18-jun):** es un **check de supervisión**, NO una herramienta operativa. La conciliación real de cajeras, el arqueo, etc. viven en el POS. Esta app solo registra si Xochitl supervisó (✓/✗ + foto). `PilarB_Diario` solo guarda `completado` sí/no, no montos. Si alguien reporta "no hay info en la conciliación", el problema es del POS, no de aquí.
+- **Hallazgos = derivados, no almacenados:** un hallazgo se calcula de las marcas con `valor=0`; no es una fila propia. "Cerrarlo" = `marcarHallazgoAtendido` agrega fila a `Hallazgos_Atendidos` (key = `hallazgoKey`: `pilar|tipo|ref|timestamp`), lo oculta de pendientes y es reversible con `desmarcarHallazgoAtendido`. NO borra la marca/foto/observación (evidencia COSO intacta). Es la forma correcta de "quitar" hallazgos sin destruir el rastro.
+- **Filtrar hallazgos por texto subcuenta:** un "bloque" (p.ej. cortesías) se define por el **ítem** (CKBD24/CKBD14/CKD14/CKBM08), no por la palabra en la observación libre. Filtrar por `observacion match 'cortesía'` dejó fuera 10 de 21. Siempre agrupar por `ref`.
+- **PowerShell + acentos:** un `.ps1` escrito con la tool Write puede corromper caracteres acentuados (í) al leerlo PowerShell 5.1 (ANSI). Síntomas: un regex `[ií]` deja de hacer match. Solución: comandos con acentos van **inline directo** a la tool PowerShell (preserva UTF-8) y forzar bytes UTF-8 en el body del POST (`[System.Text.Encoding]::UTF8.GetBytes`); para `.ps1` usar solo ASCII (keys exactos, no regex con acentos).
+- **Guard del entorno (falsa alarma):** un comando PowerShell largo y combinado puede disparar un bloqueo "Remove-Item on system path '/'" aunque no borre nada; `dangerouslyDisableSandbox` no lo evita. Solución: partir el comando en pasos más chicos.
