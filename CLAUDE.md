@@ -88,7 +88,7 @@ No requiere clasp. GitHub Pages sirve los JSON directamente.
 
 ---
 
-## Pestañas del sistema (versión actual: v41.1 — backend @40)
+## Pestañas del sistema (versión actual: v41.2 — backend @41)
 
 - **Mi Día:** Detalle | Tendencia 7d | Protocolo del Turno
 - **Pilar A:** Estado SR12 | Evolución | Check list (por módulo, con foto adjunta)
@@ -198,6 +198,11 @@ Action `toggleChecklistItem` (solo auditor/gerente), payload `{pilar:'A'|'B'|'C'
 ### puedeMarcarChecklist — rol administracion
 `administracion` tiene acceso wildcard (puede marcar cualquier ítem de A, B y C), igual que `auditor`, `gerente` y `auxiliar`. No está restringido a `responsable_rol` del ítem.
 
+### Protocolo del Turno — gate de rol + hora_sugerida (v41.2)
+- `getProtocolo` (`puedeMarcar`) y `marcarProtocolo` usan su **propia** lista de roles, NO `puedeMarcarChecklist`. En v41.2 se agregó `administracion` a esa lista (`['auditor','gerente','auxiliar','administracion']`) en ambas funciones; antes Xochitl veía los botones del Protocolo deshabilitados (cursor 🚫) y no podía marcar.
+- `hora_sugerida` se guarda como valor de hora en el Sheet → `sheetData()` lo devuelve como `Date` y en JSON salía `1899-12-30T17:00:00.000Z`. Helper `formatHoraSugerida()` lo normaliza a `'HH:mm'` (lee `getUTCHours/Minutes` del Date, o regex `HH:mm` si es string) y `getProtocolo` lo aplica en el enriquecido.
+- Inventarios cíclicos NO gatean por rol (cualquiera autenticado marca), así que no tuvieron este problema.
+
 ### Cursos — distribución de respuestas
 Cada archivo JSON tiene 48 preguntas (8 módulos × 6 preguntas). La posición correcta está distribuida 25% por opción (12 A, 12 B, 12 C, 12 D). No concentrar en una posición.
 
@@ -208,7 +213,7 @@ El contenido editorial de los cursos vive en `cursos/*.json`. Cambios solo requi
 
 ## Pendiente próxima sesión
 
-- Confirmar que Germán le avisó a Xochitl que CKBD29 ya no aparece en su checklist (borrador en Gmail + texto WhatsApp entregados el 11-jun-2026).
+- (ninguno abierto) — Germán ya avisó a Xochitl que CKBD29 salió de su checklist (confirmado 18-jun-2026).
 
 ---
 

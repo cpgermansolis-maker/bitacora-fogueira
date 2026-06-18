@@ -2446,6 +2446,18 @@ function esVisibleHoyProtocolo(item, fechaStr) {
   return true;
 }
 
+// hora_sugerida en el Sheet suele guardarse como valor de hora (no texto), por lo
+// que sheetData() lo devuelve como Date (1899-12-30Thh:mm) y en JSON sale feo.
+// Normaliza a 'HH:mm'. Acepta Date o string ('17:00' / ISO con T).
+function formatHoraSugerida(v) {
+  if (v === null || v === undefined || v === '') return '';
+  if (Object.prototype.toString.call(v) === '[object Date]') {
+    return ('0' + v.getUTCHours()).slice(-2) + ':' + ('0' + v.getUTCMinutes()).slice(-2);
+  }
+  const m = String(v).trim().match(/(\d{1,2}):(\d{2})/);
+  return m ? ('0' + m[1]).slice(-2) + ':' + m[2] : String(v).trim();
+}
+
 function getProtocolo(user, payload) {
   payload = payload || {};
   const tz = ss().getSpreadsheetTimeZone() || 'America/Mexico_City';
@@ -2468,7 +2480,7 @@ function getProtocolo(user, payload) {
   const marcasAll = sheetData(SHEETS.PROTOCOLO_MARCAS)
     .filter(m => String(m.usuario_email).toLowerCase().trim() === emailVer);
   const fotos = ckFotosMap('P');
-  const puedeMarcar = ['auditor', 'gerente', 'auxiliar'].includes(user.rol);
+  const puedeMarcar = ['auditor', 'gerente', 'auxiliar', 'administracion'].includes(user.rol);
 
   const enriched = items.map(it => {
     const frec = it.frecuencia || 'D';
@@ -2480,6 +2492,7 @@ function getProtocolo(user, payload) {
     if (marca) marca.periodo = periodoCanonico(marca.periodo, frec);
     const foto = fotos['P|' + it.id];
     return Object.assign({}, it, {
+      hora_sugerida: formatHoraSugerida(it.hora_sugerida),
       periodo,
       marca,
       puedo_marcar: puedeMarcar,
@@ -2498,7 +2511,7 @@ function marcarProtocolo(user, payload) {
 
   const item = findRow(SHEETS.PROTOCOLO_ITEMS, it => String(it.id) === String(payload.item_id));
   if (!item) throw new Error('Ítem de protocolo no encontrado: ' + payload.item_id);
-  if (!['auditor', 'gerente', 'auxiliar'].includes(user.rol)) {
+  if (!['auditor', 'gerente', 'auxiliar', 'administracion'].includes(user.rol)) {
     throw new Error('Tu rol no puede marcar ítems del protocolo');
   }
 
