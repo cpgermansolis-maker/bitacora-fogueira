@@ -127,6 +127,7 @@ function doPost(e) {
         case 'saveInventarioConfig':     response = saveInventarioConfig(user, payload); break;
         case 'toggleInventarioConfig':   response = toggleInventarioConfig(user, payload); break;
         case 'toggleChecklistItem':      response = toggleChecklistItem(user, payload); break;
+        case 'updateChecklistItemDesc':  response = updateChecklistItemDesc(user, payload); break;
         case 'getInventariosDia':        response = getInventariosDia(user, payload); break;
         case 'marcarInventario':         response = marcarInventario(user, payload); break;
         case 'limpiarMarcaInventario':   response = limpiarMarcaInventario(user, payload); break;
@@ -1910,6 +1911,30 @@ function toggleChecklistItem(user, payload) {
   updateRow(sheetName, row.rowIdx, Object.assign({}, row.data, { activo: payload.activo ? 'TRUE' : 'FALSE' }));
   logBitacora(user.email, 'toggleChecklistItem', payload.pilar + '/' + payload.id + ' activo=' + payload.activo);
   return { ok: true };
+}
+
+// Actualiza la descripción (criterio) de un ítem del catálogo de checklists.
+// Solo auditor/gerente. Permite ajustar el texto del criterio sin recrear el ítem
+// (p.ej. ampliar quién puede autorizar cortesías). No toca marcas históricas.
+function updateChecklistItemDesc(user, payload) {
+  if (!['auditor', 'gerente'].includes(user.rol)) {
+    throw new Error('Solo auditor o gerente pueden modificar el catálogo de checklists');
+  }
+  const sheetByPilar = {
+    A: SHEETS.PILAR_A_CK_ITEMS,
+    B: SHEETS.PILAR_B_CK_ITEMS,
+    C: SHEETS.PILAR_C_CK_ITEMS
+  };
+  const sheetName = sheetByPilar[String(payload.pilar || '').toUpperCase()];
+  if (!sheetName) throw new Error('Pilar inválido: ' + payload.pilar);
+  if (!payload.descripcion || !String(payload.descripcion).trim()) {
+    throw new Error('descripcion requerida');
+  }
+  const row = findRow(sheetName, r => String(r.id) === String(payload.id));
+  if (!row) throw new Error('Ítem no encontrado: ' + payload.id);
+  updateRow(sheetName, row.rowIdx, Object.assign({}, row.data, { descripcion: String(payload.descripcion) }));
+  logBitacora(user.email, 'updateChecklistItemDesc', payload.pilar + '/' + payload.id);
+  return { ok: true, pilar: payload.pilar, id: payload.id, descripcion: String(payload.descripcion) };
 }
 
 function getInventariosDia(user, payload) {

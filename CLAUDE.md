@@ -88,7 +88,7 @@ No requiere clasp. GitHub Pages sirve los JSON directamente.
 
 ---
 
-## Pestañas del sistema (versión actual: v41.2 — backend @41)
+## Pestañas del sistema (versión actual: v41.3 — backend @42)
 
 - **Mi Día:** Detalle | Tendencia 7d | Protocolo del Turno
 - **Pilar A:** Estado SR12 | Evolución | Check list (por módulo, con foto adjunta)
@@ -197,6 +197,13 @@ Action `toggleChecklistItem` (solo auditor/gerente), payload `{pilar:'A'|'B'|'C'
 
 ### puedeMarcarChecklist — rol administracion
 `administracion` tiene acceso wildcard (puede marcar cualquier ítem de A, B y C), igual que `auditor`, `gerente` y `auxiliar`. No está restringido a `responsable_rol` del ítem.
+
+### Política de autorización de cortesías + updateChecklistItemDesc (v41.3)
+- **Política (jun-2026):** una cortesía/descuento se autoriza con firma de **Gerente del restaurante (Gabriel), Gerente de Plaza (Mónica) o un capitán**. Antes solo Mónica/Gabriel.
+- **Frontend:** el dropdown de autorizador/jefe del formulario guiado de hallazgos (`_hallazgoFormHTML`, tipo `jefe`) tiene ahora opción **`Capitán`** además de Mónica y Gabriel. Los capitanes NO tienen cuenta — autorizan en físico, Xochitl valida.
+- **Catálogo:** ítems `CKBD24`, `CKBD14` (Pilar B) y `CKS08` (Pilar A) reflejan el criterio ampliado en su `descripcion`. Se editaron en producción con la action nueva y en `Setup.gs` (semilla) para instalaciones nuevas.
+- **Action `updateChecklistItemDesc`** (solo auditor/gerente), payload `{pilar:'A'|'B'|'C', id, descripcion}`: cambia el texto del criterio de un ítem sin recrearlo ni tocar marcas históricas. Espejo de `toggleChecklistItem`. ⚠️ La columna es `descripcion` (verificado) — recordar que `updateRow` es silencioso si el header no existe.
+- **Limpieza asociada:** las 21 cortesías sin autorizar (May-Jun) se cerraron vía `marcarHallazgoAtendido` con nota de auditoría (autorizadas + política ampliada). Reversible; marca/foto/observación intactas.
 
 ### Protocolo del Turno — gate de rol + hora_sugerida (v41.2)
 - `getProtocolo` (`puedeMarcar`) y `marcarProtocolo` usan su **propia** lista de roles, NO `puedeMarcarChecklist`. En v41.2 se agregó `administracion` a esa lista (`['auditor','gerente','auxiliar','administracion']`) en ambas funciones; antes Xochitl veía los botones del Protocolo deshabilitados (cursor 🚫) y no podía marcar.
