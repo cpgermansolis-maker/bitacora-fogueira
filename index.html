@@ -3718,7 +3718,7 @@ const App = {
     const it = (State.pilarAGuiada && State.pilarAGuiada.items || []).find(x => x.id === item_id);
     if (it && it.marca && Number(it.marca.valor) === valor &&
         (it.marca.usuario_email || '').toLowerCase() === (State.user && State.user.email || '').toLowerCase()) {
-      return this._limpiarMarca('A', item_id);
+      return this._limpiarMarca('A', item_id, it.periodo);
     }
     if (valor === 0) {
       return this.openNotaHallazgoModal({
@@ -3738,9 +3738,9 @@ const App = {
     } catch (err) { toast(err.message, true); }
   },
 
-  async _limpiarMarca(pilar, item_id) {
+  async _limpiarMarca(pilar, item_id, periodo) {
     try {
-      await apiCall('limpiarMarca', { pilar, item_id });
+      await apiCall('limpiarMarca', { pilar, item_id, periodo });
       if (pilar === 'A') {
         State.pilarAGuiada = await apiCall('getChecklistA', {});
         this._renderGuiadaBody();
@@ -4369,7 +4369,7 @@ const App = {
     const it = (State.pilarBGuiada && State.pilarBGuiada.items || []).find(x => x.id === item_id);
     if (it && it.marca && Number(it.marca.valor) === valor &&
         (it.marca.usuario_email || '').toLowerCase() === (State.user && State.user.email || '').toLowerCase()) {
-      return this._limpiarMarca('B', item_id);
+      return this._limpiarMarca('B', item_id, it.periodo);
     }
     if (valor === 0) {
       return this.openNotaHallazgoModal({
@@ -5265,7 +5265,7 @@ const App = {
     const it = (State.pilarCGuiada && State.pilarCGuiada.items || []).find(x => x.id === item_id);
     if (it && it.marca && Number(it.marca.valor) === valor &&
         (it.marca.usuario_email || '').toLowerCase() === (State.user && State.user.email || '').toLowerCase()) {
-      return this._limpiarMarca('C', item_id);
+      return this._limpiarMarca('C', item_id, it.periodo);
     }
     if (valor === 0) {
       return this.openNotaHallazgoModal({

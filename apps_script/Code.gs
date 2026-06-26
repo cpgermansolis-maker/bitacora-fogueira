@@ -986,7 +986,7 @@ function getChecklistA(user, payload) {
   };
 
   const marcasAll = sheetData(SHEETS.PILAR_A_CK_MARCAS);
-  const fotos = ckFotosMap('A');
+  const fotos = ckFotosMap('A', true);
   const enriched = items.map(it => {
     const periodo = periodos[it.frecuencia];
     const marca = marcasAll
@@ -995,7 +995,7 @@ function getChecklistA(user, payload) {
       .sort((a, b) => String(b.timestamp).localeCompare(String(a.timestamp)))[0] || null;
     // Devolver la marca con el periodo ya canónico (para el frontend)
     if (marca) marca.periodo = periodoCanonico(marca.periodo, it.frecuencia);
-    const foto = fotos['A|' + it.id];
+    const foto = fotos['A|' + it.id + '|' + periodo];
     return Object.assign({}, it, {
       periodo,
       marca,
@@ -1141,7 +1141,7 @@ function getChecklistB(user, payload) {
   };
 
   const marcasAll = sheetData(SHEETS.PILAR_B_CK_MARCAS);
-  const fotos = ckFotosMap('B');
+  const fotos = ckFotosMap('B', true);
   const enriched = items.map(it => {
     const periodo = periodos[it.frecuencia];
     const marca = marcasAll
@@ -1149,7 +1149,7 @@ function getChecklistB(user, payload) {
                    periodoCanonico(m.periodo, it.frecuencia) === periodo)
       .sort((a, b) => String(b.timestamp).localeCompare(String(a.timestamp)))[0] || null;
     if (marca) marca.periodo = periodoCanonico(marca.periodo, it.frecuencia);
-    const foto = fotos['B|' + it.id];
+    const foto = fotos['B|' + it.id + '|' + periodo];
     return Object.assign({}, it, {
       periodo,
       marca,
@@ -1291,7 +1291,7 @@ function getChecklistC(user, payload) {
   };
 
   const marcasAll = sheetData(SHEETS.PILAR_C_CK_MARCAS);
-  const fotos = ckFotosMap('C');
+  const fotos = ckFotosMap('C', true);
   const enriched = items.map(it => {
     const periodo = periodos[it.frecuencia];
     const marca = marcasAll
@@ -1299,7 +1299,7 @@ function getChecklistC(user, payload) {
                    periodoCanonico(m.periodo, it.frecuencia) === periodo)
       .sort((a, b) => String(b.timestamp).localeCompare(String(a.timestamp)))[0] || null;
     if (marca) marca.periodo = periodoCanonico(marca.periodo, it.frecuencia);
-    const foto = fotos['C|' + it.id];
+    const foto = fotos['C|' + it.id + '|' + periodo];
     return Object.assign({}, it, {
       periodo,
       marca,
@@ -1965,13 +1965,13 @@ function getInventariosDia(user, payload) {
     .filter(m => String(m.fecha) === fecha)
     .forEach(m => { marcaMap[String(m.config_id)] = m; });
 
-  const fotosMap = ckFotosMap('I');
+  const fotosMap = ckFotosMap('I', true);
 
   const items = todayCycles.map(c => ({
     id: c.id, descripcion: c.descripcion, frecuencia: c.frecuencia,
     dia_semana: c.dia_semana, fecha,
     marca:    marcaMap[String(c.id)] || null,
-    foto_url: (fotosMap['I|' + c.id] || {}).foto_url || ''
+    foto_url: (fotosMap['I|' + c.id + '|' + fecha] || {}).foto_url || ''
   }));
 
   return { items, fecha };
@@ -2005,7 +2005,8 @@ function limpiarMarcaInventario(user, payload) {
   sheet(SHEETS.INVENTARIOS_MARCAS).deleteRow(marcaRow.rowIdx);
   // También limpia foto de ChecklistFotos (pilar='I', item_id=config_id)
   const fotoRow = findRow(SHEETS.CHECKLIST_FOTOS,
-    r => String(r.pilar) === 'I' && String(r.item_id) === String(payload.config_id));
+    r => String(r.pilar) === 'I' && String(r.item_id) === String(payload.config_id) &&
+         (!payload.fecha || String(r.periodo) === String(payload.fecha)));
   if (fotoRow) {
     if (fotoRow.data.foto_drive_id) {
       try { DriveApp.getFileById(String(fotoRow.data.foto_drive_id)).setTrashed(true); } catch(e) {}
@@ -2504,7 +2505,7 @@ function getProtocolo(user, payload) {
 
   const marcasAll = sheetData(SHEETS.PROTOCOLO_MARCAS)
     .filter(m => String(m.usuario_email).toLowerCase().trim() === emailVer);
-  const fotos = ckFotosMap('P');
+  const fotos = ckFotosMap('P', true);
   const puedeMarcar = ['auditor', 'gerente', 'auxiliar', 'administracion'].includes(user.rol);
 
   const enriched = items.map(it => {
@@ -2515,7 +2516,7 @@ function getProtocolo(user, payload) {
                    periodoCanonico(m.periodo, frec) === periodo)
       .sort((a, b) => String(b.timestamp).localeCompare(String(a.timestamp)))[0] || null;
     if (marca) marca.periodo = periodoCanonico(marca.periodo, frec);
-    const foto = fotos['P|' + it.id];
+    const foto = fotos['P|' + it.id + '|' + periodo];
     return Object.assign({}, it, {
       hora_sugerida: formatHoraSugerida(it.hora_sugerida),
       periodo,
@@ -2594,7 +2595,8 @@ function limpiarMarca(user, payload) {
   sheet(marcaSheets[pilar]).deleteRow(marcaRow.rowIdx);
 
   const fotoRow = findRow(SHEETS.CHECKLIST_FOTOS,
-    r => String(r.pilar) === pilar && String(r.item_id) === String(payload.item_id));
+    r => String(r.pilar) === pilar && String(r.item_id) === String(payload.item_id) &&
+         (!payload.periodo || String(r.periodo) === String(payload.periodo)));
   if (fotoRow) {
     if (fotoRow.data.foto_drive_id) {
       try { DriveApp.getFileById(String(fotoRow.data.foto_drive_id)).setTrashed(true); } catch(e) {}
@@ -2626,7 +2628,8 @@ function limpiarMarcaProtocolo(user, payload) {
   sheet(SHEETS.PROTOCOLO_MARCAS).deleteRow(marcaRow.rowIdx);
 
   const fotoRow = findRow(SHEETS.CHECKLIST_FOTOS,
-    r => String(r.pilar) === 'P' && String(r.item_id) === String(payload.item_id));
+    r => String(r.pilar) === 'P' && String(r.item_id) === String(payload.item_id) &&
+         (!payload.periodo || String(r.periodo) === String(payload.periodo)));
   if (fotoRow) {
     if (fotoRow.data.foto_drive_id) {
       try { DriveApp.getFileById(String(fotoRow.data.foto_drive_id)).setTrashed(true); } catch(e) {}
@@ -2640,13 +2643,19 @@ function limpiarMarcaProtocolo(user, payload) {
 
 // Devuelve mapa { 'pilar|item_id' → fila } con la foto más reciente de cada ítem.
 // pilarFilter=null carga todos los pilares (para getHallazgos).
-function ckFotosMap(pilarFilter) {
+// periodAware=true → llave (pilar|item_id|periodo): una foto por ítem POR DÍA/período,
+// para que un check diario no reuse ni pise la foto de un día anterior (la evidencia
+// histórica se conserva). periodAware falso (default) → llave (pilar|item_id) que colapsa
+// a la última foto del ítem; lo usan los hallazgos, que solo necesitan "una foto" de muestra.
+function ckFotosMap(pilarFilter, periodAware) {
   ensureSheetExists(SHEETS.CHECKLIST_FOTOS, CHECKLIST_FOTOS_HEADERS);
   const map = {};
   try {
     sheetData(SHEETS.CHECKLIST_FOTOS).forEach(r => {
       if (pilarFilter && String(r.pilar) !== pilarFilter) return;
-      const k = String(r.pilar) + '|' + String(r.item_id);
+      const k = periodAware
+        ? String(r.pilar) + '|' + String(r.item_id) + '|' + String(r.periodo)
+        : String(r.pilar) + '|' + String(r.item_id);
       if (!map[k] || String(r.timestamp) > String(map[k].timestamp)) map[k] = r;
     });
   } catch(e) { /* hoja vacía */ }
@@ -2677,8 +2686,9 @@ function subirFotoChecklist(user, payload) {
   const item_id  = String(payload.item_id);
   const periodo  = String(payload.periodo || '');
 
+  // Clave por (pilar, item_id, periodo): subir foto de hoy NO pisa la de un día previo.
   const existing = findRow(SHEETS.CHECKLIST_FOTOS,
-    r => String(r.pilar) === pilar && String(r.item_id) === item_id);
+    r => String(r.pilar) === pilar && String(r.item_id) === item_id && String(r.periodo) === periodo);
   const rowData = {
     timestamp: nowISO(), pilar, item_id, periodo,
     usuario_email: user.email, foto_drive_id: foto_id, foto_url
