@@ -88,7 +88,7 @@ No requiere clasp. GitHub Pages sirve los JSON directamente.
 
 ---
 
-## Pestañas del sistema (versión actual: v41.3 — backend @42)
+## Pestañas del sistema (versión actual: v43 — backend @43)
 
 - **Mi Día:** Detalle | Tendencia 7d | Protocolo del Turno
 - **Pilar A:** Estado SR12 | Evolución | Check list (por módulo, con foto adjunta)
@@ -155,14 +155,17 @@ function ensureSheetExists(name, headers) {
 ### Upsert en hojas de marcas
 Todas las operaciones de marca usan upsert: `findRow` → si existe `updateRow`, si no `appendRow`.
 
-### ckFotosMap(pilarFilter)
-Retorna `{'pilar|item_id' → row}`. Claves de pilar en uso:
-- `'A'`, `'B'`, `'C'` — checklists de pilares
-- `'P'` — Protocolo del Turno
-- `'I'` — Inventarios cíclicos
+### ckFotosMap(pilarFilter, periodAware) — (v43)
+Firma: `ckFotosMap(pilarFilter, periodAware)`.
+- `periodAware=true` → llave **`'pilar|item_id|periodo'`**. Una foto por ítem **por día/período**. La usan todos los consumidores de checklist diario: A, B, C, Protocolo (`'P'`) e Inventarios (`'I'`, su período es la `fecha` yyyy-MM-dd).
+- `periodAware` falso/omitido → llave `'pilar|item_id'` (colapsa a la última foto del ítem por timestamp). **Solo lo usan los hallazgos** (`ckFotosMap(null)`), que únicamente necesitan "una foto" de muestra.
+Claves de pilar en uso: `'A'`, `'B'`, `'C'`, `'P'` (Protocolo), `'I'` (Inventarios).
 
-### Foto por ítem: semántica de reemplazo
-`ChecklistFotos` tiene clave lógica `(pilar, item_id)` — no incluye período. Subir foto nueva reemplaza la anterior del mismo ítem para siempre.
+### Foto por ítem: una foto por día/período (v43)
+`ChecklistFotos` tiene la columna `periodo` y la clave lógica efectiva es **`(pilar, item_id, periodo)`**. Subir foto nueva **solo reemplaza la del mismo período** (mismo día para diarios); las de días anteriores se conservan como evidencia de ESE día.
+- Antes de v43 la clave ignoraba `periodo`: al abrir un check diario mostraba la foto de días atrás y subir una nueva sobrescribía la del día anterior (pérdida de evidencia COSO). Reportado por Xochitl (26-jun-2026), arreglado en v43.
+- `subirFotoChecklist` hace upsert por `(pilar, item_id, periodo)`; las 3 funciones de desmarcar (`limpiarMarca`/`limpiarMarcaProtocolo`/`limpiarMarcaInventario`) borran solo la foto del período correcto (matching defensivo `!payload.periodo || ...`).
+- ⚠️ El fix evita pérdidas **a futuro**; las fotos ya sobrescritas antes de v43 no se recuperan (solo existía la última por ítem).
 
 ### Desmarcar (toggle-off, v39)
 Si el usuario pulsa el botón ya activo de SU propia marca (mismo `usuario_email`), se llama `limpiarMarca` / `limpiarMarcaProtocolo` / `limpiarMarcaInventario`. Estas funciones eliminan la fila de la hoja de marcas y también limpian la foto asociada en `ChecklistFotos` y Google Drive (`setTrashed(true)`).
