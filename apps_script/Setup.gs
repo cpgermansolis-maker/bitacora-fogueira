@@ -180,7 +180,7 @@ const SHEET_DEFINITIONS = [
       ['CKBD05', 'B1', 'Apertura',          'D', 'administracion', 'Sello de apertura del supervisor firmado en el sistema',                     'TRUE'],
       // ----- Diario · Durante el servicio (5) — etapas B2/B3 -----
       ['CKBD06', 'B2', 'Durante',           'D', 'administracion', 'Bitácora del host revisada al menos una vez por hora',                       'TRUE'],
-      ['CKBD07', 'B2', 'Durante',           'D', 'administracion', 'Cortesías nuevas confirmadas con quien las autorizó (Mónica/Gabriel)',       'TRUE'],
+      ['CKBD07', 'B2', 'Durante',           'D', 'administracion', 'Cortesías nuevas confirmadas con quien las autorizó (Gerente, Gerente de Plaza o capitán)',       'TRUE'],
       ['CKBD08', 'B3', 'Durante',           'D', 'administracion', 'Cocina y churrasca registrando charolas en vivo (cada 45 min)',              'TRUE'],
       ['CKBD09', 'B2', 'Durante',           'D', 'administracion', 'Muestreo aleatorio: tickets POS cruzados contra bitácora (1 c/30 min)',      'TRUE'],
       ['CKBD10', 'B2', 'Durante',           'D', 'administracion', 'Filas con datos faltantes (sin pax/mesa/nombre) corregidas con host',        'TRUE'],

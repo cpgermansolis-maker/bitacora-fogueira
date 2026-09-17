@@ -211,13 +211,66 @@ function sheetData(name) {
   const values = s.getDataRange().getValues();
   if (values.length < 2) return [];
   const headers = values[0].map(h => String(h).trim());
-  return values.slice(1)
+  const rows = values.slice(1)
     .filter(row => row.some(c => c !== '' && c !== null))
     .map(row => {
       const obj = {};
       headers.forEach((h, i) => { obj[h] = row[i]; });
       return obj;
     });
+  const clave = claveMarcaVigente(name);
+  return clave ? marcasVigentes(rows, clave) : rows;
+}
+
+// v44: las hojas de marcas tienen UNA marca vigente por (item, período), pero dos toques
+// seguidos con conexión lenta leían la hoja antes de que el otro escribiera y ambos hacían
+// appendRow (17-sep-2026: ítems con 2 y 3 filas el mismo día → cobertura 200% en A,
+// hallazgos repetidos, toggle-off que "no quitaba"). El upsert ya va con lock (conLock),
+// pero las filas históricas siguen ahí: todos los lectores pasan por sheetData y aquí se
+// colapsan a la más reciente por timestamp. findRow/updateRow/deleteRow leen la hoja directo
+// y no se ven afectados.
+function claveMarcaVigente(name) {
+  switch (name) {
+    case SHEETS.PILAR_A_CK_MARCAS:
+    case SHEETS.PILAR_B_CK_MARCAS:
+    case SHEETS.PILAR_C_CK_MARCAS:
+    case SHEETS.PROTOCOLO_MARCAS:   return ['item_id', 'periodo'];
+    case SHEETS.INVENTARIOS_MARCAS: return ['config_id', 'fecha'];
+    default: return null;
+  }
+}
+function marcasVigentes(rows, clave) {
+  const vigente = {};
+  const orden = [];
+  const ts = r => { const t = new Date(r.timestamp).getTime(); return isNaN(t) ? 0 : t; };
+  rows.forEach(r => {
+    // periodoCanonico normaliza Date → 'yyyy-MM-dd' y deja los strings como están.
+    const k = clave.map(c => periodoCanonico(r[c], 'D')).join('|');
+    if (!(k in vigente)) { vigente[k] = r; orden.push(k); }
+    else if (ts(r) >= ts(vigente[k])) { vigente[k] = r; }
+  });
+  return orden.map(k => vigente[k]);
+}
+
+// v44: serializa los upserts de marcas (ver claveMarcaVigente).
+function conLock(fn) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(15000);
+  try { return fn(); } finally { lock.releaseLock(); }
+}
+
+/** Borra TODAS las filas que cumplen la condición (de abajo hacia arriba). Devuelve cuántas. */
+function deleteRowsWhere(name, predicate) {
+  const s = sheet(name);
+  const values = s.getDataRange().getValues();
+  const headers = values[0].map(h => String(h).trim());
+  let n = 0;
+  for (let i = values.length - 1; i >= 1; i--) {
+    const obj = {};
+    headers.forEach((h, j) => { obj[h] = values[i][j]; });
+    if (predicate(obj)) { s.deleteRow(i + 1); n++; }
+  }
+  return n;
 }
 
 /** Encuentra el índice de fila (1-based) que cumple la condición. */
@@ -1021,12 +1074,6 @@ function marcarChecklistA(user, payload) {
               : null;
   if (valor === null) throw new Error('valor debe ser 0 o 1');
 
-  // Una sola marca vigente por (item_id, periodo): si existe la actualizamos.
-  // Normalizar m.periodo porque Sheets puede haberlo convertido a Date en escrituras previas.
-  const existing = findRow(SHEETS.PILAR_A_CK_MARCAS,
-    m => String(m.item_id) === String(payload.item_id) &&
-         periodoCanonico(m.periodo, item.data.frecuencia) === periodo);
-
   const rowData = {
     timestamp: nowISO(),
     item_id: payload.item_id,
@@ -1038,11 +1085,19 @@ function marcarChecklistA(user, payload) {
     observaciones: payload.observaciones || ''
   };
 
-  if (existing) {
-    updateRow(SHEETS.PILAR_A_CK_MARCAS, existing.rowIdx, rowData);
-  } else {
-    appendRow(SHEETS.PILAR_A_CK_MARCAS, rowData);
-  }
+  // Una sola marca vigente por (item_id, periodo): si existe la actualizamos.
+  // Normalizar m.periodo porque Sheets puede haberlo convertido a Date en escrituras previas.
+  // v44: bajo lock, para que dos toques seguidos no hagan dos appendRow.
+  conLock(() => {
+    const existing = findRow(SHEETS.PILAR_A_CK_MARCAS,
+      m => String(m.item_id) === String(payload.item_id) &&
+           periodoCanonico(m.periodo, item.data.frecuencia) === periodo);
+    if (existing) {
+      updateRow(SHEETS.PILAR_A_CK_MARCAS, existing.rowIdx, rowData);
+    } else {
+      appendRow(SHEETS.PILAR_A_CK_MARCAS, rowData);
+    }
+  });
 
   logBitacora(user.email, 'marcarChecklistA',
     payload.item_id + ' / ' + periodo + ' = ' + valor);
@@ -1175,10 +1230,6 @@ function marcarChecklistB(user, payload) {
               : null;
   if (valor === null) throw new Error('valor debe ser 0 o 1');
 
-  const existing = findRow(SHEETS.PILAR_B_CK_MARCAS,
-    m => String(m.item_id) === String(payload.item_id) &&
-         periodoCanonico(m.periodo, item.data.frecuencia) === periodo);
-
   const rowData = {
     timestamp: nowISO(),
     item_id: payload.item_id,
@@ -1188,11 +1239,16 @@ function marcarChecklistB(user, payload) {
     observaciones: payload.observaciones || ''
   };
 
-  if (existing) {
-    updateRow(SHEETS.PILAR_B_CK_MARCAS, existing.rowIdx, rowData);
-  } else {
-    appendRow(SHEETS.PILAR_B_CK_MARCAS, rowData);
-  }
+  conLock(() => {  // v44
+    const existing = findRow(SHEETS.PILAR_B_CK_MARCAS,
+      m => String(m.item_id) === String(payload.item_id) &&
+           periodoCanonico(m.periodo, item.data.frecuencia) === periodo);
+    if (existing) {
+      updateRow(SHEETS.PILAR_B_CK_MARCAS, existing.rowIdx, rowData);
+    } else {
+      appendRow(SHEETS.PILAR_B_CK_MARCAS, rowData);
+    }
+  });
 
   logBitacora(user.email, 'marcarChecklistB',
     payload.item_id + ' / ' + periodo + ' = ' + valor);
@@ -1325,10 +1381,6 @@ function marcarChecklistC(user, payload) {
               : null;
   if (valor === null) throw new Error('valor debe ser 0 o 1');
 
-  const existing = findRow(SHEETS.PILAR_C_CK_MARCAS,
-    m => String(m.item_id) === String(payload.item_id) &&
-         periodoCanonico(m.periodo, item.data.frecuencia) === periodo);
-
   const rowData = {
     timestamp: nowISO(),
     item_id: payload.item_id,
@@ -1338,11 +1390,16 @@ function marcarChecklistC(user, payload) {
     observaciones: payload.observaciones || ''
   };
 
-  if (existing) {
-    updateRow(SHEETS.PILAR_C_CK_MARCAS, existing.rowIdx, rowData);
-  } else {
-    appendRow(SHEETS.PILAR_C_CK_MARCAS, rowData);
-  }
+  conLock(() => {  // v44
+    const existing = findRow(SHEETS.PILAR_C_CK_MARCAS,
+      m => String(m.item_id) === String(payload.item_id) &&
+           periodoCanonico(m.periodo, item.data.frecuencia) === periodo);
+    if (existing) {
+      updateRow(SHEETS.PILAR_C_CK_MARCAS, existing.rowIdx, rowData);
+    } else {
+      appendRow(SHEETS.PILAR_C_CK_MARCAS, rowData);
+    }
+  });
 
   logBitacora(user.email, 'marcarChecklistC',
     payload.item_id + ' / ' + periodo + ' = ' + valor);
@@ -1981,15 +2038,17 @@ function marcarInventario(user, payload) {
   if (!payload.config_id || !payload.fecha) throw new Error('config_id y fecha requeridos');
   ensureSheetExists(SHEETS.INVENTARIOS_MARCAS, INVENTARIOS_MARCAS_HEADERS);
   const valor = (payload.valor === 1 || payload.valor === '1') ? 1 : 0;
-  const existing = findRow(SHEETS.INVENTARIOS_MARCAS,
-    m => String(m.config_id) === String(payload.config_id) && String(m.fecha) === String(payload.fecha));
   const rowData = {
     timestamp: nowISO(), config_id: String(payload.config_id),
     fecha: String(payload.fecha), valor,
     usuario_email: user.email, observaciones: payload.observaciones || ''
   };
-  if (existing) { updateRow(SHEETS.INVENTARIOS_MARCAS, existing.rowIdx, rowData); }
-  else          { appendRow(SHEETS.INVENTARIOS_MARCAS, rowData); }
+  conLock(() => {  // v44
+    const existing = findRow(SHEETS.INVENTARIOS_MARCAS,
+      m => String(m.config_id) === String(payload.config_id) && String(m.fecha) === String(payload.fecha));
+    if (existing) { updateRow(SHEETS.INVENTARIOS_MARCAS, existing.rowIdx, rowData); }
+    else          { appendRow(SHEETS.INVENTARIOS_MARCAS, rowData); }
+  });
   logBitacora(user.email, 'marcarInventario', payload.config_id + '/' + payload.fecha + '=' + valor);
   return { ok: true };
 }
@@ -2002,7 +2061,8 @@ function limpiarMarcaInventario(user, payload) {
   if (String(marcaRow.data.usuario_email).toLowerCase() !== String(user.email).toLowerCase()) {
     throw new Error('Solo quien marcó puede eliminar la marca');
   }
-  sheet(SHEETS.INVENTARIOS_MARCAS).deleteRow(marcaRow.rowIdx);
+  conLock(() => deleteRowsWhere(SHEETS.INVENTARIOS_MARCAS,  // v44: todas las filas del par
+    m => String(m.config_id) === String(payload.config_id) && String(m.fecha) === String(payload.fecha)));
   // También limpia foto de ChecklistFotos (pilar='I', item_id=config_id)
   const fotoRow = findRow(SHEETS.CHECKLIST_FOTOS,
     r => String(r.pilar) === 'I' && String(r.item_id) === String(payload.config_id) &&
@@ -2333,15 +2393,21 @@ function getHallazgos(user, payload) {
 }
 
 // Retorna los hallazgos no-atendidos con ≥7 días de antigüedad para la alarma
-// de Mónica/Germán al cargar la app. Solo lee los últimos 90 días para no
-// ralentizar el inicio. Los tipos snapshot (req_bloqueada, sr12_critico) usan
-// fecha=hasta, por lo que nunca alcanzan 7 días aquí — eso es correcto.
+// de Mónica/Germán al cargar la app. Los tipos snapshot (req_bloqueada, sr12_critico)
+// usan fecha=hasta, por lo que nunca alcanzan 7 días aquí — eso es correcto.
+// (Hasta v43 leía solo 90 días "para no ralentizar el inicio"; getHallazgos recorre
+// todas las marcas de todos modos, así que la ventana no ahorraba nada y sí escondía.)
+const HALLAZGOS_DESDE = '2026-01-01'; // el sistema arrancó el 30-abr-2026
+
 function getAlertaHallazgos(user) {
   if (user.rol !== 'auditor' && user.rol !== 'gerente') return { count: 0, pendientes: [] };
   const tz = ss().getSpreadsheetTimeZone() || 'America/Mexico_City';
   const hoy = new Date();
   const hasta = Utilities.formatDate(hoy, tz, 'yyyy-MM-dd');
-  const desde = Utilities.formatDate(new Date(hoy.getTime() - 90 * 86400000), tz, 'yyyy-MM-dd');
+  // v44: sin ventana. Con 90 días, los hallazgos viejos se caían solos de la alarma
+  // (17-sep-2026: la alarma decía 16 con 85 pendientes reales) y un pendiente que nadie
+  // atiende no debe dejar de sonar por viejo.
+  const desde = HALLAZGOS_DESDE;
   const data = getHallazgos(user, { desde, hasta, incluir_atendidos: false });
   const hoyMs = hoy.getTime();
   const UMBRAL = 7;
@@ -2365,7 +2431,10 @@ function getRetroalimentaciones(user) {
   const tz = ss().getSpreadsheetTimeZone() || 'America/Mexico_City';
   const hoy = new Date();
   const hasta = Utilities.formatDate(hoy, tz, 'yyyy-MM-dd');
-  const desde = Utilities.formatDate(new Date(hoy.getTime() - 90 * 86400000), tz, 'yyyy-MM-dd');
+  // v44: sin ventana. Con 90 días, los hallazgos viejos se caían solos de la alarma
+  // (17-sep-2026: la alarma decía 16 con 85 pendientes reales) y un pendiente que nadie
+  // atiende no debe dejar de sonar por viejo.
+  const desde = HALLAZGOS_DESDE;
   const data = getHallazgos(user, { desde, hasta, incluir_atendidos: true });
   const retros = data.hallazgos.filter(h => h.estado_monica === 'retroalimentado');
   return {
@@ -2548,10 +2617,6 @@ function marcarProtocolo(user, payload) {
               : null;
   if (valor === null) throw new Error('valor debe ser 0 o 1');
 
-  const existing = findRow(SHEETS.PROTOCOLO_MARCAS,
-    m => String(m.item_id) === String(payload.item_id) &&
-         periodoCanonico(m.periodo, frec) === periodo);
-
   const rowData = {
     timestamp: nowISO(),
     item_id: payload.item_id,
@@ -2561,11 +2626,16 @@ function marcarProtocolo(user, payload) {
     observaciones: payload.observaciones || ''
   };
 
-  if (existing) {
-    updateRow(SHEETS.PROTOCOLO_MARCAS, existing.rowIdx, rowData);
-  } else {
-    appendRow(SHEETS.PROTOCOLO_MARCAS, rowData);
-  }
+  conLock(() => {  // v44
+    const existing = findRow(SHEETS.PROTOCOLO_MARCAS,
+      m => String(m.item_id) === String(payload.item_id) &&
+           periodoCanonico(m.periodo, frec) === periodo);
+    if (existing) {
+      updateRow(SHEETS.PROTOCOLO_MARCAS, existing.rowIdx, rowData);
+    } else {
+      appendRow(SHEETS.PROTOCOLO_MARCAS, rowData);
+    }
+  });
   logBitacora(user.email, 'marcarProtocolo', payload.item_id + ' / ' + periodo + ' = ' + valor);
   return { ok: true, periodo, valor };
 }
@@ -2592,7 +2662,11 @@ function limpiarMarca(user, payload) {
     throw new Error('Solo quien marcó el ítem puede eliminar la marca');
   }
 
-  sheet(marcaSheets[pilar]).deleteRow(marcaRow.rowIdx);
+  // v44: borra TODAS las filas del par (item, período); con duplicados, borrar una sola
+  // dejaba la otra visible y el toggle-off parecía no hacer nada.
+  conLock(() => deleteRowsWhere(marcaSheets[pilar],
+    m => String(m.item_id) === String(payload.item_id) &&
+         periodoCanonico(m.periodo, item.data.frecuencia) === periodo));
 
   const fotoRow = findRow(SHEETS.CHECKLIST_FOTOS,
     r => String(r.pilar) === pilar && String(r.item_id) === String(payload.item_id) &&
@@ -2625,7 +2699,9 @@ function limpiarMarcaProtocolo(user, payload) {
     throw new Error('Solo quien marcó el ítem puede eliminar la marca');
   }
 
-  sheet(SHEETS.PROTOCOLO_MARCAS).deleteRow(marcaRow.rowIdx);
+  conLock(() => deleteRowsWhere(SHEETS.PROTOCOLO_MARCAS,  // v44: todas las filas del par
+    m => String(m.item_id) === String(payload.item_id) &&
+         periodoCanonico(m.periodo, item.data.frecuencia) === periodo));
 
   const fotoRow = findRow(SHEETS.CHECKLIST_FOTOS,
     r => String(r.pilar) === 'P' && String(r.item_id) === String(payload.item_id) &&

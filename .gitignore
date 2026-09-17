@@ -35,3 +35,6 @@ npm-debug.log*
 
 # Node (por si acaso)
 node_modules/
+
+# Cédulas con nombres de personal: NO se publican (el repo es público y GitHub Pages sirve docs/)
+docs/privado/
