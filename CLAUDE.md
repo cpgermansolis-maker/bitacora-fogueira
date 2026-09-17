@@ -88,7 +88,7 @@ No requiere clasp. GitHub Pages sirve los JSON directamente.
 
 ---
 
-## Pestañas del sistema (versión actual: v43 — backend @43)
+## Pestañas del sistema (versión actual: v44 — backend @44)
 
 - **Mi Día:** Detalle | Tendencia 7d | Protocolo del Turno
 - **Pilar A:** Estado SR12 | Evolución | Check list (por módulo, con foto adjunta)
@@ -167,6 +167,22 @@ Claves de pilar en uso: `'A'`, `'B'`, `'C'`, `'P'` (Protocolo), `'I'` (Inventari
 - `subirFotoChecklist` hace upsert por `(pilar, item_id, periodo)`; las 3 funciones de desmarcar (`limpiarMarca`/`limpiarMarcaProtocolo`/`limpiarMarcaInventario`) borran solo la foto del período correcto (matching defensivo `!payload.periodo || ...`).
 - ⚠️ El fix evita pérdidas **a futuro**; las fotos ya sobrescritas antes de v43 no se recuperan (solo existía la última por ítem).
 
+### Marcas: lock + dedupe por (item, período) (v44)
+- **Causa:** dos toques seguidos con conexión lenta hacían dos `appendRow` (la lectura previa del upsert no veía la escritura del otro). Efecto: filas duplicadas en las hojas de marcas → cobertura >100% (15-sep-2026: 200% en A), hallazgos repetidos, toggle-off que "no quitaba" (borraba una fila y quedaba la otra).
+- `conLock(fn)` (LockService, 15 s) envuelve el find+write de `marcarChecklistA/B/C`, `marcarProtocolo` y `marcarInventario`.
+- `sheetData(name)` colapsa duplicados de las 5 hojas de marcas (`claveMarcaVigente`: A/B/C/Protocolo por `item_id|periodo`, Inventarios por `config_id|fecha`) a la fila con timestamp más reciente. **Todos los lectores quedan blindados sin tocarlos.** `findRow`/`updateRow`/`deleteRow` leen la hoja directo y no se ven afectados.
+- `limpiarMarca`/`limpiarMarcaProtocolo`/`limpiarMarcaInventario` usan `deleteRowsWhere` (todas las filas del par, de abajo hacia arriba).
+- Las filas duplicadas históricas **no se borraron** del Sheet; el lector las ignora. Si algún día se quiere limpiar físicamente, hacerlo con una action bajo lock, no a mano.
+
+### Alarma de hallazgos sin ventana (v44)
+`getAlertaHallazgos` y `getRetroalimentaciones` leen desde `HALLAZGOS_DESDE = '2026-01-01'`. Hasta v43 cortaban a 90 días: los pendientes viejos se caían solos de la alarma (17-sep-2026: decía 16 con 84 reales). `getHallazgos` recorre todas las marcas de todos modos, así que la ventana no ahorraba nada.
+
+### `docs/privado/` (ignorado por git)
+El repo es **público** y GitHub Pages sirve `docs/`. Cualquier documento con nombres de personal (cédulas de responsables, informes de madurez) va en `docs/privado/`, que está en `.gitignore`. Nunca commitear ahí ni moverlos a `docs/`.
+
+### 404 HTML intermitente del Web App
+Google devuelve a veces una página 404/HTML en vez de JSON ("Unexpected token '<', "<!DOCTYPE"..." en el frontend). Visto el 17-sep-2026 (Xochitl 10:04; 2 de ~15 llamadas por POST). No es nuestro; reintentar resuelve. Si se vuelve frecuente, poner reintento automático en `apiCall`.
+
 ### Desmarcar (toggle-off, v39)
 Si el usuario pulsa el botón ya activo de SU propia marca (mismo `usuario_email`), se llama `limpiarMarca` / `limpiarMarcaProtocolo` / `limpiarMarcaInventario`. Estas funciones eliminan la fila de la hoja de marcas y también limpian la foto asociada en `ChecklistFotos` y Google Drive (`setTrashed(true)`).
 
@@ -224,7 +240,13 @@ El contenido editorial de los cursos vive en `cursos/*.json`. Cambios solo requi
 
 ## Pendiente próxima sesión
 
-Tras la auditoría de uso de Xochitl (18-jun-2026) — ver memoria [[auditoria-uso-xochitl]]:
+**17-sep-2026 — diagnóstico de producción + informe de madurez** (memoria [[diagnostico-produccion-sep-2026]]):
+- **Correo de madurez a Mónica + Evandro (Yonder cc) PENDIENTE DE ENVÍO por Germán.** Texto humanizado entregado; adjunto `docs/privado/Cedula_hallazgos_sin_respuesta_2026-09-17.pdf`. Cifras: 84 hallazgos sin respuesta (107 d promedio, máx 133), 0 respuestas de gerencia en la vida del sistema, Mónica/Luis 0/8 curso, Xochitl sin abrir hallazgos desde el 21-jul (mayo 40 · jun 61 · jul 9 · ago 0 · sep 0) aunque sigue marcando (75% cobertura, 100% cumplido). Luis NO en copia (decisión); renglón de Xochitl se queda. Cuando salga: registrar fecha en la memoria y en `conciliacion-rodizzio/herramientas/informe_semanal/semanas/2026-09-18.notas.md`.
+- **Pilar A Estado SR12:** 12 módulos con `fecha_actualizacion` = 1-may (semilla), histórico y plan vacíos. Solo auditor/auxiliar pueden actualizar (`updateModulo`) → Germán tiene que dar los % reales.
+- **Inventarios cíclicos:** `Inventarios_Config` sigue vacío → configurar o esconder la sección.
+- Curso `estefania.json` sigue con "firma de Mónica" para cortesías (sin alinear a capitanes).
+
+Tras la auditoría de uso de Xochitl (18-jun-2026) — ver memoria [[auditoria-uso-xochitl]] (lo operativo sigue igual al 17-sep: mismos reincidentes, nadie cierra):
 - **Cajeras (conciliación vacía):** Germán debe preguntarles qué "sistema tiene detalles" exactamente. Casi seguro es el **POS** (esta app NO concilia, solo supervisa). Si es POS → soporte del POS; si no → disciplina.
 - **Reincidentes operativos abiertos** (se cierran cuando corrijan, no por sistema): Host Natali (~10), cajeras Reyna/Sareth (~8), churrasca José Luis (~8, le falta terminar curso), 2 depósitos de Luis. Mensajes ya drafteados y entregados a Germán para reenviar.
 - **31 hallazgos operativos** siguen pendientes de Xochitl (ya NO incluyen cortesías ni cancelaciones — esos 26 se cerraron).
